@@ -24,6 +24,7 @@ interface Props {
   setCaptionShader: React.Dispatch<React.SetStateAction<CaptionShaderParams>>;
   onPickTranscript: React.ChangeEventHandler<HTMLInputElement>;
   onEditorUpdate: (data: TranscriptData) => void;
+  onSearchMatchNavigate: (startMs: number, endMs: number) => void;
 }
 
 export const CaptionsPanel: React.FC<Props> = ({
@@ -32,7 +33,7 @@ export const CaptionsPanel: React.FC<Props> = ({
   captionMode, setCaptionMode,
   captionStyle, setCaptionStyle,
   captionShader, setCaptionShader,
-  onPickTranscript, onEditorUpdate,
+  onPickTranscript, onEditorUpdate, onSearchMatchNavigate,
 }) => (
   <>
     <TabBar<CaptionsSubTab>
@@ -81,7 +82,11 @@ export const CaptionsPanel: React.FC<Props> = ({
           )}
         </Section>
         <Section title="Editor">
-          <CaptionsEditor transcript={transcript} onUpdate={onEditorUpdate} />
+          <CaptionsEditor
+            transcript={transcript}
+            onUpdate={onEditorUpdate}
+            onSearchMatchNavigate={onSearchMatchNavigate}
+          />
         </Section>
       </>
     )}

@@ -113,8 +113,23 @@ export function createHandleSeekPlayhead(refs: PlaybackRefs, state: PlaybackStat
   };
 }
 
+export const PLAYBACK_RATE_STEPS = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2, 2.5, 3, 4] as const;
+
+export function stepPlaybackRate(current: number, direction: 1 | -1): number {
+  // Find the closest step, then move by `direction`. Stay within bounds.
+  let idx = 0;
+  let best = Infinity;
+  for (let i = 0; i < PLAYBACK_RATE_STEPS.length; i++) {
+    const d = Math.abs(PLAYBACK_RATE_STEPS[i] - current);
+    if (d < best) { best = d; idx = i; }
+  }
+  const next = Math.max(0, Math.min(PLAYBACK_RATE_STEPS.length - 1, idx + direction));
+  return PLAYBACK_RATE_STEPS[next];
+}
+
 /**
- * Keyboard shortcuts: space = play/pause, m = mute/unmute.
+ * Keyboard shortcuts: space = play/pause, m = mute/unmute, f = fullscreen,
+ * ',' = decrease playback rate, '.' = increase playback rate.
  * Uses a togglePlayRef to always call the latest togglePlay closure.
  */
 export function usePlaybackKeyboard(
@@ -122,6 +137,7 @@ export function usePlaybackKeyboard(
   previewWrapRef: React.MutableRefObject<HTMLDivElement | null>,
   togglePlayRef: React.MutableRefObject<() => void>,
   setMuted: React.Dispatch<React.SetStateAction<boolean>>,
+  setPlaybackRate?: React.Dispatch<React.SetStateAction<number>>,
 ) {
   useEffect(() => {
     // Only treat *text-entry* fields as editable. Range sliders, checkboxes,
@@ -165,6 +181,11 @@ export function usePlaybackKeyboard(
         } else if (!document.fullscreenElement) {
           void preview.requestFullscreen();
         }
+      } else if (setPlaybackRate && !e.shiftKey && (e.key === ',' || e.key === '.' || e.code === 'Comma' || e.code === 'Period')) {
+        if (!mediaElRef.current) return;
+        e.preventDefault();
+        const isUp = e.key === '.' || e.code === 'Period';
+        setPlaybackRate((r) => stepPlaybackRate(r, isUp ? 1 : -1));
       }
     };
     const onKeyUp = (e: KeyboardEvent) => {
@@ -206,5 +227,5 @@ export function usePlaybackKeyboard(
       document.removeEventListener('pointerup', onPointerUp, true);
       document.removeEventListener('change', onSelectChange, true);
     };
-  }, [mediaElRef, previewWrapRef, togglePlayRef, setMuted]);
+  }, [mediaElRef, previewWrapRef, togglePlayRef, setMuted, setPlaybackRate]);
 }

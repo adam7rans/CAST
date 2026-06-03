@@ -1,20 +1,23 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { TranscriptData, parseTranscript } from '../lib/transcript';
+import { collectSearchMatches, type SearchMatch } from './CaptionsEditor.search';
 
 interface CaptionsEditorProps {
   transcript: TranscriptData | null;
   onUpdate: (data: TranscriptData) => void;
+  onSearchMatchNavigate?: (startMs: number, endMs: number) => void;
 }
 
-export const CaptionsEditor: React.FC<CaptionsEditorProps> = ({ transcript, onUpdate }) => {
+export const CaptionsEditor: React.FC<CaptionsEditorProps> = ({ transcript, onUpdate, onSearchMatchNavigate }) => {
   const [localJson, setLocalJson] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [error, setError] = useState<string | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const highlightRef = useRef<HTMLDivElement>(null);
 
-  const [matchCount, setMatchCount] = useState(0);
+  const [matches, setMatches] = useState<SearchMatch[]>([]);
   const [currentMatchIndex, setCurrentMatchIndex] = useState(-1);
+  const matchCount = matches.length;
 
   // Sync local state when transcript changes from outside
   useEffect(() => {
@@ -27,15 +30,13 @@ export const CaptionsEditor: React.FC<CaptionsEditorProps> = ({ transcript, onUp
   // Update match count when search or JSON changes
   useEffect(() => {
     if (!searchTerm) {
-      setMatchCount(0);
+      setMatches([]);
       setCurrentMatchIndex(-1);
       return;
     }
-    const escaped = searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const regex = new RegExp(escaped, 'gi');
-    const matches = localJson.match(regex);
-    setMatchCount(matches ? matches.length : 0);
-    if (matches && matches.length > 0) {
+    const nextMatches = collectSearchMatches(localJson, searchTerm);
+    setMatches(nextMatches);
+    if (nextMatches.length > 0) {
       setCurrentMatchIndex(0);
     } else {
       setCurrentMatchIndex(-1);
@@ -103,6 +104,11 @@ export const CaptionsEditor: React.FC<CaptionsEditorProps> = ({ transcript, onUp
     if (next < 0) next = matchCount - 1;
     if (next >= matchCount) next = 0;
     setCurrentMatchIndex(next);
+
+    const match = matches[next];
+    if (match?.startMs != null && match.endMs != null) {
+      onSearchMatchNavigate?.(match.startMs, match.endMs);
+    }
 
     // Scroll the current match into view
     setTimeout(() => {

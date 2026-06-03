@@ -98,7 +98,7 @@ export const TimelineControls: React.FC<Props> = ({
                     }}
                   />
                 ) : (
-                  <span>{mt.name} ({fmt(mt.endSecond - mt.startSecond)})</span>
+                  <span>{mt.name}</span>
                 )}
               </button>
             );

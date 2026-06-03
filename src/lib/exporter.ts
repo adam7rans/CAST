@@ -51,13 +51,31 @@ export function buildExportBaseName(prefix: string, startSecond: number, endSeco
   return `${cleanPrefix}_${formatExportTimeToken(startSecond)}-${formatExportTimeToken(endSecond)}`;
 }
 
-export function canvasToPngBlob(canvas: HTMLCanvasElement): Promise<Blob> {
+function encodeCanvasToPngBlob(canvas: HTMLCanvasElement): Promise<Blob> {
   return new Promise((resolve, reject) => {
     canvas.toBlob(
-      (b) => (b ? resolve(b) : reject(new Error('canvas.toBlob returned null'))),
-      'image/png'
+      (blob) => {
+        if (!blob) reject(new Error('canvas.toBlob returned null'));
+        else if (blob.size <= 0) reject(new Error('canvas.toBlob returned an empty blob'));
+        else resolve(blob);
+      },
+      'image/png',
     );
   });
+}
+
+export async function canvasToPngBlob(canvas: HTMLCanvasElement, maxAttempts = 3): Promise<Blob> {
+  let lastError: unknown = null;
+  for (let attempt = 1; attempt <= Math.max(1, maxAttempts); attempt += 1) {
+    try {
+      return await encodeCanvasToPngBlob(canvas);
+    } catch (error) {
+      lastError = error;
+      if (attempt >= maxAttempts) break;
+      await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+    }
+  }
+  throw lastError instanceof Error ? lastError : new Error('Failed to encode PNG blob');
 }
 
 /**

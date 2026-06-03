@@ -5,6 +5,9 @@ import { TabBar } from '../Tabs';
 import { LayerToggle, PillToggle } from '../LayerToggle';
 import { ProjectBar } from '../ProjectBar';
 import { ProjectStatusPanel } from '../ProjectStatusPanel';
+import { stepPlaybackRate } from '../../hooks/usePlayback';
+
+const formatRate = (rate: number) => (Number.isInteger(rate) ? `${rate}×` : `${rate.toFixed(2).replace(/0+$/, '').replace(/\.$/, '')}×`);
 
 export const SidebarHeader: React.FC<Pick<
   SidebarPanelProps,
@@ -21,6 +24,8 @@ export const SidebarHeader: React.FC<Pick<
   | 'togglePlay'
   | 'muted'
   | 'setMuted'
+  | 'playbackRate'
+  | 'setPlaybackRate'
   | 'bgLayerOn'
   | 'setBgLayerOn'
   | 'videoLayerOn'
@@ -45,6 +50,15 @@ export const SidebarHeader: React.FC<Pick<
       <div style={{ display: 'flex', gap: 8, alignItems: 'center', padding: '6px 10px', borderBottom: '1px solid #1f1f1f', background: '#0a0a0a' }}>
         <button onClick={p.togglePlay} style={{ background: '#1f6feb', color: '#fff', border: 'none', padding: '4px 12px', borderRadius: 3, cursor: 'pointer', fontFamily: 'inherit' }}>
           {p.playing ? 'Pause' : 'Play'}
+        </button>
+        <button
+          onClick={() => p.setPlaybackRate((r) => stepPlaybackRate(r, 1))}
+          onContextMenu={(e) => { e.preventDefault(); p.setPlaybackRate((r) => stepPlaybackRate(r, -1)); }}
+          onDoubleClick={() => p.setPlaybackRate(1)}
+          title={'Playback speed (, slower · . faster · right-click slower · double-click reset)'}
+          style={{ background: p.playbackRate === 1 ? '#1a1a1a' : '#23314a', color: p.playbackRate === 1 ? '#ddd' : '#9bc1ff', border: '1px solid #2a2a2a', padding: '4px 8px', borderRadius: 3, cursor: 'pointer', fontFamily: 'inherit', minWidth: 44, textAlign: 'center', fontVariantNumeric: 'tabular-nums' }}
+        >
+          {formatRate(p.playbackRate)}
         </button>
         <button
           onClick={() => p.setMuted((value) => !value)}

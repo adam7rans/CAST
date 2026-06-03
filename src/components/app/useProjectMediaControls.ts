@@ -110,7 +110,7 @@ export function useProjectMediaControls({ refs, state, setters, toasts }: Args) 
       setMuted: setters.setMuted,
     },
   );
-  usePlaybackKeyboard(refs.mediaElRef, refs.previewWrapRef, togglePlayRef, setters.setMuted);
+  usePlaybackKeyboard(refs.mediaElRef, refs.previewWrapRef, togglePlayRef, setters.setMuted, setters.setPlaybackRate);
 
   const { handleEditorUpdateTranscript, onPickTranscript } = useTranscriptHandlers({
     activeProjectIdRef: refs.activeProjectIdRef,

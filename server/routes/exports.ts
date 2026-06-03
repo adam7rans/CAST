@@ -55,6 +55,10 @@ exportRoutes.post('/:id/exports/:exportId/frame', frameUpload.single('frame'), (
     res.status(404).json({ error: 'Export folder not found' });
     return;
   }
+  if (req.file.buffer.length <= 0) {
+    res.status(400).json({ error: 'Empty frame upload' });
+    return;
+  }
 
   const filename = safePngFilename(String(req.body?.filename || req.file.originalname || 'frame.png'));
   fs.writeFileSync(path.join(dir, filename), req.file.buffer);

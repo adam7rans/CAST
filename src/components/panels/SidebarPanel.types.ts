@@ -44,6 +44,8 @@ export interface SidebarPanelProps {
   togglePlay: () => void;
   muted: boolean;
   setMuted: React.Dispatch<React.SetStateAction<boolean>>;
+  playbackRate: number;
+  setPlaybackRate: React.Dispatch<React.SetStateAction<number>>;
   editorSubTab: EditorSubTab;
   setEditorSubTab: React.Dispatch<React.SetStateAction<EditorSubTab>>;
   editorMode: EditorMode;
@@ -127,6 +129,7 @@ export interface SidebarPanelProps {
   setCaptionShader: React.Dispatch<React.SetStateAction<CaptionShaderParams>>;
   onPickTranscript: React.ChangeEventHandler<HTMLInputElement>;
   onEditorUpdate: (data: TranscriptData) => void;
+  onSearchMatchNavigate: (startMs: number, endMs: number) => void;
   audioSubTab: AudioSubTab;
   setAudioSubTab: React.Dispatch<React.SetStateAction<AudioSubTab>>;
   audioReactivity: AudioReactivityParams;

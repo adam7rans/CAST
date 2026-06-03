@@ -50,7 +50,11 @@ export async function uploadExportFrame(id: string, exportId: string, filename: 
   form.append('filename', filename);
   form.append('frame', blob, filename);
   const res = await fetch(`${BASE}/projects/${id}/exports/${exportId}/frame`, { method: 'POST', body: form });
-  if (!res.ok) throw new Error(`Failed to save ${filename}`);
+  if (!res.ok) {
+    const detail = await res.text().catch(() => '');
+    const suffix = detail ? ` (${res.status}: ${detail})` : ` (${res.status})`;
+    throw new Error(`Failed to save ${filename}${suffix}`);
+  }
 }
 
 export async function finishProjectExport(
