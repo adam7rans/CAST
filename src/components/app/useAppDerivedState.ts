@@ -4,6 +4,7 @@ import type { JumpCutGap } from '../../hooks/useJumpCuts';
 import type { GuideKey, EditorMode } from '../../lib/constants';
 import { GUIDES } from '../../lib/constants';
 import { fitRect, isVerticalVideo } from '../../lib/layoutUtils';
+import { filterTranscriptToPlayableWindow } from '../../lib/transcriptPlayback';
 import { mergeTimeGaps, sourceToOutputTime } from '../../lib/timeMapping';
 import { applyClipCaptionEdits, type ClipCaptionEdits, type TranscriptData } from '../../lib/transcript';
 import { MICRO_TIMELINE_COLORS, type ExportParams, type MicroTimeline } from '../../lib/types';
@@ -85,8 +86,19 @@ export function useAppDerivedState({
   );
   const selectedGap = jumpCutGaps.find((gap) => gap.key === selectedGapKey) ?? null;
   const effectiveTranscript = useMemo(
-    () => (transcript && editorMode === 'clips' && selectedProjectClip ? applyClipCaptionEdits(transcript, captionClipEdits[selectedProjectClip.id]) : transcript),
-    [captionClipEdits, editorMode, selectedProjectClip, transcript],
+    () => {
+      if (!transcript || editorMode !== 'clips' || !selectedProjectClip) return transcript;
+      const clipTranscript = applyClipCaptionEdits(transcript, captionClipEdits[selectedProjectClip.id]);
+      return filterTranscriptToPlayableWindow(clipTranscript, {
+        clipStartMs: Math.round(selectedProjectClip.startSecond * 1000),
+        clipEndMs: Math.round(selectedProjectClip.endSecond * 1000),
+        removedRangesMs: activeSkipTimeGaps.map((gap) => ({
+          startMs: Math.round(gap.start * 1000),
+          endMs: Math.round(gap.end * 1000),
+        })),
+      });
+    },
+    [activeSkipTimeGaps, captionClipEdits, editorMode, selectedProjectClip, transcript],
   );
   const activeExportParams = useMemo(() => {
     if (selectedTimelineSegment) {
