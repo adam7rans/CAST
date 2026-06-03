@@ -11,7 +11,16 @@
  * The standard `gl.texImage2D(..., HTMLCanvasElement)` overload is used to
  * upload the captions texture each frame.
  */
-import type { CaptionShaderParams } from './types';
+import type { CaptionShaderParams, CaptionShaderWaveType } from './types';
+
+const WAVE_TYPE_INDEX: Record<CaptionShaderWaveType, number> = {
+  sine: 0,
+  triangle: 1,
+  sawtooth: 2,
+  square: 3,
+  pulse: 4,
+  noise: 5,
+};
 
 /**
  * Always supported — the renderer only depends on baseline WebGL2 features.
@@ -58,12 +67,64 @@ uniform float u_time;
 uniform float u_speed;
 uniform float u_freq;
 uniform float u_amp;
-uniform vec2  u_dir; // unit vector along wave propagation
+uniform vec2  u_dir;       // unit vector along wave propagation
+uniform int   u_waveType;  // 0 sine, 1 tri, 2 saw, 3 square, 4 pulse, 5 noise
+uniform float u_pulseW;    // pulse duty cycle (0..1)
 out vec4 outColor;
+
+// Hash-based value noise in [-1, 1]. Cheap and good enough for caption jitter.
+float hash21(vec2 p) {
+  p = fract(p * vec2(123.34, 456.21));
+  p += dot(p, p + 45.32);
+  return fract(p.x * p.y);
+}
+float valueNoise(vec2 p) {
+  vec2 i = floor(p);
+  vec2 f = fract(p);
+  float a = hash21(i);
+  float b = hash21(i + vec2(1.0, 0.0));
+  float c = hash21(i + vec2(0.0, 1.0));
+  float d = hash21(i + vec2(1.0, 1.0));
+  vec2 u = f * f * (3.0 - 2.0 * f);
+  return mix(mix(a, b, u.x), mix(c, d, u.x), u.y) * 2.0 - 1.0;
+}
+
+// Wave shapes normalized to [-1, 1] (except noise, which is value-noise based).
+float waveShape(int kind, float phase, float pulseW) {
+  if (kind == 0) {
+    return sin(phase);
+  } else if (kind == 1) {
+    // Triangle: 4/π * asin(sin(phase)) gives [-1,1] linear triangle.
+    return (2.0 / 3.14159265) * asin(sin(phase));
+  } else if (kind == 2) {
+    // Sawtooth: rises from -1 to 1 each period.
+    float t = phase / 6.2831853;
+    return 2.0 * (t - floor(t + 0.5));
+  } else if (kind == 3) {
+    // Square: ±1 with 50% duty.
+    return sin(phase) >= 0.0 ? 1.0 : -1.0;
+  } else if (kind == 4) {
+    // Pulse: ±1 with adjustable duty cycle.
+    float t = fract(phase / 6.2831853);
+    return t < clamp(pulseW, 0.0, 1.0) ? 1.0 : -1.0;
+  }
+  return 0.0;
+}
+
 void main() {
-  float phase = dot(v_uv, u_dir) * u_freq * 6.2831853 + u_time * u_speed;
   vec2 perp = vec2(-u_dir.y, u_dir.x);
-  vec2 disp = perp * sin(phase) * u_amp;
+  vec2 disp;
+  if (u_waveType == 5) {
+    // Noise: 2D value noise driven by frequency (scale) and time*speed.
+    vec2 p = v_uv * max(u_freq, 0.0001) + vec2(u_time * u_speed * 0.5);
+    float n1 = valueNoise(p);
+    float n2 = valueNoise(p + vec2(17.3, 91.7));
+    disp = vec2(n1, n2) * u_amp;
+  } else {
+    float phase = dot(v_uv, u_dir) * u_freq * 6.2831853 + u_time * u_speed;
+    float w = waveShape(u_waveType, phase, u_pulseW);
+    disp = perp * w * u_amp;
+  }
   vec2 uv = v_uv + disp;
   // Transparent outside [0,1] so the displaced edges fade out instead of
   // wrapping/repeating.
@@ -86,6 +147,8 @@ export class CaptionShaderRenderer {
   private uFreq: WebGLUniformLocation | null = null;
   private uAmp: WebGLUniformLocation | null = null;
   private uDir: WebGLUniformLocation | null = null;
+  private uWaveType: WebGLUniformLocation | null = null;
+  private uPulseW: WebGLUniformLocation | null = null;
   private startMs = performance.now();
   private supported = false;
 
@@ -149,7 +212,8 @@ export class CaptionShaderRenderer {
       !Number.isFinite(params.speed) ||
       !Number.isFinite(params.frequency) ||
       !Number.isFinite(params.amplitude) ||
-      !Number.isFinite(params.angleDeg)
+      !Number.isFinite(params.angleDeg) ||
+      !Number.isFinite(params.pulseWidth)
     ) {
       return;
     }
@@ -173,6 +237,8 @@ export class CaptionShaderRenderer {
     if (this.uFreq) gl.uniform1f(this.uFreq, params.frequency);
     if (this.uAmp) gl.uniform1f(this.uAmp, params.amplitude);
     if (this.uDir) gl.uniform2f(this.uDir, dirX, dirY);
+    if (this.uWaveType) gl.uniform1i(this.uWaveType, WAVE_TYPE_INDEX[params.waveType] ?? 0);
+    if (this.uPulseW) gl.uniform1f(this.uPulseW, params.pulseWidth);
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
     gl.bindVertexArray(null);
   }
@@ -195,6 +261,8 @@ export class CaptionShaderRenderer {
     this.uFreq = gl.getUniformLocation(prog, 'u_freq');
     this.uAmp = gl.getUniformLocation(prog, 'u_amp');
     this.uDir = gl.getUniformLocation(prog, 'u_dir');
+    this.uWaveType = gl.getUniformLocation(prog, 'u_waveType');
+    this.uPulseW = gl.getUniformLocation(prog, 'u_pulseW');
 
     this.vbo = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, this.vbo);

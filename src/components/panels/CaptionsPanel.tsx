@@ -1,15 +1,33 @@
 import React from 'react';
 import {
   DEFAULT_CAPTION_STYLE, DEFAULT_CAPTION_SHADER,
-  type CaptionStyle, type CaptionShaderParams,
+  type CaptionStyle, type CaptionShaderParams, type CaptionShaderWaveType,
 } from '../../lib/types';
 import type { CaptionMode, TranscriptData } from '../../lib/transcript';
 import type { CaptionsSubTab } from '../../lib/constants';
-import { Section, Slider, Toggle } from '../Controls';
+import { Section, Select, Slider, Toggle } from '../Controls';
 import { TabBar } from '../Tabs';
 import { PillToggle } from '../LayerToggle';
 import { CaptionFontControls, CaptionTypeControls } from '../CaptionFontControls';
 import { CaptionsEditor } from '../CaptionsEditor';
+
+const WAVE_TYPE_OPTIONS: { label: string; value: CaptionShaderWaveType }[] = [
+  { label: 'Sine',     value: 'sine' },
+  { label: 'Triangle', value: 'triangle' },
+  { label: 'Sawtooth', value: 'sawtooth' },
+  { label: 'Square',   value: 'square' },
+  { label: 'Pulse',    value: 'pulse' },
+  { label: 'Noise',    value: 'noise' },
+];
+
+const WAVE_TYPE_LABEL: Record<CaptionShaderWaveType, string> = {
+  sine: 'sine wave',
+  triangle: 'triangle wave',
+  sawtooth: 'sawtooth wave',
+  square: 'square wave',
+  pulse: 'pulse wave',
+  noise: 'noise',
+};
 
 interface Props {
   captionsSubTab: CaptionsSubTab;
@@ -108,11 +126,17 @@ export const CaptionsPanel: React.FC<Props> = ({
     )}
 
     {captionsSubTab === 'shader' && (
-      <Section title="Shader (sine wave)" onReset={() => setCaptionShader(DEFAULT_CAPTION_SHADER)}>
+      <Section title={`Shader (${WAVE_TYPE_LABEL[captionShader.waveType]})`} onReset={() => setCaptionShader(DEFAULT_CAPTION_SHADER)}>
         <Toggle
           label="enabled"
           value={captionShader.enabled}
           onChange={(enabled) => setCaptionShader({ ...captionShader, enabled })}
+        />
+        <Select
+          label="wave"
+          value={captionShader.waveType}
+          options={WAVE_TYPE_OPTIONS}
+          onChange={(v) => setCaptionShader({ ...captionShader, waveType: v as CaptionShaderWaveType })}
         />
         <Slider
           label="speed"
@@ -122,26 +146,40 @@ export const CaptionsPanel: React.FC<Props> = ({
           onChange={(speed) => setCaptionShader({ ...captionShader, speed })}
         />
         <Slider
-          label="frequency"
+          label={captionShader.waveType === 'noise' ? 'scale' : 'frequency'}
           value={captionShader.frequency}
-          min={0} max={40} step={0.5}
-          ticks={[4, 10, 20]}
+          min={0} max={240} step={0.5}
+          ticks={[20, 60, 120, 180]}
           onChange={(frequency) => setCaptionShader({ ...captionShader, frequency })}
         />
         <Slider
           label="amplitude"
-          value={captionShader.amplitude}
-          min={0} max={0.2} step={0.001}
-          ticks={[0.01, 0.05, 0.1]}
-          onChange={(amplitude) => setCaptionShader({ ...captionShader, amplitude })}
+          value={Math.max(0, Math.min(0.01, captionShader.amplitude))}
+          min={0} max={0.01} step={0.00005}
+          ticks={[0.001, 0.003, 0.005, 0.008]}
+          onChange={(amplitude) => setCaptionShader({
+            ...captionShader,
+            amplitude: Math.max(0, Math.min(0.01, amplitude)),
+          })}
         />
-        <Slider
-          label="angle°"
-          value={captionShader.angleDeg}
-          min={0} max={360} step={1}
-          ticks={[0, 90, 180, 270]}
-          onChange={(angleDeg) => setCaptionShader({ ...captionShader, angleDeg: Math.round(angleDeg) })}
-        />
+        {captionShader.waveType !== 'noise' && (
+          <Slider
+            label="angle°"
+            value={captionShader.angleDeg}
+            min={0} max={360} step={1}
+            ticks={[0, 90, 180, 270]}
+            onChange={(angleDeg) => setCaptionShader({ ...captionShader, angleDeg: Math.round(angleDeg) })}
+          />
+        )}
+        {captionShader.waveType === 'pulse' && (
+          <Slider
+            label="pulse width"
+            value={captionShader.pulseWidth}
+            min={0.05} max={0.95} step={0.01}
+            ticks={[0.25, 0.5, 0.75]}
+            onChange={(pulseWidth) => setCaptionShader({ ...captionShader, pulseWidth })}
+          />
+        )}
       </Section>
     )}
   </>

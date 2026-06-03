@@ -168,10 +168,15 @@ export interface MusicTimelineClip {
   color: string;
 }
 
+export type CaptionShaderWaveType = 'sine' | 'triangle' | 'sawtooth' | 'square' | 'pulse' | 'noise';
+
 export interface CaptionShaderParams {
   enabled: boolean;
+  waveType: CaptionShaderWaveType;
   frequency: number;
   speed: number;
   amplitude: number;
   angleDeg: number;
+  /** Duty cycle for pulse wave (0..1). Ignored for other wave types. */
+  pulseWidth: number;
 }
