@@ -3,6 +3,8 @@ import { DEFAULT_CAPTION_STYLE, type CaptionStyle } from './types';
 import { applyAlpha } from './captionColor';
 import { CAPTION_GRACE_MS, captionFadeAlpha, isWordActive, splitWordParts } from '../components/captions.helpers';
 
+export const CAPTION_REFERENCE_WIDTH = 960;
+
 function applyCaptionFont(ctx: CanvasRenderingContext2D, size: number, style: CaptionStyle) {
   ctx.font = `${style.fontWeight} ${size}px ${style.fontFamily}`;
   (ctx as any).letterSpacing = `${style.letterSpacing}em`;

@@ -24,6 +24,8 @@ interface ShaderCaptionsProps {
   mode: CaptionMode;
   style?: CaptionStyle;
   frame: { x: number; y: number; w: number; h: number };
+  /** Stable reference width (source video resolution) for font scaling. */
+  referenceWidth?: number;
   timeSourceRef: React.MutableRefObject<HTMLMediaElement | null>;
   shader: CaptionShaderParams;
   /** Optional playhead override in seconds (used during the outro) */
@@ -35,7 +37,7 @@ interface ShaderCaptionsProps {
 }
 
 export const ShaderCaptions: React.FC<ShaderCaptionsProps> = ({
-  transcript, mode, style, frame, timeSourceRef, shader, playhead, opacity = 1, playbackStartMs,
+  transcript, mode, style, frame, referenceWidth, timeSourceRef, shader, playhead, opacity = 1, playbackStartMs,
 }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const offscreenRef = useRef<HTMLCanvasElement | null>(null);
@@ -49,6 +51,7 @@ export const ShaderCaptions: React.FC<ShaderCaptionsProps> = ({
   const frameRef = useRef(frame);
   const playheadRef = useRef(playhead);
   const playbackStartMsRef = useRef(playbackStartMs);
+  const referenceWidthRef = useRef(referenceWidth);
 
   useEffect(() => { shaderRef.current = shader; }, [shader]);
   useEffect(() => { styleRef.current = style; }, [style]);
@@ -57,6 +60,7 @@ export const ShaderCaptions: React.FC<ShaderCaptionsProps> = ({
   useEffect(() => { frameRef.current = frame; }, [frame]);
   useEffect(() => { playheadRef.current = playhead; }, [playhead]);
   useEffect(() => { playbackStartMsRef.current = playbackStartMs; }, [playbackStartMs]);
+  useEffect(() => { referenceWidthRef.current = referenceWidth; }, [referenceWidth]);
 
   // Initialize the WebGL renderer + offscreen 2D canvas once, when shader
   // becomes enabled. Tearing this down/up on every parameter change would
@@ -112,8 +116,10 @@ export const ShaderCaptions: React.FC<ShaderCaptionsProps> = ({
           timeMs = t ? t.currentTime * 1000 : 0;
         }
         const effectiveStyle = styleRef.current ?? DEFAULT_CAPTION_STYLE;
+        const refW = referenceWidthRef.current;
+        const captionScale = refW ? f.w / refW : 1.0;
         drawCaptionsToCanvas(
-          ctx, transcriptRef.current, modeRef.current, timeMs, f.w, f.h, effectiveStyle, 1.0, playbackStartMsRef.current,
+          ctx, transcriptRef.current, modeRef.current, timeMs, f.w, f.h, effectiveStyle, captionScale, playbackStartMsRef.current,
         );
         renderer.render(offscreen, params);
       } catch (err) {
@@ -146,6 +152,7 @@ export const ShaderCaptions: React.FC<ShaderCaptionsProps> = ({
         mode={mode}
         style={style}
         frame={frame}
+        referenceWidth={referenceWidth}
         timeSourceRef={timeSourceRef}
         playhead={playhead}
         opacity={opacity}

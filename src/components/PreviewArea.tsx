@@ -2,6 +2,7 @@ import React from 'react';
 import type { CaptionMode, TranscriptData } from '../lib/transcript';
 import type { CaptionStyle, CaptionShaderParams, ExportParams, VideoShaderParams } from '../lib/types';
 import { resolveExportRange, guideRectInVideoFrame } from '../lib/layoutUtils';
+import { CAPTION_REFERENCE_WIDTH } from '../lib/captionCanvas';
 import type { GUIDES } from '../lib/constants';
 import { ShaderCaptions } from './ShaderCaptions';
 import { OutroOverlay } from './OutroOverlay';
@@ -101,6 +102,7 @@ export const PreviewArea: React.FC<Props> = ({
             mode={captionMode}
             style={captionStyle}
             frame={captionFrame}
+            referenceWidth={CAPTION_REFERENCE_WIDTH}
             timeSourceRef={mediaElRef}
             shader={captionShader}
             playhead={playheadSecond}

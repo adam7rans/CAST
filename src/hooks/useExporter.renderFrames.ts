@@ -1,7 +1,6 @@
 import type { AudioBands } from '../lib/AudioSource';
-import { guideRectInVideoFrame } from '../lib/layoutUtils';
 import { canvasToPngBlob, frameNumber, seekVideoTo } from '../lib/exporter';
-import { drawCaptionsToCanvas } from '../lib/captionCanvas';
+import { drawCaptionsToCanvas, CAPTION_REFERENCE_WIDTH } from '../lib/captionCanvas';
 import { finishProjectExport, uploadExportFrame } from '../lib/projectApi';
 import {
   applyFinalInvertPass,
@@ -44,11 +43,6 @@ export async function renderExportFrames({
     captionStyle,
     captionShader,
     transcript,
-    videoInfo,
-    cropToGuide,
-    activeGuide,
-    availableGuides,
-    previewFrame,
   } = state;
   const {
     setProjectStatus,
@@ -130,13 +124,7 @@ export async function renderExportFrames({
     }
 
     if (captionsLayerOn && transcript) {
-      const guide = cropToGuide
-        ? availableGuides.find((candidate) => candidate.key === activeGuide)
-        : undefined;
-      const logicalCaptionFrame = guide && videoInfo
-        ? guideRectInVideoFrame(previewFrame, videoInfo, guide)
-        : previewFrame;
-      const capScale = width / logicalCaptionFrame.w;
+      const capScale = width / CAPTION_REFERENCE_WIDTH;
       const capOpacity = inOutro
         ? Math.max(0, 1 - (tOut - timing.contentDuration) / 3)
         : 1;

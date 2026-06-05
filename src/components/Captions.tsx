@@ -16,6 +16,8 @@ interface CaptionsProps {
   mode: CaptionMode;
   style?: CaptionStyle;
   frame: { x: number; y: number; w: number; h: number };
+  /** Stable reference width (source video resolution) for font scaling. */
+  referenceWidth?: number;
   /** something whose .currentTime is read each frame (in seconds) */
   timeSourceRef: React.MutableRefObject<HTMLMediaElement | null>;
   /** Optional playhead override in seconds (used during the outro) */
@@ -26,10 +28,11 @@ interface CaptionsProps {
   playbackStartMs?: number;
 }
 
-export const Captions: React.FC<CaptionsProps> = ({ transcript, mode, style = DEFAULT_CAPTION_STYLE, frame, timeSourceRef, playhead, opacity = 1, playbackStartMs }) => {
+export const Captions: React.FC<CaptionsProps> = ({ transcript, mode, style = DEFAULT_CAPTION_STYLE, frame, referenceWidth, timeSourceRef, playhead, opacity = 1, playbackStartMs }) => {
   const [currentTimeMs, setCurrentTimeMs] = useState(0);
   const rafRef = useRef<number | null>(null);
   const captionStyle = { ...DEFAULT_CAPTION_STYLE, ...style };
+  const captionScale = referenceWidth ? frame.w / referenceWidth : 1;
   const activeColor = applyAlpha(captionStyle.color, captionStyle.colorOpacity ?? 1);
   const dimColorResolved = applyAlpha(captionStyle.dimColor, captionStyle.dimColorOpacity ?? 1);
   const shadowOn = captionStyle.shadowEnabled !== false;
@@ -172,7 +175,7 @@ export const Captions: React.FC<CaptionsProps> = ({ transcript, mode, style = DE
           style={{
             ...buildBoxStyle(wordBoxWidth),
             display: 'block',
-            fontSize: captionStyle.wordFontSize,
+            fontSize: captionStyle.wordFontSize * captionScale,
             fontWeight: captionStyle.fontWeight,
             letterSpacing: `${captionStyle.letterSpacing}em`,
             color: activeColor,
@@ -196,7 +199,7 @@ export const Captions: React.FC<CaptionsProps> = ({ transcript, mode, style = DE
       <div
         style={{
           ...buildBoxStyle(lineBoxWidth),
-          fontSize: captionStyle.lineFontSize,
+          fontSize: captionStyle.lineFontSize * captionScale,
           fontWeight: captionStyle.fontWeight,
           letterSpacing: `${captionStyle.letterSpacing}em`,
           lineHeight: captionStyle.lineHeight,
