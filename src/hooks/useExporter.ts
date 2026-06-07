@@ -40,15 +40,17 @@ export function createExportComposition(
 
     const projectId = activeProjectIdRef.current;
     if (!projectId) throw new Error('Create or select a project before exporting.');
-    if (!bgLayerOn && !videoLayerOn && !captionsLayerOn) throw new Error('Turn on at least one layer before exporting.');
     const video = videoElRef.current;
+    // Audio-only projects can't turn the video layer off in the UI, so treat the
+    // video layer as off whenever no video is actually loaded.
+    const effectiveVideoLayerOn = videoLayerOn && !!video;
+    if (!bgLayerOn && !effectiveVideoLayerOn && !captionsLayerOn) throw new Error('Turn on at least one layer before exporting.');
     const audio = audioSourceRef.current;
     const params = activeExportParamsRef.current;
     const exportMode = params.exportMode ?? 'master';
     const sourceDuration = videoInfo?.duration ?? audioInfo?.duration ?? null;
     const range = resolveExportRange(params, sourceDuration);
     const exportBaseName = buildExportBaseName(params.filenamePrefix, range.start, range.end);
-    if (videoLayerOn && !video) throw new Error('Load a video before exporting the video layer.');
 
     // Pre-compute deterministic per-frame audio bands when audio is loaded.
     if (audio && audioReactivity.enabled) {
@@ -81,7 +83,7 @@ export function createExportComposition(
     const bgRenderer = bgLayerOn
       ? new BackgroundRenderer(document.createElement('canvas'), bg, bgDither)
       : null;
-    const videoRenderer = videoLayerOn
+    const videoRenderer = effectiveVideoLayerOn
       ? new VideoRenderer(document.createElement('canvas'), vid)
       : null;
     videoRenderer?.setVideo(video);
@@ -120,7 +122,7 @@ export function createExportComposition(
           : undefined,
         layers: {
           background: bgLayerOn,
-          video: videoLayerOn,
+          video: effectiveVideoLayerOn,
           captions: captionsLayerOn,
           music: musicLayerOn,
         },

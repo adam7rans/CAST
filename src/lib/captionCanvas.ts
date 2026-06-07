@@ -1,6 +1,7 @@
 import { splitSentences, type CaptionMode, type TranscriptData, type TranscriptWord } from './transcript';
 import { DEFAULT_CAPTION_STYLE, type CaptionStyle } from './types';
 import { applyAlpha } from './captionColor';
+import { splitCaptionItemsIntoLines } from './captionLineBreaks';
 import { CAPTION_GRACE_MS, captionFadeAlpha, isWordActive, splitWordParts } from '../components/captions.helpers';
 
 export const CAPTION_REFERENCE_WIDTH = 960;
@@ -29,29 +30,6 @@ function lineStartX(boxLeft: number, boxWidth: number, lineWidth: number, align:
   if (align === 'right') return boxLeft + boxWidth - lineWidth;
   if (align === 'center') return boxLeft + (boxWidth - lineWidth) / 2;
   return boxLeft;
-}
-
-function wrapTokens(
-  ctx: CanvasRenderingContext2D,
-  tokens: Array<{ text: string; active?: boolean; progress?: number }>,
-  maxWidth: number,
-) {
-  const lines: Array<typeof tokens> = [];
-  let line: typeof tokens = [];
-  let lineWidth = 0;
-
-  for (const token of tokens) {
-    const tokenWidth = measure(ctx, token.text);
-    if (line.length && lineWidth + tokenWidth > maxWidth) {
-      lines.push(line);
-      line = [];
-      lineWidth = 0;
-    }
-    line.push(token);
-    lineWidth += tokenWidth;
-  }
-  if (line.length) lines.push(line);
-  return lines;
 }
 
 function activeUtteranceAt(data: TranscriptData, timeMs: number) {
@@ -189,7 +167,11 @@ export function drawCaptionsToCanvas(
       })
     : sentence.text.split(/\s+/).filter(Boolean).map((text) => ({ text: `${text} `, word: text }));
 
-  const lines = wrapTokens(ctx, tokens, boxWidth);
+  const lines = splitCaptionItemsIntoLines(
+    tokens,
+    boxWidth,
+    (slice) => measure(ctx, slice.map((token) => ((token as any).word ?? token.text.trim())).join(' ')),
+  );
   const lineHeightPx = lineFontSize * style.lineHeight;
   const totalHeight = Math.max(lineFontSize, lines.length * lineHeightPx);
   let y = centerY - totalHeight / 2 + lineFontSize;
@@ -199,16 +181,19 @@ export function drawCaptionsToCanvas(
     style.underlineMode ?? (style.underlineEnabled === false ? 'off' : 'draw');
 
   for (const line of lines) {
-    const lineWidth = line.reduce((sum, token) => sum + measure(ctx, token.text), 0);
+    const lineWidth = measure(ctx, line.map((token) => ((token as any).word ?? token.text.trim())).join(' '));
     let x = lineStartX(boxLeft, boxWidth, lineWidth, style.textAlign);
-    for (const token of line) {
-      const tokenWidth = measure(ctx, token.text);
+    for (let index = 0; index < line.length; index++) {
+      const token = line[index];
+      const isLastInLine = index === line.length - 1;
+      const renderedTokenText = isLastInLine ? token.text.trimEnd() : token.text;
+      const tokenWidth = measure(ctx, renderedTokenText);
       // Render lead/body/trail separately so punctuation never receives the
       // active highlight colour. The body is the real word; lead/trail keep
       // the dim colour even when the token is "active".
       const word = (token as any).word ?? token.text.trimEnd();
       const { lead, body, trail } = splitWordParts(word);
-      const trailingSpace = token.text.endsWith(' ') ? ' ' : '';
+      const trailingSpace = !isLastInLine && token.text.endsWith(' ') ? ' ' : '';
       const dim = style.wordHighlightEnabled ? dimColor : activeColor;
       const active = style.wordHighlightEnabled
         ? (token.active ? activeColor : dimColor)

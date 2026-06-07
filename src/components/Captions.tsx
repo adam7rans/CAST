@@ -9,7 +9,8 @@ import {
 } from '../lib/transcript';
 import { DEFAULT_CAPTION_STYLE, type CaptionStyle } from '../lib/types';
 import { applyAlpha } from '../lib/captionColor';
-import { CAPTION_GRACE_MS, captionFadeAlpha, isWordActive, splitWordParts } from './captions.helpers';
+import { CAPTION_GRACE_MS, captionFadeAlpha, splitWordParts } from './captions.helpers';
+import { CaptionLineText } from './CaptionLineText';
 
 interface CaptionsProps {
   transcript: TranscriptData;
@@ -194,6 +195,7 @@ export const Captions: React.FC<CaptionsProps> = ({ transcript, mode, style = DE
   if (!activeSentence || sentenceFadeAlpha <= 0) return <div style={overlayStyle} />;
 
   const words = activeSentence.words ?? [];
+  const lineBoxWidthPx = frame.w * (lineBoxWidth / 100);
   return (
     <div style={overlayStyle}>
       <div
@@ -208,95 +210,17 @@ export const Captions: React.FC<CaptionsProps> = ({ transcript, mode, style = DE
           opacity: sentenceFadeAlpha,
         }}
       >
-        {words.length > 0
-          ? words.map((w, i) => {
-              const active = isWordActive(w, currentTimeMs);
-              const wStart = w.start ?? 0;
-              const wEnd = w.end ?? wStart;
-              const wDur = Math.max(wEnd - wStart, 1);
-              const elapsed = active
-                ? Math.min(Math.max(currentTimeMs - wStart, 0), wDur)
-                : 0;
-              const progress = active ? elapsed / wDur : 0;
-              const highlighted = active && captionStyle.wordHighlightEnabled;
-
-              // Underline mode with legacy boolean fallback
-              const underlineMode =
-                captionStyle.underlineMode ??
-                (captionStyle.underlineEnabled === false ? 'off' : 'draw');
-
-              // Fade alpha for 'fade' mode: ramps in over FADE_MS at the
-              // start of the word, holds at 1, and ramps out over FADE_MS at
-              // the end. For very short words the peak is < 1 but it still
-              // pulses smoothly. FADE_MS = 0 → instant on/off.
-              const FADE_MS = Math.max(0, captionStyle.underlineFadeMs ?? 150);
-              const remaining = active ? Math.max(wEnd - currentTimeMs, 0) : 0;
-              const fadeAlpha = active
-                ? FADE_MS === 0
-                  ? 1
-                  : Math.max(0, Math.min(1, Math.min(elapsed, remaining) / FADE_MS))
-                : 0;
-
-              const drawWidth =
-                underlineMode === 'draw' && active ? `${(progress * 100).toFixed(2)}%`
-                : underlineMode === 'fade' && active ? '100%'
-                : '0%';
-              const drawOpacity = underlineMode === 'fade' ? fadeAlpha : 1;
-
-              const { lead, body, trail } = splitWordParts(w.text);
-              const dimColor = captionStyle.wordHighlightEnabled
-                ? dimColorResolved
-                : activeColor;
-              const bodyColor = captionStyle.wordHighlightEnabled
-                ? (highlighted ? activeColor : dimColorResolved)
-                : activeColor;
-
-              return (
-                <span key={i} style={{ display: 'inline' }}>
-                  {lead && (
-                    <span style={{ color: dimColor }}>{lead}</span>
-                  )}
-                  {body && (
-                    <span
-                      style={{
-                        position: 'relative',
-                        display: 'inline-block',
-                        color: bodyColor,
-                        transition: 'color 200ms ease',
-                        paddingBottom: 2,
-                      }}
-                    >
-                      {body}
-                      <span
-                        aria-hidden
-                        style={{
-                          position: 'absolute',
-                          left: 0,
-                          bottom: 0,
-                          height: 2,
-                          width: drawWidth,
-                          background: activeColor,
-                          opacity: drawOpacity,
-                          transition:
-                            underlineMode === 'draw'
-                              ? 'width 100ms linear'
-                              : `opacity ${FADE_MS}ms ease`,
-                          pointerEvents: 'none',
-                        }}
-                      />
-                    </span>
-                  )}
-                  {trail && (
-                    <span style={{ color: dimColor }}>{trail}</span>
-                  )}
-                </span>
-              );
-            }).reduce<React.ReactNode[]>((acc, el, idx) => {
-              if (idx > 0) acc.push(' ');
-              acc.push(el);
-              return acc;
-            }, [])
-          : activeSentence.text}
+        {words.length > 0 ? (
+          <CaptionLineText
+            words={words}
+            currentTimeMs={currentTimeMs}
+            captionStyle={captionStyle}
+            captionScale={captionScale}
+            boxWidthPx={lineBoxWidthPx}
+            activeColor={activeColor}
+            dimColorResolved={dimColorResolved}
+          />
+        ) : activeSentence.text}
       </div>
     </div>
   );

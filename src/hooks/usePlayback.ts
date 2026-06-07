@@ -114,6 +114,8 @@ export function createHandleSeekPlayhead(refs: PlaybackRefs, state: PlaybackStat
 }
 
 export const PLAYBACK_RATE_STEPS = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2, 2.5, 3, 4] as const;
+const ARROW_SEEK_MULTITAP_WINDOW_MS = 350;
+const ARROW_SEEK_SECONDS = [5, 15, 30] as const;
 
 export function stepPlaybackRate(current: number, direction: 1 | -1): number {
   // Find the closest step, then move by `direction`. Stay within bounds.
@@ -129,16 +131,20 @@ export function stepPlaybackRate(current: number, direction: 1 | -1): number {
 
 /**
  * Keyboard shortcuts: space = play/pause, m = mute/unmute, f = fullscreen,
- * ',' = decrease playback rate, '.' = increase playback rate.
+ * ',' = decrease playback rate, '.' = increase playback rate,
+ * left/right arrows = seek backward/forward with multi-tap acceleration.
  * Uses a togglePlayRef to always call the latest togglePlay closure.
  */
 export function usePlaybackKeyboard(
   mediaElRef: React.MutableRefObject<HTMLMediaElement | null>,
   previewWrapRef: React.MutableRefObject<HTMLDivElement | null>,
   togglePlayRef: React.MutableRefObject<() => void>,
+  seekPlayhead: (second: number) => void,
   setMuted: React.Dispatch<React.SetStateAction<boolean>>,
   setPlaybackRate?: React.Dispatch<React.SetStateAction<number>>,
 ) {
+  const arrowSeekStateRef = useRef<{ direction: -1 | 1; tapCount: number; resetId: number | null } | null>(null);
+
   useEffect(() => {
     // Only treat *text-entry* fields as editable. Range sliders, checkboxes,
     // buttons, etc. should NOT swallow the Space shortcut.
@@ -160,6 +166,34 @@ export function usePlaybackKeyboard(
     // Capture-phase handler so we intercept Space before any focused
     // button/link/etc. can activate it. Also stop propagation + prevent
     // default on both keydown and keyup (buttons activate Space on keyup).
+    const clearArrowSeekState = () => {
+      const active = arrowSeekStateRef.current;
+      if (active?.resetId) window.clearTimeout(active.resetId);
+      arrowSeekStateRef.current = null;
+    };
+    const scheduleArrowSeekReset = (direction: -1 | 1, tapCount: number) => {
+      const resetId = window.setTimeout(() => {
+        if (
+          arrowSeekStateRef.current?.direction === direction &&
+          arrowSeekStateRef.current?.tapCount === tapCount
+        ) {
+          arrowSeekStateRef.current = null;
+        }
+      }, ARROW_SEEK_MULTITAP_WINDOW_MS);
+      arrowSeekStateRef.current = { direction, tapCount, resetId };
+    };
+    const handleArrowSeek = (direction: -1 | 1) => {
+      const mediaEl = mediaElRef.current;
+      if (!mediaEl) return;
+      const prior = arrowSeekStateRef.current;
+      const isContinuing = prior?.direction === direction;
+      const nextTapCount = isContinuing ? Math.min(prior.tapCount + 1, ARROW_SEEK_SECONDS.length) : 1;
+      const previousOffset = isContinuing ? ARROW_SEEK_SECONDS[Math.max(0, prior.tapCount - 1)] : 0;
+      const nextOffset = ARROW_SEEK_SECONDS[nextTapCount - 1];
+      const delta = direction * (nextOffset - previousOffset);
+      seekPlayhead(mediaEl.currentTime + delta);
+      scheduleArrowSeekReset(direction, nextTapCount);
+    };
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.metaKey || e.ctrlKey || e.altKey) return;
       if (isEditableTarget(e.target)) return;
@@ -181,6 +215,11 @@ export function usePlaybackKeyboard(
         } else if (!document.fullscreenElement) {
           void preview.requestFullscreen();
         }
+      } else if (e.code === 'ArrowLeft' || e.code === 'ArrowRight') {
+        if (!mediaElRef.current) return;
+        e.preventDefault();
+        if (e.repeat) return;
+        handleArrowSeek(e.code === 'ArrowRight' ? 1 : -1);
       } else if (setPlaybackRate && !e.shiftKey && (e.key === ',' || e.key === '.' || e.code === 'Comma' || e.code === 'Period')) {
         if (!mediaElRef.current) return;
         e.preventDefault();
@@ -221,11 +260,12 @@ export function usePlaybackKeyboard(
     document.addEventListener('pointerup', onPointerUp, true);
     document.addEventListener('change', onSelectChange, true);
     return () => {
+      clearArrowSeekState();
       window.removeEventListener('keydown', onKeyDown, true);
       window.removeEventListener('keyup', onKeyUp, true);
       document.removeEventListener('focusin', onFocusIn);
       document.removeEventListener('pointerup', onPointerUp, true);
       document.removeEventListener('change', onSelectChange, true);
     };
-  }, [mediaElRef, previewWrapRef, togglePlayRef, setMuted, setPlaybackRate]);
+  }, [mediaElRef, previewWrapRef, togglePlayRef, seekPlayhead, setMuted, setPlaybackRate]);
 }
