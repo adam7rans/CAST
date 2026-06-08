@@ -9,7 +9,7 @@ import {
 } from '../lib/transcript';
 import { DEFAULT_CAPTION_STYLE, type CaptionStyle } from '../lib/types';
 import { applyAlpha } from '../lib/captionColor';
-import { CAPTION_GRACE_MS, captionFadeAlpha, splitWordParts } from './captions.helpers';
+import { CAPTION_GRACE_MS, captionFadeAlpha, isWordActive, splitWordParts } from './captions.helpers';
 import { CaptionLineText } from './CaptionLineText';
 
 interface CaptionsProps {

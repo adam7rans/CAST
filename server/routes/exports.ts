@@ -96,9 +96,8 @@ exportRoutes.post('/:id/exports/:exportId/finish', async (req, res) => {
     videoFile = await stitchVideo(id, eid);
     if (videoFile) {
       const updatedManifest = JSON.parse(fs.readFileSync(manifestPath, 'utf-8'));
-      if (updatedManifest?.exportMode === 'web') {
-        deletedFrames = cleanupExportFrames(dir);
-      }
+      // Frames are intermediate artifacts; remove them after any successful stitch.
+      deletedFrames = cleanupExportFrames(dir);
       fs.writeFileSync(manifestPath, JSON.stringify({
         ...updatedManifest,
         videoFile,
