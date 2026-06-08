@@ -57,7 +57,7 @@ export function createExportComposition(
       try { await audio.preloadEnvelope(); } catch (e) { console.warn('Audio envelope preload failed', e); }
     }
 
-    const activeGuideObj = cropToGuide ? GUIDES.find((g) => g.key === activeGuide) : null;
+    const activeGuideObj = (cropToGuide ? GUIDES.find((g) => g.key === activeGuide) : null) ?? null;
     const width = activeGuideObj ? activeGuideObj.w : Math.max(1, Math.floor(params.width));
     const height = activeGuideObj ? activeGuideObj.h : Math.max(1, Math.floor(params.height));
     const preserveAlpha = exportMode === 'web' && !bgLayerOn;

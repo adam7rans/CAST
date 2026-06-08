@@ -99,7 +99,7 @@ export interface SidebarPanelProps {
   setActiveGuide: React.Dispatch<React.SetStateAction<GuideKey | null>>;
   cropToGuide: boolean;
   setCropToGuide: React.Dispatch<React.SetStateAction<boolean>>;
-  availableGuides: readonly { key: string; w: number; h: number; label: string }[];
+  availableGuides: readonly { key: GuideKey; w: number; h: number; label: string }[];
   mainTab: MainTab;
   setMainTab: React.Dispatch<React.SetStateAction<MainTab>>;
   bg: BackgroundParams;

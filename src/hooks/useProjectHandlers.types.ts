@@ -57,6 +57,8 @@ export interface ProjectHandlerSetters {
   setCaptionMode: React.Dispatch<React.SetStateAction<CaptionMode>>;
   setCaptionStyle: React.Dispatch<React.SetStateAction<CaptionStyle>>;
   setCaptionShader: React.Dispatch<React.SetStateAction<CaptionShaderParams>>;
+  setCaptionStyleByGuide: React.Dispatch<React.SetStateAction<Record<string, CaptionStyle>>>;
+  setCaptionShaderByGuide: React.Dispatch<React.SetStateAction<Record<string, CaptionShaderParams>>>;
   setMuted: React.Dispatch<React.SetStateAction<boolean>>;
   setMediaVolume: React.Dispatch<React.SetStateAction<number>>;
   setOutroVolume: React.Dispatch<React.SetStateAction<number>>;

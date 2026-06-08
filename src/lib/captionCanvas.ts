@@ -165,7 +165,7 @@ export function drawCaptionsToCanvas(
           fadeAlpha,
         };
       })
-    : sentence.text.split(/\s+/).filter(Boolean).map((text) => ({ text: `${text} `, word: text }));
+    : sentence.text.split(/\s+/).filter(Boolean).map((text) => ({ text: `${text} `, word: text, active: false, progress: 0, fadeAlpha: 0 }));
 
   const lines = splitCaptionItemsIntoLines(
     tokens,

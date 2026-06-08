@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { BackgroundRenderer } from '../lib/BackgroundRenderer';
 import { VideoRenderer } from '../lib/VideoRenderer';
 import { AudioSource, type AudioBands, type LimiterParams, DEFAULT_LIMITER } from '../lib/AudioSource';
@@ -23,7 +23,7 @@ import {
   type VideoShaderParams,
 } from '../lib/types';
 import { type CaptionMode, type ClipCaptionEdits, type TranscriptData } from '../lib/transcript';
-import { type AudioSubTab, type BgSubTab, type CaptionsSubTab, type EditorMode, type EditorSubTab, type GuideKey, type MainTab, type ProjectTaskStatus, type VideoShaderSubTab, type VideoSubTab } from '../lib/constants';
+import { captionGuideSlot, type AudioSubTab, type BgSubTab, type CaptionsSubTab, type EditorMode, type EditorSubTab, type GuideKey, type MainTab, type ProjectTaskStatus, type VideoShaderSubTab, type VideoSubTab } from '../lib/constants';
 import { useToasts } from '../hooks/useToasts';
 import { isCustomKey, useJumpCuts } from '../hooks/useJumpCuts';
 import { useRenderLoop } from '../hooks/useRenderLoop';
@@ -68,10 +68,49 @@ export const App: React.FC = () => {
   const [transcriptName, setTranscriptName] = useState<string | null>(null);
   const [captionClipEdits, setCaptionClipEdits] = useState<Record<string, ClipCaptionEdits>>({});
   const [captionMode, setCaptionMode] = useState<CaptionMode>('line');
-  const [captionStyle, setCaptionStyle] = useState<CaptionStyle>(DEFAULT_CAPTION_STYLE);
-  const [captionShader, setCaptionShader] = useState<CaptionShaderParams>(DEFAULT_CAPTION_SHADER);
+  // Caption style + shader are stored per crop-guide so each crop dimension
+  // remembers its own font/line sizing and shader settings. The live
+  // `captionStyle`/`captionShader` below are derived from the active guide's
+  // slot; the wrapper setters write back into that slot.
+  const [captionStyleByGuide, setCaptionStyleByGuide] = useState<Record<string, CaptionStyle>>({});
+  const [captionShaderByGuide, setCaptionShaderByGuide] = useState<Record<string, CaptionShaderParams>>({});
   const [activeGuide, setActiveGuide] = useState<GuideKey | null>(null);
   const [cropToGuide, setCropToGuide] = useState(false);
+
+  const captionSlotKey = captionGuideSlot(activeGuide);
+  const captionSlotKeyRef = useRef(captionSlotKey);
+  captionSlotKeyRef.current = captionSlotKey;
+  const captionStyle = captionStyleByGuide[captionSlotKey] ?? DEFAULT_CAPTION_STYLE;
+  const captionShader = captionShaderByGuide[captionSlotKey] ?? DEFAULT_CAPTION_SHADER;
+  const setCaptionStyle = useCallback<React.Dispatch<React.SetStateAction<CaptionStyle>>>((update) => {
+    setCaptionStyleByGuide((prev) => {
+      const key = captionSlotKeyRef.current;
+      const cur = prev[key] ?? DEFAULT_CAPTION_STYLE;
+      const next = typeof update === 'function' ? (update as (p: CaptionStyle) => CaptionStyle)(cur) : update;
+      return { ...prev, [key]: next };
+    });
+  }, []);
+  const setCaptionShader = useCallback<React.Dispatch<React.SetStateAction<CaptionShaderParams>>>((update) => {
+    setCaptionShaderByGuide((prev) => {
+      const key = captionSlotKeyRef.current;
+      const cur = prev[key] ?? DEFAULT_CAPTION_SHADER;
+      const next = typeof update === 'function' ? (update as (p: CaptionShaderParams) => CaptionShaderParams)(cur) : update;
+      return { ...prev, [key]: next };
+    });
+  }, []);
+
+  // When switching to a crop guide that hasn't been customized yet, seed its
+  // slot from the previously-shown settings so the user starts from where they
+  // were rather than snapping to hard defaults. Once they tweak it, that guide
+  // keeps its own independent values.
+  const prevCaptionSlotKeyRef = useRef(captionSlotKey);
+  useEffect(() => {
+    const prevKey = prevCaptionSlotKeyRef.current;
+    if (prevKey === captionSlotKey) return;
+    prevCaptionSlotKeyRef.current = captionSlotKey;
+    setCaptionStyleByGuide((m) => (m[captionSlotKey] ? m : { ...m, [captionSlotKey]: m[prevKey] ?? DEFAULT_CAPTION_STYLE }));
+    setCaptionShaderByGuide((m) => (m[captionSlotKey] ? m : { ...m, [captionSlotKey]: m[prevKey] ?? DEFAULT_CAPTION_SHADER }));
+  }, [captionSlotKey]);
   const [previewSize, setPreviewSize] = useState({ w: 0, h: 0 });
   const [bg, setBg] = useState<BackgroundParams>(DEFAULT_BACKGROUND);
   const [bgDither, setBgDither] = useState<DitherParams>(DEFAULT_DITHER);
@@ -169,16 +208,16 @@ export const App: React.FC = () => {
   const controls = useProjectMediaControls({
     refs: { previewWrapRef, mediaElRef, videoElRef, audioElRef, audioSourceRef, videoRendererRef, musicElRef, musicPlayerRef, playingInClipRef, activeProjectIdRef, videoBlobUrlRef, audioBlobUrlRef, bgRendererRef, activeExportParamsRef, exportingRef, startRef, jumpCutGapListRef },
     state: { activeProjectId, music, musicLayerOn, musicTimelineClips, videoInfo, audioInfo, selectedTimelineSegment, activeSkipTimeGaps, mediaDuration, bg, bgDither, vid, bgLayerOn, bgOffMode, bgOffColor, videoLayerOn, captionsLayerOn, jumpCutsEnabled, audioReactivity, limiter, mediaVolume, outroVolume, captionMode, captionStyle, captionShader, effectiveTranscript, cropToGuide, activeGuide, availableGuides, previewFrame },
-    setters: { setProjects, setActiveProjectId, setProjectStatus, setMainTab, setBgSubTab, setVideoSubTab, setAudioSubTab, setVideoShaderSubTab, setCaptionsSubTab, setEditorSubTab, setEditorMode, setBg, setBgDither, setVid, setBgExport, setVidExport, setActiveGuide, setCropToGuide, setBgLayerOn, setBgOffMode, setBgOffColor, setVideoLayerOn, setCaptionsLayerOn, setMusicLayerOn, setCaptionMode, setCaptionStyle, setCaptionShader, setMuted, setPlaybackRate, setMediaVolume, setOutroVolume, setVideoInfo, setAudioInfo, setPlayheadSecond, setTranscript, setTranscriptName, setCaptionClipEdits, setPlaying, setAudioReactivity, setMusicInfo, setMusic, setMusicLibrary, setMusicAssetDurations, setSelectedMusicAssetIds, setMusicTimelineClips, setSelectedMusicClipId, setLimiter, setMicroTimelines, setSelectedClipId, setSelectedFullSegmentId, setPendingClipStart, setCustomCuts, setJumpCutGapOverrides, setJumpCutGapDisabled, setSelectedGapKey, setJumpCutsEnabled, setJumpCutGapMs, setJumpCutPaddingMs, setCustomCutPaddingMs, setShowSilenceGaps, setShowFillerCuts, setShowManualCuts, setShowAudioTracks, setPlaybackStartMs },
+    setters: { setProjects, setActiveProjectId, setProjectStatus, setMainTab, setBgSubTab, setVideoSubTab, setAudioSubTab, setVideoShaderSubTab, setCaptionsSubTab, setEditorSubTab, setEditorMode, setBg, setBgDither, setVid, setBgExport, setVidExport, setActiveGuide, setCropToGuide, setBgLayerOn, setBgOffMode, setBgOffColor, setVideoLayerOn, setCaptionsLayerOn, setMusicLayerOn, setCaptionMode, setCaptionStyle, setCaptionShader, setCaptionStyleByGuide, setCaptionShaderByGuide, setMuted, setPlaybackRate, setMediaVolume, setOutroVolume, setVideoInfo, setAudioInfo, setPlayheadSecond, setTranscript, setTranscriptName, setCaptionClipEdits, setPlaying, setAudioReactivity, setMusicInfo, setMusic, setMusicLibrary, setMusicAssetDurations, setSelectedMusicAssetIds, setMusicTimelineClips, setSelectedMusicClipId, setLimiter, setMicroTimelines, setSelectedClipId, setSelectedFullSegmentId, setPendingClipStart, setCustomCuts, setJumpCutGapOverrides, setJumpCutGapDisabled, setSelectedGapKey, setJumpCutsEnabled, setJumpCutGapMs, setJumpCutPaddingMs, setCustomCutPaddingMs, setShowSilenceGaps, setShowFillerCuts, setShowManualCuts, setShowAudioTracks, setPlaybackStartMs },
     toasts: { addToast, updateToast },
   });
   const { currentPresetSettings, applyPresetSettings } = usePresetSettings({
-    state: { bg, bgDither, vid, audioReactivity, music, limiter, captionMode, captionStyle, captionShader, bgLayerOn, videoLayerOn, captionsLayerOn, musicLayerOn, bgOffMode, bgOffColor, activeGuide, cropToGuide, bgExport, vidExport },
-    setters: { setBg, setBgDither, setVid, setAudioReactivity, setMusic, setLimiter, setCaptionMode, setCaptionStyle, setCaptionShader, setBgLayerOn, setVideoLayerOn, setCaptionsLayerOn, setMusicLayerOn, setBgOffMode, setBgOffColor, setActiveGuide, setCropToGuide, setBgExport, setVidExport },
+    state: { bg, bgDither, vid, audioReactivity, music, limiter, captionMode, captionStyle, captionShader, captionStyleByGuide, captionShaderByGuide, bgLayerOn, videoLayerOn, captionsLayerOn, musicLayerOn, bgOffMode, bgOffColor, activeGuide, cropToGuide, bgExport, vidExport },
+    setters: { setBg, setBgDither, setVid, setAudioReactivity, setMusic, setLimiter, setCaptionMode, setCaptionStyle, setCaptionShader, setCaptionStyleByGuide, setCaptionShaderByGuide, setBgLayerOn, setVideoLayerOn, setCaptionsLayerOn, setMusicLayerOn, setBgOffMode, setBgOffColor, setActiveGuide, setCropToGuide, setBgExport, setVidExport },
   });
 
   useAutoSave(activeProjectId, {
-    bg, bgDither, vid, audioReactivity, music, musicLibraryDurations: musicAssetDurations, musicTimelineClips, limiter, captionMode, captionStyle, captionShader,
+    bg, bgDither, vid, audioReactivity, music, musicLibraryDurations: musicAssetDurations, musicTimelineClips, limiter, captionMode, captionStyle, captionShader, captionStyleByGuide, captionShaderByGuide,
     bgLayerOn, bgOffMode, bgOffColor, videoLayerOn, captionsLayerOn, musicLayerOn, activeGuide, cropToGuide, bgExport, vidExport,
     microTimelines, selectedClipId, captionClipEdits, customCuts, jumpCutGapOverrides, jumpCutGapDisabled, jumpCutsEnabled, jumpCutGapMs, jumpCutPaddingMs, customCutPaddingMs,
     showSilenceGaps, showFillerCuts, showManualCuts, mainTab, bgSubTab, videoSubTab, audioSubTab, captionsSubTab, editorSubTab, editorMode, selectedFullSegmentId,
@@ -186,8 +225,8 @@ export const App: React.FC = () => {
     projectHasAudio: !!projects.find((p) => p.id === activeProjectId)?.hasAudio, videoInfoLoaded: !!videoInfo, audioInfoLoaded: !!audioInfo,
   });
   useAppUndoRedo(
-    { bg, bgDither, vid, audioReactivity, music, limiter, captionMode, captionStyle, captionShader, bgLayerOn, bgOffMode, bgOffColor, videoLayerOn, captionsLayerOn, musicLayerOn, activeGuide, cropToGuide, bgExport, vidExport, microTimelines, selectedClipId, musicTimelineClips, selectedMusicClipId, showAudioTracks, customCuts, jumpCutGapOverrides, jumpCutGapDisabled, jumpCutsEnabled, jumpCutGapMs, jumpCutPaddingMs, customCutPaddingMs, showSilenceGaps, showFillerCuts, showManualCuts, muted, mediaVolume, outroVolume },
-    { setBg, setBgDither, setVid, setAudioReactivity, setMusic, setLimiter, setCaptionMode, setCaptionStyle, setCaptionShader, setBgLayerOn, setBgOffMode, setBgOffColor, setVideoLayerOn, setCaptionsLayerOn, setMusicLayerOn, setActiveGuide, setCropToGuide, setBgExport, setVidExport, setMicroTimelines, setSelectedClipId, setMusicTimelineClips, setSelectedMusicClipId, setShowAudioTracks, setCustomCuts, setJumpCutGapOverrides, setJumpCutGapDisabled, setJumpCutsEnabled, setJumpCutGapMs, setJumpCutPaddingMs, setCustomCutPaddingMs, setShowSilenceGaps, setShowFillerCuts, setShowManualCuts, setMuted, setMediaVolume, setOutroVolume },
+    { bg, bgDither, vid, audioReactivity, music, limiter, captionMode, captionStyleByGuide, captionShaderByGuide, bgLayerOn, bgOffMode, bgOffColor, videoLayerOn, captionsLayerOn, musicLayerOn, activeGuide, cropToGuide, bgExport, vidExport, microTimelines, selectedClipId, musicTimelineClips, selectedMusicClipId, showAudioTracks, customCuts, jumpCutGapOverrides, jumpCutGapDisabled, jumpCutsEnabled, jumpCutGapMs, jumpCutPaddingMs, customCutPaddingMs, showSilenceGaps, showFillerCuts, showManualCuts, muted, mediaVolume, outroVolume },
+    { setBg, setBgDither, setVid, setAudioReactivity, setMusic, setLimiter, setCaptionMode, setCaptionStyleByGuide, setCaptionShaderByGuide, setBgLayerOn, setBgOffMode, setBgOffColor, setVideoLayerOn, setCaptionsLayerOn, setMusicLayerOn, setActiveGuide, setCropToGuide, setBgExport, setVidExport, setMicroTimelines, setSelectedClipId, setMusicTimelineClips, setSelectedMusicClipId, setShowAudioTracks, setCustomCuts, setJumpCutGapOverrides, setJumpCutGapDisabled, setJumpCutsEnabled, setJumpCutGapMs, setJumpCutPaddingMs, setCustomCutPaddingMs, setShowSilenceGaps, setShowFillerCuts, setShowManualCuts, setMuted, setMediaVolume, setOutroVolume },
     activeProjectId,
   );
 

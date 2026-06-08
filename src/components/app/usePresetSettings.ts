@@ -3,6 +3,7 @@ import type React from 'react';
 import { DEFAULT_AUDIO_REACTIVITY, DEFAULT_BACKGROUND, DEFAULT_CAPTION_SHADER, DEFAULT_CAPTION_STYLE, DEFAULT_DITHER, DEFAULT_EXPORT, DEFAULT_VIDEO, normalizeVideoShaderParams } from '../../lib/types';
 import { DEFAULT_LIMITER } from '../../lib/AudioSource';
 import { DEFAULT_MUSIC_PARAMS } from '../../lib/MusicPlayer';
+import { seedGuideMap } from '../../lib/constants';
 
 interface Args {
   state: {
@@ -15,6 +16,8 @@ interface Args {
     captionMode: string;
     captionStyle: typeof DEFAULT_CAPTION_STYLE;
     captionShader: typeof DEFAULT_CAPTION_SHADER;
+    captionStyleByGuide: Record<string, typeof DEFAULT_CAPTION_STYLE>;
+    captionShaderByGuide: Record<string, typeof DEFAULT_CAPTION_SHADER>;
     bgLayerOn: boolean;
     videoLayerOn: boolean;
     captionsLayerOn: boolean;
@@ -36,6 +39,8 @@ interface Args {
     setCaptionMode: React.Dispatch<React.SetStateAction<any>>;
     setCaptionStyle: React.Dispatch<React.SetStateAction<typeof DEFAULT_CAPTION_STYLE>>;
     setCaptionShader: React.Dispatch<React.SetStateAction<typeof DEFAULT_CAPTION_SHADER>>;
+    setCaptionStyleByGuide: React.Dispatch<React.SetStateAction<Record<string, typeof DEFAULT_CAPTION_STYLE>>>;
+    setCaptionShaderByGuide: React.Dispatch<React.SetStateAction<Record<string, typeof DEFAULT_CAPTION_SHADER>>>;
     setBgLayerOn: React.Dispatch<React.SetStateAction<boolean>>;
     setVideoLayerOn: React.Dispatch<React.SetStateAction<boolean>>;
     setCaptionsLayerOn: React.Dispatch<React.SetStateAction<boolean>>;
@@ -61,6 +66,8 @@ export function usePresetSettings({ state, setters }: Args) {
       captionMode: state.captionMode,
       captionStyle: state.captionStyle,
       captionShader: state.captionShader,
+      captionStyleByGuide: state.captionStyleByGuide,
+      captionShaderByGuide: state.captionShaderByGuide,
       layers: {
         background: state.bgLayerOn,
         video: state.videoLayerOn,
@@ -83,8 +90,26 @@ export function usePresetSettings({ state, setters }: Args) {
     if (data.video) setters.setVid(normalizeVideoShaderParams(data.video));
     if (data.audioReactivity) setters.setAudioReactivity({ ...DEFAULT_AUDIO_REACTIVITY, ...data.audioReactivity });
     if (data.captionMode) setters.setCaptionMode(data.captionMode);
-    if (data.captionStyle) setters.setCaptionStyle({ ...DEFAULT_CAPTION_STYLE, ...data.captionStyle });
-    if (data.captionShader) setters.setCaptionShader({ ...DEFAULT_CAPTION_SHADER, ...data.captionShader });
+    // Per-guide caption settings: prefer the maps; otherwise seed every guide
+    // slot from a legacy flat value so old presets/projects still apply.
+    if (data.captionStyleByGuide && typeof data.captionStyleByGuide === 'object') {
+      const m: Record<string, typeof DEFAULT_CAPTION_STYLE> = {};
+      for (const [k, v] of Object.entries(data.captionStyleByGuide as Record<string, any>)) {
+        if (v && typeof v === 'object') m[k] = { ...DEFAULT_CAPTION_STYLE, ...v };
+      }
+      setters.setCaptionStyleByGuide(m);
+    } else if (data.captionStyle) {
+      setters.setCaptionStyleByGuide(seedGuideMap({ ...DEFAULT_CAPTION_STYLE, ...data.captionStyle }));
+    }
+    if (data.captionShaderByGuide && typeof data.captionShaderByGuide === 'object') {
+      const m: Record<string, typeof DEFAULT_CAPTION_SHADER> = {};
+      for (const [k, v] of Object.entries(data.captionShaderByGuide as Record<string, any>)) {
+        if (v && typeof v === 'object') m[k] = { ...DEFAULT_CAPTION_SHADER, ...v };
+      }
+      setters.setCaptionShaderByGuide(m);
+    } else if (data.captionShader) {
+      setters.setCaptionShaderByGuide(seedGuideMap({ ...DEFAULT_CAPTION_SHADER, ...data.captionShader }));
+    }
     if (data.limiter) setters.setLimiter({ ...DEFAULT_LIMITER, ...data.limiter });
     if (data.music) {
       setters.setMusic({

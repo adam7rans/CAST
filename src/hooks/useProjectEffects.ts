@@ -91,6 +91,8 @@ export interface AutoSaveSettings {
   captionMode: CaptionMode;
   captionStyle: CaptionStyle;
   captionShader: CaptionShaderParams;
+  captionStyleByGuide: Record<string, CaptionStyle>;
+  captionShaderByGuide: Record<string, CaptionShaderParams>;
   bgLayerOn: boolean;
   bgOffMode: 'grid' | 'color';
   bgOffColor: string;
@@ -137,7 +139,7 @@ export interface AutoSaveSettings {
 function buildSavePayload(settings: AutoSaveSettings) {
   const {
     bg, bgDither, vid, audioReactivity, music, musicLibraryDurations, musicTimelineClips, limiter,
-    captionMode, captionStyle, captionShader,
+    captionMode, captionStyle, captionShader, captionStyleByGuide, captionShaderByGuide,
     bgLayerOn, bgOffMode, bgOffColor, videoLayerOn, captionsLayerOn, musicLayerOn,
     activeGuide, cropToGuide, bgExport, vidExport,
     microTimelines, selectedClipId, captionClipEdits,
@@ -148,7 +150,7 @@ function buildSavePayload(settings: AutoSaveSettings) {
   return {
     background: bg, backgroundDither: bgDither, video: vid,
     audioReactivity, music, musicLibraryDurations, musicTimelineClips, limiter,
-    captionMode, captionStyle, captionShader,
+    captionMode, captionStyle, captionShader, captionStyleByGuide, captionShaderByGuide,
     layers: { background: bgLayerOn, video: videoLayerOn, captions: captionsLayerOn, music: musicLayerOn, bgOffMode, bgOffColor },
     activeGuide, cropToGuide, exportBackground: bgExport, exportVideo: vidExport,
     microTimelines, selectedClipId, captionClipEdits,
@@ -175,7 +177,7 @@ export function useAutoSave(activeProjectId: string | null, settings: AutoSaveSe
   const pendingPayloadRef = useRef<{ projectId: string; payload: Record<string, any> } | null>(null);
   const {
     bg, bgDither, vid, audioReactivity, music, musicLibraryDurations, musicTimelineClips, limiter,
-    captionMode, captionStyle, captionShader,
+    captionMode, captionStyle, captionShader, captionStyleByGuide, captionShaderByGuide,
     bgLayerOn, bgOffMode, bgOffColor, videoLayerOn, captionsLayerOn, musicLayerOn,
     activeGuide, cropToGuide, bgExport, vidExport,
     microTimelines, selectedClipId, captionClipEdits,
@@ -224,7 +226,7 @@ export function useAutoSave(activeProjectId: string | null, settings: AutoSaveSe
     return () => {
       if (saveTimerRef.current) { clearTimeout(saveTimerRef.current); saveTimerRef.current = null; }
     };
-  }, [activeProjectId, bg, bgDither, vid, audioReactivity, music, musicLibraryDurations, musicTimelineClips, limiter, captionMode, captionStyle, captionShader, bgLayerOn, bgOffMode, bgOffColor, videoLayerOn, captionsLayerOn, musicLayerOn, activeGuide, cropToGuide, bgExport, vidExport, microTimelines, selectedClipId, captionClipEdits, customCuts, jumpCutGapOverrides, jumpCutGapDisabled, jumpCutsEnabled, jumpCutGapMs, jumpCutPaddingMs, customCutPaddingMs, showSilenceGaps, showFillerCuts, showManualCuts, mainTab, bgSubTab, videoSubTab, videoShaderSubTab, audioSubTab, captionsSubTab, editorSubTab, editorMode, selectedFullSegmentId, showAudioTracks, muted, mediaVolume, outroVolume, projectHasVideo, projectHasAudio, videoInfoLoaded, audioInfoLoaded]);
+  }, [activeProjectId, bg, bgDither, vid, audioReactivity, music, musicLibraryDurations, musicTimelineClips, limiter, captionMode, captionStyle, captionShader, captionStyleByGuide, captionShaderByGuide, bgLayerOn, bgOffMode, bgOffColor, videoLayerOn, captionsLayerOn, musicLayerOn, activeGuide, cropToGuide, bgExport, vidExport, microTimelines, selectedClipId, captionClipEdits, customCuts, jumpCutGapOverrides, jumpCutGapDisabled, jumpCutsEnabled, jumpCutGapMs, jumpCutPaddingMs, customCutPaddingMs, showSilenceGaps, showFillerCuts, showManualCuts, mainTab, bgSubTab, videoSubTab, videoShaderSubTab, audioSubTab, captionsSubTab, editorSubTab, editorMode, selectedFullSegmentId, showAudioTracks, muted, mediaVolume, outroVolume, projectHasVideo, projectHasAudio, videoInfoLoaded, audioInfoLoaded]);
 }
 
 /**

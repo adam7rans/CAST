@@ -1,9 +1,26 @@
 import { DEFAULT_LIMITER } from '../lib/AudioSource';
 import { DEFAULT_MUSIC_PARAMS } from '../lib/MusicPlayer';
 import { DEFAULT_AUDIO_REACTIVITY, DEFAULT_BACKGROUND, DEFAULT_CAPTION_SHADER, DEFAULT_CAPTION_STYLE, DEFAULT_DITHER, DEFAULT_EXPORT, DEFAULT_VIDEO, normalizeVideoShaderParams } from '../lib/types';
-import type { GuideKey } from '../lib/constants';
+import { seedGuideMap, type GuideKey } from '../lib/constants';
+import type { CaptionShaderParams, CaptionStyle } from '../lib/types';
 import type { ProjectData } from '../lib/projectApi';
 import type { ProjectHandlerRefs, ProjectHandlerSetters } from './useProjectHandlers.types';
+
+function normalizeStyleMap(map: Record<string, any>): Record<string, CaptionStyle> {
+  const out: Record<string, CaptionStyle> = {};
+  for (const [key, value] of Object.entries(map)) {
+    if (value && typeof value === 'object') out[key] = { ...DEFAULT_CAPTION_STYLE, ...value };
+  }
+  return out;
+}
+
+function normalizeShaderMap(map: Record<string, any>): Record<string, CaptionShaderParams> {
+  const out: Record<string, CaptionShaderParams> = {};
+  for (const [key, value] of Object.entries(map)) {
+    if (value && typeof value === 'object') out[key] = { ...DEFAULT_CAPTION_SHADER, ...value };
+  }
+  return out;
+}
 
 export function resetManagedMedia(refs: ProjectHandlerRefs) {
   refs.mediaElRef.current?.pause();
@@ -40,6 +57,8 @@ export function resetProjectState(setters: ProjectHandlerSetters) {
   setters.setCaptionMode('line');
   setters.setCaptionStyle(DEFAULT_CAPTION_STYLE);
   setters.setCaptionShader(DEFAULT_CAPTION_SHADER);
+  setters.setCaptionStyleByGuide({});
+  setters.setCaptionShaderByGuide({});
   setters.setMuted(false);
   setters.setMediaVolume(1);
   setters.setVideoInfo(null);
@@ -85,8 +104,22 @@ export function applyProjectVisualState(proj: ProjectData, setters: ProjectHandl
   setters.setMusic(proj.music ? { ...DEFAULT_MUSIC_PARAMS, ...proj.music, sidechain: { ...DEFAULT_MUSIC_PARAMS.sidechain, ...(proj.music.sidechain ?? {}) } } : DEFAULT_MUSIC_PARAMS);
   setters.setLimiter(proj.limiter ? { ...DEFAULT_LIMITER, ...proj.limiter } : DEFAULT_LIMITER);
   if (proj.captionMode) setters.setCaptionMode(proj.captionMode);
-  if (proj.captionStyle) setters.setCaptionStyle({ ...DEFAULT_CAPTION_STYLE, ...proj.captionStyle });
-  setters.setCaptionShader(proj.captionShader ? { ...DEFAULT_CAPTION_SHADER, ...proj.captionShader } : DEFAULT_CAPTION_SHADER);
+  // Caption style/shader are per crop-guide. Prefer the per-guide maps; fall
+  // back to seeding every guide slot from the legacy flat value.
+  if (proj.captionStyleByGuide && typeof proj.captionStyleByGuide === 'object') {
+    setters.setCaptionStyleByGuide(normalizeStyleMap(proj.captionStyleByGuide));
+  } else if (proj.captionStyle) {
+    setters.setCaptionStyleByGuide(seedGuideMap({ ...DEFAULT_CAPTION_STYLE, ...proj.captionStyle }));
+  } else {
+    setters.setCaptionStyleByGuide({});
+  }
+  if (proj.captionShaderByGuide && typeof proj.captionShaderByGuide === 'object') {
+    setters.setCaptionShaderByGuide(normalizeShaderMap(proj.captionShaderByGuide));
+  } else if (proj.captionShader) {
+    setters.setCaptionShaderByGuide(seedGuideMap({ ...DEFAULT_CAPTION_SHADER, ...proj.captionShader }));
+  } else {
+    setters.setCaptionShaderByGuide({});
+  }
   if (proj.layers) {
     setters.setBgLayerOn(proj.layers.background ?? true);
     setters.setVideoLayerOn(proj.layers.video ?? true);

@@ -14,7 +14,8 @@ import type React from 'react';
 export type SettingsSnapshot = {
   bg: BackgroundParams; bgDither: DitherParams; vid: VideoShaderParams;
   audioReactivity: AudioReactivityParams; music: MusicParams; limiter: LimiterParams;
-  captionMode: CaptionMode; captionStyle: CaptionStyle; captionShader: CaptionShaderParams;
+  captionMode: CaptionMode;
+  captionStyleByGuide: Record<string, CaptionStyle>; captionShaderByGuide: Record<string, CaptionShaderParams>;
   bgLayerOn: boolean; bgOffMode: 'grid' | 'color'; bgOffColor: string;
   videoLayerOn: boolean; captionsLayerOn: boolean; musicLayerOn: boolean;
   activeGuide: GuideKey | null; cropToGuide: boolean;
@@ -40,8 +41,8 @@ export interface UndoSetters {
   setMusic: React.Dispatch<React.SetStateAction<MusicParams>>;
   setLimiter: React.Dispatch<React.SetStateAction<LimiterParams>>;
   setCaptionMode: React.Dispatch<React.SetStateAction<CaptionMode>>;
-  setCaptionStyle: React.Dispatch<React.SetStateAction<CaptionStyle>>;
-  setCaptionShader: React.Dispatch<React.SetStateAction<CaptionShaderParams>>;
+  setCaptionStyleByGuide: React.Dispatch<React.SetStateAction<Record<string, CaptionStyle>>>;
+  setCaptionShaderByGuide: React.Dispatch<React.SetStateAction<Record<string, CaptionShaderParams>>>;
   setBgLayerOn: React.Dispatch<React.SetStateAction<boolean>>;
   setBgOffMode: React.Dispatch<React.SetStateAction<'grid' | 'color'>>;
   setBgOffColor: React.Dispatch<React.SetStateAction<string>>;
@@ -93,7 +94,7 @@ export function useAppUndoRedo(
     const s = settersRef.current;
     s.setBg(snap.bg); s.setBgDither(snap.bgDither); s.setVid(snap.vid);
     s.setAudioReactivity(snap.audioReactivity); s.setMusic(snap.music); s.setLimiter(snap.limiter);
-    s.setCaptionMode(snap.captionMode); s.setCaptionStyle(snap.captionStyle); s.setCaptionShader(snap.captionShader);
+    s.setCaptionMode(snap.captionMode); s.setCaptionStyleByGuide(snap.captionStyleByGuide); s.setCaptionShaderByGuide(snap.captionShaderByGuide);
     s.setBgLayerOn(snap.bgLayerOn); s.setBgOffMode(snap.bgOffMode); s.setBgOffColor(snap.bgOffColor);
     s.setVideoLayerOn(snap.videoLayerOn); s.setCaptionsLayerOn(snap.captionsLayerOn); s.setMusicLayerOn(snap.musicLayerOn);
     s.setActiveGuide(snap.activeGuide); s.setCropToGuide(snap.cropToGuide);
@@ -116,7 +117,7 @@ export function useAppUndoRedo(
   // first call in each debounce window, so undo always restores the right snapshot.
   const {
     bg, bgDither, vid, audioReactivity, music, limiter,
-    captionMode, captionStyle, captionShader,
+    captionMode, captionStyleByGuide, captionShaderByGuide,
     bgLayerOn, bgOffMode, bgOffColor, videoLayerOn, captionsLayerOn, musicLayerOn,
     activeGuide, cropToGuide, bgExport, vidExport,
     microTimelines, selectedClipId, musicTimelineClips, selectedMusicClipId, showAudioTracks, customCuts,
@@ -129,7 +130,7 @@ export function useAppUndoRedo(
     history.push(getLatest);
   }, [ // eslint-disable-line react-hooks/exhaustive-deps
     bg, bgDither, vid, audioReactivity, music, limiter,
-    captionMode, captionStyle, captionShader,
+    captionMode, captionStyleByGuide, captionShaderByGuide,
     bgLayerOn, bgOffMode, bgOffColor, videoLayerOn, captionsLayerOn, musicLayerOn,
     activeGuide, cropToGuide, bgExport, vidExport,
     microTimelines, selectedClipId, musicTimelineClips, selectedMusicClipId, showAudioTracks, customCuts,

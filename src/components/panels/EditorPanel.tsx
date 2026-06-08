@@ -4,6 +4,7 @@ import { TabBar } from '../Tabs';
 import { Section, Slider } from '../Controls';
 import { fmt } from '../timeline/timelineUtils';
 import type { EditorPanelProps, SkipGap } from './EditorPanel.types';
+import type { EditorMode, EditorSubTab } from '../../lib/constants';
 
 const fieldStyle: React.CSSProperties = {
   width: '100%',

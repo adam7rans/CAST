@@ -32,6 +32,21 @@ export const GUIDES = [
 
 export type GuideKey = (typeof GUIDES)[number]['key'];
 
+/** Slot key used to store caption settings when no crop guide is selected. */
+export const CAPTION_GUIDE_SLOT_NONE = '__none__';
+
+/** Map an active guide (or null) to its caption-settings slot key. */
+export const captionGuideSlot = (guide: GuideKey | null): string => guide ?? CAPTION_GUIDE_SLOT_NONE;
+
+/** Build a per-guide map that seeds every guide slot (and the no-guide slot)
+ * with the same value. Used for backward-compat when loading legacy projects /
+ * presets that stored a single flat caption style/shader. */
+export function seedGuideMap<T>(value: T): Record<string, T> {
+  const map: Record<string, T> = { [CAPTION_GUIDE_SLOT_NONE]: value };
+  for (const g of GUIDES) map[g.key] = value;
+  return map;
+}
+
 export const CANONICAL_RESOLUTIONS = [
   { w: 1080, h: 1920 }, // 9:16
   { w: 1080, h: 1350 }, // 4:5

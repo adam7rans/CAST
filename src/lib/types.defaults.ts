@@ -1,4 +1,4 @@
-import type { AudioReactivityParams, BackgroundParams, CaptionShaderParams, CaptionStyle, ExportParams, VideoShaderParams } from './types.models';
+import type { AudioReactivityParams, BackgroundParams, CaptionShaderParams, CaptionStyle, DitherParams, ExportParams, VideoShaderParams } from './types.models';
 import { createDefaultVideoGradientStops, normalizeVideoGradientStops, withGradientStops } from './types.videoGradient';
 
 function clampGradientScale(value: number): number {
@@ -6,7 +6,7 @@ function clampGradientScale(value: number): number {
 }
 
 export const DEFAULT_BACKGROUND: BackgroundParams = { noiseType: 'simplex', complexity: 2, speed: 0.22, scale: 0.29, warp: 0.34, contrast: 2.33, bias: 0.2, rotation: -46, autoRotate: true, autoRotateSpeed: -3.8, colorA: '#16120f', colorB: '#73809C' };
-export const DEFAULT_DITHER = { enabled: true, ditherType: 4, ditherScale: 0.25, contrast: 1, brightness: 1, threshold: 0.5, levels: 2, colorA: '#16120f', colorB: '#73809C' };
+export const DEFAULT_DITHER: DitherParams = { enabled: true, ditherType: 4, ditherScale: 0.25, contrast: 1, brightness: 1, threshold: 0.5, levels: 2, colorA: '#16120f', colorB: '#73809C' };
 
 export const DEFAULT_VIDEO: VideoShaderParams = {
   gradientEnabled: false, gradientType: 0, gradientStops: createDefaultVideoGradientStops('#000000', 1, '#ffffff', 1), gradientGuideVisible: false,
