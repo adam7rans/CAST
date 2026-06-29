@@ -11,7 +11,7 @@ export type { PreviewTimelineProps };
 export const PreviewTimeline: React.FC<PreviewTimelineProps> = ({
   duration, playhead, onPlayheadChange,
   outroEnabled, onToggleOutro,
-  microTimelines, timelineItemLabel = 'clip', clipEditingEnabled = true, musicTimelineClips = [], musicClipLabels = {}, musicDuration, musicPlayhead, selectedMusicClipId = null, showAudioTracks = false, selectedId, pendingClipStart,
+  microTimelines, timelineItemLabel = 'clip', clipEditingEnabled = true, musicTimelineClips = [], musicClipLabels = {}, musicDuration, musicPlayhead, selectedMusicClipId = null, showAudioTracks = false, musicMuted = false, onToggleMusicMuted, selectedId, pendingClipStart,
   onSelectClip, onSelectMusicClip, onMusicPlayheadChange, onClipRangeChange, onMoveMusicClip, onAdjustMusicClipFade,
   onAddStart, onAddEnd, onCancelPending, onDeleteClip, onRenameClip,
   onToggleAudioTracks,
@@ -145,37 +145,73 @@ export const PreviewTimeline: React.FC<PreviewTimelineProps> = ({
       </div>
 
       {showAudioTracks && (
-        <div
-          ref={timeline.musicTrackRef}
-          style={{
-            position: 'relative',
-            border: '1px solid #2a2a2a',
-            borderRadius: 4,
-            overflow: 'hidden',
-            background: '#101010',
-          }}
-        >
-          <MusicTrackOverlay
-            clips={musicTimelineClips}
-            clipLabels={musicClipLabels}
-            selectedMusicClipId={selectedMusicClipId}
-            dragKind={timeline.dragKind}
-            secToPct={timeline.musicSecToPct}
-            timeAtClientX={timeline.musicTimeAtClientX}
-            onSelectMusicClip={(id) => {
-              onSelectGap?.(null);
-              onSelectMusicClip?.(id);
+        <div style={{ position: 'relative' }}>
+          <div
+            ref={timeline.musicTrackRef}
+            style={{
+              position: 'relative',
+              border: '1px solid #2a2a2a',
+              borderRadius: 4,
+              overflow: 'hidden',
+              background: musicMuted ? '#0a0a0a' : '#101010',
+              opacity: musicMuted ? 0.5 : 1,
+              transition: 'opacity 0.15s',
             }}
-            onPlayheadChange={(next) => (onMusicPlayheadChange ?? onPlayheadChange)(next)}
-            startDrag={timeline.startDrag}
-          />
-          {timeline.musicPlayheadVisible && (
-            <div style={{
-              position: 'absolute', left: `calc(${timeline.musicVisPlay}% - 1px)`,
-              top: 0, bottom: 0, width: 2,
-              background: '#fff', boxShadow: '0 0 4px rgba(255,255,255,0.7)',
-              pointerEvents: 'none', zIndex: 5,
-            }} />
+          >
+            <MusicTrackOverlay
+              clips={musicTimelineClips}
+              clipLabels={musicClipLabels}
+              selectedMusicClipId={selectedMusicClipId}
+              dragKind={timeline.dragKind}
+              secToPct={timeline.musicSecToPct}
+              timeAtClientX={timeline.musicTimeAtClientX}
+              onSelectMusicClip={(id) => {
+                onSelectGap?.(null);
+                onSelectMusicClip?.(id);
+              }}
+              onPlayheadChange={(next) => (onMusicPlayheadChange ?? onPlayheadChange)(next)}
+              startDrag={timeline.startDrag}
+            />
+            {timeline.musicPlayheadVisible && (
+              <div style={{
+                position: 'absolute', left: `calc(${timeline.musicVisPlay}% - 1px)`,
+                top: 0, bottom: 0, width: 2,
+                background: '#fff', boxShadow: '0 0 4px rgba(255,255,255,0.7)',
+                pointerEvents: 'none', zIndex: 5,
+              }} />
+            )}
+          </div>
+          {onToggleMusicMuted && (
+            <button
+              onClick={onToggleMusicMuted}
+              title={musicMuted ? 'Unmute music tracks' : 'Mute music tracks'}
+              style={{
+                position: 'absolute', right: 0, top: '50%', transform: 'translateY(-50%)',
+                width: 26, height: 22, padding: 0, display: 'inline-flex',
+                alignItems: 'center', justifyContent: 'center',
+                background: '#1a1a1a', border: `1px solid #2a2a2a`,
+                borderRadius: 3, cursor: 'pointer',
+                color: musicMuted ? '#888' : '#ddd',
+                zIndex: 10,
+              }}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                   stroke="currentColor" strokeWidth="2"
+                   strokeLinecap="round" strokeLinejoin="round">
+                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" fill="currentColor" stroke="currentColor" />
+                {musicMuted ? (
+                  <>
+                    <line x1="23" y1="9" x2="17" y2="15" />
+                    <line x1="17" y1="9" x2="23" y2="15" />
+                  </>
+                ) : (
+                  <>
+                    <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
+                    <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
+                  </>
+                )}
+              </svg>
+            </button>
           )}
         </div>
       )}

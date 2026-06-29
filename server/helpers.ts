@@ -151,6 +151,24 @@ export interface PresetMeta {
   updatedAt: string;
 }
 
+const DEFAULT_NEW_PROJECT_PRESET_ID = 'white-sand-v3';
+const DEFAULT_NEW_PROJECT_SETTING_KEYS = [
+  'background',
+  'backgroundDither',
+  'video',
+  'audioReactivity',
+  'music',
+  'limiter',
+  'captionMode',
+  'captionStyle',
+  'captionShader',
+  'captionStyleByGuide',
+  'captionShaderByGuide',
+  'layers',
+  'activeGuide',
+  'cropToGuide',
+] as const;
+
 export function readPreset(id: string): Record<string, any> | null {
   const p = presetPath(id);
   return fs.existsSync(p) ? JSON.parse(fs.readFileSync(p, 'utf-8')) : null;
@@ -169,4 +187,17 @@ export function presetMeta(id: string): PresetMeta | null {
     createdAt: typeof preset.createdAt === 'string' ? preset.createdAt : new Date().toISOString(),
     updatedAt: typeof preset.updatedAt === 'string' ? preset.updatedAt : typeof preset.createdAt === 'string' ? preset.createdAt : new Date().toISOString(),
   };
+}
+
+export function defaultNewProjectSettings(): Settings {
+  const preset = readPreset(DEFAULT_NEW_PROJECT_PRESET_ID);
+  if (!preset) return {};
+
+  const settings: Settings = {};
+  for (const key of DEFAULT_NEW_PROJECT_SETTING_KEYS) {
+    const value = preset[key];
+    if (value !== undefined) (settings as any)[key] = JSON.parse(JSON.stringify(value));
+  }
+  settings.ui = { presetId: DEFAULT_NEW_PROJECT_PRESET_ID };
+  return settings;
 }

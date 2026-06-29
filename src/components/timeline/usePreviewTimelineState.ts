@@ -30,47 +30,31 @@ export function usePreviewTimelineState({
   onSelectGap,
 }: PreviewTimelineProps) {
   const [hoverGapKey, setHoverGapKey] = useState<string | null>(null);
-  const [view, setView] = useState({ s: 0, e: Math.max(0.01, duration + (outroEnabled ? OUTRO_DUR : 0)) });
-  const [musicView, setMusicView] = useState({ s: 0, e: Math.max(0.01, musicDuration ?? duration) });
+  const [view, setView] = useState({ s: 0, e: Math.max(0.01, duration + (outroEnabled ? OUTRO_DUR : 0), musicDuration ?? 0) });
   const [followPlayhead, setFollowPlayhead] = useState(false);
   const [dragKind, setDragKind] = useState<DragKind>(null);
   const totalDuration = Math.max(0.01, duration);
   const projectDuration = totalDuration + (outroEnabled ? OUTRO_DUR : 0);
   const effectiveMusicDuration = Math.max(0.01, musicDuration ?? projectDuration);
   const effectiveMusicPlayhead = musicPlayhead ?? playhead;
+  const timelineDuration = Math.max(projectDuration, effectiveMusicDuration);
 
   useEffect(() => {
-    if (projectDuration > MIN_VIEW_SEC * 1.5) setView({ s: 0, e: projectDuration });
-  }, [projectDuration]);
-
-  useEffect(() => {
-    if (effectiveMusicDuration <= MIN_VIEW_SEC * 1.5) {
-      setMusicView({ s: 0, e: effectiveMusicDuration });
-      return;
-    }
-    setMusicView((prev) => {
-      const prevSpan = Math.max(MIN_VIEW_SEC, prev.e - prev.s);
-      const nextSpan = Math.min(effectiveMusicDuration, prevSpan);
-      const nextStart = clamp(prev.s, 0, Math.max(0, effectiveMusicDuration - nextSpan));
-      return { s: nextStart, e: nextStart + nextSpan };
-    });
-  }, [effectiveMusicDuration]);
+    if (timelineDuration > MIN_VIEW_SEC * 1.5) setView({ s: 0, e: timelineDuration });
+  }, [timelineDuration]);
 
   const viewStart = view.s;
-  const viewEnd = Math.max(view.s + MIN_VIEW_SEC, Math.min(view.e, projectDuration));
+  const viewEnd = Math.max(view.s + MIN_VIEW_SEC, Math.min(view.e, timelineDuration));
   const viewSpan = Math.max(MIN_VIEW_SEC, viewEnd - viewStart);
-  const musicViewStart = musicView.s;
-  const musicViewEnd = Math.max(musicView.s + MIN_VIEW_SEC, Math.min(musicView.e, effectiveMusicDuration));
-  const musicViewSpan = Math.max(MIN_VIEW_SEC, musicViewEnd - musicViewStart);
 
   useEffect(() => {
-    if (!followPlayhead || viewSpan >= projectDuration * 0.99) return;
+    if (!followPlayhead || viewSpan >= timelineDuration * 0.99) return;
     const margin = viewSpan * 0.25;
     if (playhead < viewStart + margin * 0.3 || playhead > viewStart + viewSpan - margin * 0.3) {
-      const nextStart = clamp(playhead - margin, 0, Math.max(0, projectDuration - viewSpan));
+      const nextStart = clamp(playhead - margin, 0, Math.max(0, timelineDuration - viewSpan));
       setView({ s: nextStart, e: nextStart + viewSpan });
     }
-  }, [followPlayhead, playhead, projectDuration, viewSpan, viewStart]);
+  }, [followPlayhead, playhead, timelineDuration, viewSpan, viewStart]);
 
   const trackRef = useRef<HTMLDivElement | null>(null);
   const musicTrackRef = useRef<HTMLDivElement | null>(null);
@@ -79,7 +63,7 @@ export function usePreviewTimelineState({
   const selectedClip = microTimelines.find((clip) => clip.id === selectedId) ?? null;
 
   const secToPct = (time: number) => ((time - viewStart) / viewSpan) * 100;
-  const musicSecToPct = (time: number) => ((time - musicViewStart) / musicViewSpan) * 100;
+  const musicSecToPct = (time: number) => ((time - viewStart) / viewSpan) * 100;
   const timeAtClientX = (clientX: number) => {
     const rect = trackRef.current?.getBoundingClientRect();
     if (!rect) return 0;
@@ -88,7 +72,7 @@ export function usePreviewTimelineState({
   const musicTimeAtClientX = (clientX: number) => {
     const rect = musicTrackRef.current?.getBoundingClientRect();
     if (!rect) return 0;
-    return clamp(musicViewStart + (clamp(clientX - rect.left, 0, rect.width) / rect.width) * musicViewSpan, 0, effectiveMusicDuration);
+    return clamp(viewStart + (clamp(clientX - rect.left, 0, rect.width) / rect.width) * viewSpan, 0, effectiveMusicDuration);
   };
 
   const skippedSec = skipGapsEnabled
@@ -108,9 +92,9 @@ export function usePreviewTimelineState({
       if (dragKind === 'scroll') {
         const rect = scrollRef.current?.getBoundingClientRect();
         if (!rect) return;
-        const thumbWidth = (viewSpan / projectDuration) * rect.width;
+        const thumbWidth = (viewSpan / timelineDuration) * rect.width;
         const newThumbStart = clamp(event.clientX - rect.left - dragOffsetRef.current, 0, Math.max(0, rect.width - thumbWidth));
-        const nextStart = clamp((newThumbStart / rect.width) * projectDuration, 0, Math.max(0, projectDuration - viewSpan));
+        const nextStart = clamp((newThumbStart / rect.width) * timelineDuration, 0, Math.max(0, timelineDuration - viewSpan));
         return void setView({ s: nextStart, e: nextStart + viewSpan });
       }
       if (!dragKind || typeof dragKind !== 'object') return;
@@ -158,7 +142,7 @@ export function usePreviewTimelineState({
       window.removeEventListener('pointerup', stopDragging);
       window.removeEventListener('pointercancel', stopDragging);
     };
-  }, [clipEditingEnabled, dragKind, microTimelines, musicTimelineClips, onAdjustMusicClipFade, onAdjustSkipGap, onClipRangeChange, onMoveMusicClip, onPlayheadChange, projectDuration, skipGaps, totalDuration, viewSpan, viewStart]);
+  }, [clipEditingEnabled, dragKind, effectiveMusicDuration, microTimelines, musicTimelineClips, onAdjustMusicClipFade, onAdjustSkipGap, onClipRangeChange, onMoveMusicClip, onPlayheadChange, projectDuration, skipGaps, timelineDuration, totalDuration, viewSpan, viewStart]);
 
   const startDrag = (kind: Exclude<DragKind, null | 'scroll'>) => (event: React.PointerEvent) => {
     event.preventDefault();
@@ -168,22 +152,14 @@ export function usePreviewTimelineState({
   };
 
   const setViewClamped = (start: number, end: number) => {
-    const span = Math.max(MIN_VIEW_SEC, Math.min(projectDuration, end - start));
-    const nextEnd = clamp(start + span, span, projectDuration);
-    const nextStart = clamp(nextEnd - span, 0, Math.max(0, projectDuration - span));
+    const span = Math.max(MIN_VIEW_SEC, Math.min(timelineDuration, end - start));
+    const nextEnd = clamp(start + span, span, timelineDuration);
+    const nextStart = clamp(nextEnd - span, 0, Math.max(0, timelineDuration - span));
     setView({ s: nextStart, e: nextEnd });
-  };
-  const setMusicViewClamped = (start: number, end: number) => {
-    const span = Math.max(MIN_VIEW_SEC, Math.min(effectiveMusicDuration, end - start));
-    const nextEnd = clamp(start + span, span, effectiveMusicDuration);
-    const nextStart = clamp(nextEnd - span, 0, Math.max(0, effectiveMusicDuration - span));
-    setMusicView({ s: nextStart, e: nextEnd });
   };
 
   const zoomIn = () => setViewClamped(playhead - Math.max(MIN_VIEW_SEC, viewSpan / 2) / 2, playhead + Math.max(MIN_VIEW_SEC, viewSpan / 2) / 2);
-  const zoomOut = () => setViewClamped(playhead - Math.min(projectDuration, viewSpan * 2) / 2, playhead + Math.min(projectDuration, viewSpan * 2) / 2);
-  const zoomMusicIn = () => setMusicViewClamped(effectiveMusicPlayhead - Math.max(MIN_VIEW_SEC, musicViewSpan / 2) / 2, effectiveMusicPlayhead + Math.max(MIN_VIEW_SEC, musicViewSpan / 2) / 2);
-  const zoomMusicOut = () => setMusicViewClamped(effectiveMusicPlayhead - Math.min(effectiveMusicDuration, musicViewSpan * 2) / 2, effectiveMusicPlayhead + Math.min(effectiveMusicDuration, musicViewSpan * 2) / 2);
+  const zoomOut = () => setViewClamped(playhead - Math.min(timelineDuration, viewSpan * 2) / 2, playhead + Math.min(timelineDuration, viewSpan * 2) / 2);
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
@@ -192,12 +168,10 @@ export function usePreviewTimelineState({
       if (active?.tagName === 'INPUT' || active?.tagName === 'TEXTAREA' || active?.tagName === 'SELECT' || active?.isContentEditable) return;
       if (event.key === '=') return void (event.preventDefault(), zoomIn());
       if (event.key === '-') return void (event.preventDefault(), zoomOut());
-      if (event.key === ']') return void (event.preventDefault(), zoomMusicIn());
-      if (event.key === '[') return void (event.preventDefault(), zoomMusicOut());
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [effectiveMusicDuration, effectiveMusicPlayhead, musicViewSpan, playhead, projectDuration, viewSpan]);
+  }, [playhead, timelineDuration, viewSpan]);
 
   return {
     hoverGapKey,
@@ -205,8 +179,8 @@ export function usePreviewTimelineState({
     viewStart,
     viewEnd,
     viewSpan,
-    musicViewStart,
-    musicViewSpan,
+    musicViewStart: viewStart,
+    musicViewSpan: viewSpan,
     trackRef,
     musicTrackRef,
     scrollRef,
@@ -220,14 +194,14 @@ export function usePreviewTimelineState({
     selectedClip,
     skippedSec,
     finalDur,
-    focusClip: () => selectedClip && setViewClamped((selectedClip.startSecond + selectedClip.endSecond) / 2 - Math.min(projectDuration, Math.max(MIN_VIEW_SEC, selectedClip.endSecond - selectedClip.startSecond) / 0.9) / 2, (selectedClip.startSecond + selectedClip.endSecond) / 2 + Math.min(projectDuration, Math.max(MIN_VIEW_SEC, selectedClip.endSecond - selectedClip.startSecond) / 0.9) / 2),
+    focusClip: () => selectedClip && setViewClamped((selectedClip.startSecond + selectedClip.endSecond) / 2 - Math.min(timelineDuration, Math.max(MIN_VIEW_SEC, selectedClip.endSecond - selectedClip.startSecond) / 0.9) / 2, (selectedClip.startSecond + selectedClip.endSecond) / 2 + Math.min(timelineDuration, Math.max(MIN_VIEW_SEC, selectedClip.endSecond - selectedClip.startSecond) / 0.9) / 2),
     zoomIn,
     zoomOut,
-    resetView: () => setView({ s: 0, e: projectDuration }),
+    resetView: () => setView({ s: 0, e: timelineDuration }),
     followPlayhead,
     setFollowPlayhead,
-    scrollThumbPct: (viewSpan / projectDuration) * 100,
-    scrollThumbLeftPct: (viewStart / projectDuration) * 100,
+    scrollThumbPct: (viewSpan / timelineDuration) * 100,
+    scrollThumbLeftPct: (viewStart / timelineDuration) * 100,
     musicVisPlay: musicSecToPct(effectiveMusicPlayhead),
     musicPlayheadVisible: musicSecToPct(effectiveMusicPlayhead) >= 0 && musicSecToPct(effectiveMusicPlayhead) <= 100,
     visPlay: secToPct(playhead),
@@ -239,12 +213,12 @@ export function usePreviewTimelineState({
       (event.currentTarget as Element).setPointerCapture?.(event.pointerId);
       setFollowPlayhead(false);
       const x = event.clientX - rect.left;
-      const thumbWidth = (viewSpan / projectDuration) * rect.width;
-      const thumbX = (viewStart / projectDuration) * rect.width;
+      const thumbWidth = (viewSpan / timelineDuration) * rect.width;
+      const thumbX = (viewStart / timelineDuration) * rect.width;
       dragOffsetRef.current = x >= thumbX && x <= thumbX + thumbWidth ? x - thumbX : thumbWidth / 2;
       if (x < thumbX || x > thumbX + thumbWidth) {
         const nextThumbStart = clamp(x - thumbWidth / 2, 0, Math.max(0, rect.width - thumbWidth));
-        const nextStart = clamp((nextThumbStart / rect.width) * projectDuration, 0, Math.max(0, projectDuration - viewSpan));
+        const nextStart = clamp((nextThumbStart / rect.width) * timelineDuration, 0, Math.max(0, timelineDuration - viewSpan));
         setView({ s: nextStart, e: nextStart + viewSpan });
       }
       setDragKind('scroll');

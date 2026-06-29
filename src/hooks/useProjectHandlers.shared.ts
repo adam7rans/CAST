@@ -67,6 +67,7 @@ export function resetProjectState(setters: ProjectHandlerSetters) {
   setters.setTranscript(null);
   setters.setTranscriptName(null);
   setters.setCaptionClipEdits({});
+  setters.setCurrentPresetId(null);
   setters.setPlaying(false);
   setters.setAudioReactivity(DEFAULT_AUDIO_REACTIVITY);
   setters.setMusicInfo(null);
@@ -142,6 +143,7 @@ export function applyProjectUiState(proj: ProjectData, setters: ProjectHandlerSe
     setters.setEditorMode('clips');
     setters.setSelectedFullSegmentId(null);
     setters.setShowAudioTracks(true);
+    setters.setCurrentPresetId(null);
     return;
   }
   if (proj.ui.mainTab === 'reactivity') {
@@ -168,4 +170,5 @@ export function applyProjectUiState(proj: ProjectData, setters: ProjectHandlerSe
   if (typeof proj.ui.muted === 'boolean') setters.setMuted(proj.ui.muted);
   if (typeof proj.ui.mediaVolume === 'number') setters.setMediaVolume(proj.ui.mediaVolume);
   if (typeof proj.ui.outroVolume === 'number') setters.setOutroVolume(proj.ui.outroVolume);
+  setters.setCurrentPresetId(typeof proj.ui.presetId === 'string' && proj.ui.presetId.trim() ? proj.ui.presetId : null);
 }

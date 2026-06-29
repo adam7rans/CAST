@@ -169,6 +169,8 @@ export interface SidebarPanelProps {
   exportComposition: (onProgress: (done: number, total: number) => void, signal: AbortSignal) => Promise<string>;
   exportLayerSummary: string;
   selectedClipName: string | undefined;
+  currentPresetId: string | null;
+  setCurrentPresetId: React.Dispatch<React.SetStateAction<string | null>>;
   currentPresetSettings: Record<string, any>;
   onApplyPresetSettings: (data: Record<string, any>) => void;
   addToast: (message: string, type?: 'info' | 'success' | 'error' | 'progress', sticky?: boolean) => number;

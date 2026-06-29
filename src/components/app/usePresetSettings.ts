@@ -1,9 +1,10 @@
 import { useMemo } from 'react';
 import type React from 'react';
-import { DEFAULT_AUDIO_REACTIVITY, DEFAULT_BACKGROUND, DEFAULT_CAPTION_SHADER, DEFAULT_CAPTION_STYLE, DEFAULT_DITHER, DEFAULT_EXPORT, DEFAULT_VIDEO, normalizeVideoShaderParams } from '../../lib/types';
+import { DEFAULT_AUDIO_REACTIVITY, DEFAULT_BACKGROUND, DEFAULT_CAPTION_SHADER, DEFAULT_CAPTION_STYLE, DEFAULT_DITHER, DEFAULT_VIDEO, normalizeVideoShaderParams } from '../../lib/types';
 import { DEFAULT_LIMITER } from '../../lib/AudioSource';
 import { DEFAULT_MUSIC_PARAMS } from '../../lib/MusicPlayer';
 import { seedGuideMap } from '../../lib/constants';
+import { extractPresetSettings } from '../../lib/presetSettings';
 
 interface Args {
   state: {
@@ -26,8 +27,6 @@ interface Args {
     bgOffColor: string;
     activeGuide: string | null;
     cropToGuide: boolean;
-    bgExport: typeof DEFAULT_EXPORT;
-    vidExport: typeof DEFAULT_EXPORT;
   };
   setters: {
     setBg: React.Dispatch<React.SetStateAction<typeof DEFAULT_BACKGROUND>>;
@@ -49,14 +48,12 @@ interface Args {
     setBgOffColor: React.Dispatch<React.SetStateAction<string>>;
     setActiveGuide: React.Dispatch<React.SetStateAction<any>>;
     setCropToGuide: React.Dispatch<React.SetStateAction<boolean>>;
-    setBgExport: React.Dispatch<React.SetStateAction<typeof DEFAULT_EXPORT>>;
-    setVidExport: React.Dispatch<React.SetStateAction<typeof DEFAULT_EXPORT>>;
   };
 }
 
 export function usePresetSettings({ state, setters }: Args) {
   const currentPresetSettings = useMemo(
-    () => ({
+    () => extractPresetSettings({
       background: state.bg,
       backgroundDither: state.bgDither,
       video: state.vid,
@@ -78,8 +75,6 @@ export function usePresetSettings({ state, setters }: Args) {
       },
       activeGuide: state.activeGuide,
       cropToGuide: state.cropToGuide,
-      exportBackground: state.bgExport,
-      exportVideo: state.vidExport,
     }),
     [state],
   );
@@ -128,8 +123,6 @@ export function usePresetSettings({ state, setters }: Args) {
     }
     if (data.activeGuide === null || typeof data.activeGuide === 'string') setters.setActiveGuide(data.activeGuide);
     if (typeof data.cropToGuide === 'boolean') setters.setCropToGuide(data.cropToGuide);
-    if (data.exportBackground) setters.setBgExport({ ...DEFAULT_EXPORT, ...data.exportBackground });
-    if (data.exportVideo) setters.setVidExport({ ...DEFAULT_EXPORT, ...data.exportVideo });
   };
 
   return { currentPresetSettings, applyPresetSettings };

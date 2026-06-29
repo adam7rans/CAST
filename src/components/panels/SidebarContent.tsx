@@ -184,6 +184,8 @@ export const SidebarContent: React.FC<SidebarPanelProps> = (p) => (
         <ImportPresetPanel
           projects={p.projects}
           activeProjectId={p.activeProjectId}
+          currentPresetId={p.currentPresetId}
+          onPresetIdChange={p.setCurrentPresetId}
           currentSettings={p.currentPresetSettings}
           onApplySettings={p.onApplyPresetSettings}
           addToast={p.addToast}

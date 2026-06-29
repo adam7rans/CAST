@@ -68,6 +68,7 @@ export interface ProjectHandlerSetters {
   setTranscript: React.Dispatch<React.SetStateAction<TranscriptData | null>>;
   setTranscriptName: React.Dispatch<React.SetStateAction<string | null>>;
   setCaptionClipEdits: React.Dispatch<React.SetStateAction<Record<string, ClipCaptionEdits>>>;
+  setCurrentPresetId: React.Dispatch<React.SetStateAction<string | null>>;
   setPlaying: React.Dispatch<React.SetStateAction<boolean>>;
   setAudioReactivity: React.Dispatch<React.SetStateAction<AudioReactivityParams>>;
   setMusicInfo: React.Dispatch<React.SetStateAction<{ name: string } | null>>;

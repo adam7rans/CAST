@@ -47,6 +47,36 @@ presetRoutes.post('/', (req, res) => {
   res.json({ id, name: name.trim(), createdAt: now, updatedAt: now });
 });
 
+presetRoutes.put('/:id', (req, res) => {
+  const existing = readPreset(req.params.id);
+  if (!existing) {
+    res.status(404).json({ error: 'Not found' });
+    return;
+  }
+
+  const { settings } = req.body as { settings?: Record<string, any> };
+  if (!settings || typeof settings !== 'object') {
+    res.status(400).json({ error: 'Settings required' });
+    return;
+  }
+
+  const now = new Date().toISOString();
+  writePreset(req.params.id, {
+    ...existing,
+    id: req.params.id,
+    name: typeof existing.name === 'string' && existing.name.trim() ? existing.name.trim() : req.params.id,
+    createdAt: typeof existing.createdAt === 'string' ? existing.createdAt : now,
+    updatedAt: now,
+    ...settings,
+  });
+  res.json({
+    id: req.params.id,
+    name: typeof existing.name === 'string' && existing.name.trim() ? existing.name.trim() : req.params.id,
+    createdAt: typeof existing.createdAt === 'string' ? existing.createdAt : now,
+    updatedAt: now,
+  });
+});
+
 presetRoutes.get('/:id', (req, res) => {
   const preset = readPreset(req.params.id);
   if (!preset) {

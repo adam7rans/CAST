@@ -14,10 +14,13 @@ export function createHandleCreateProject(refs: ProjectHandlerRefs, setters: Pro
   return async (name: string) => {
     try {
       const project = await createProject(name);
+      const seededProject = await getProject(project.id);
       setters.setProjects(await listProjects());
       setters.setActiveProjectId(project.id);
       resetManagedMedia(refs);
       resetProjectState(setters);
+      applyProjectVisualState(seededProject, setters);
+      applyProjectUiState(seededProject, setters);
       setters.setProjectStatus({ kind: 'success', message: `Project "${project.name}" created`, detail: `Folder: projects/${project.id}` });
       setters.addToast(`Project "${project.name}" created`, 'success');
     } catch {

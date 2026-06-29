@@ -3,7 +3,7 @@ import * as fs from 'fs';
 import type { TranscribeEvent } from '../transcribe.js';
 import {
   PROJECTS_DIR, projectDir, projectMeta, uniqueSlug, slugify,
-  readProject, writeProject, readSettings, writeSettings,
+  readProject, writeProject, readSettings, writeSettings, defaultNewProjectSettings,
   captionPath, hasCaption, sseClients,
 } from '../helpers.js';
 
@@ -34,7 +34,7 @@ projectRoutes.post('/', (req, res) => {
   fs.mkdirSync(projectDir(id), { recursive: true });
   const now = new Date().toISOString();
   writeProject(id, { id, name: name.trim(), createdAt: now, updatedAt: now });
-  writeSettings(id, {});
+  writeSettings(id, defaultNewProjectSettings());
   res.json({ id, name: name.trim() });
 });
 

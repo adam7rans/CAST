@@ -73,5 +73,6 @@ export interface Settings {
     showAudioTracks?: boolean;
     muted: boolean;
     mediaVolume: number;
+    presetId?: string | null;
   };
 }

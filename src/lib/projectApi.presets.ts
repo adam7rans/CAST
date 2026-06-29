@@ -15,6 +15,14 @@ export async function createPreset(name: string, settings: Record<string, any>):
   }, 'Failed to create preset');
 }
 
+export async function updatePreset(id: string, settings: Record<string, any>): Promise<PresetMeta> {
+  return fetchJson(`${BASE}/presets/${id}`, {
+    method: 'PUT',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ settings }),
+  }, 'Failed to update preset');
+}
+
 export async function getPreset(id: string): Promise<PresetData> {
   return fetchJson(`${BASE}/presets/${id}`, undefined, 'Preset not found');
 }

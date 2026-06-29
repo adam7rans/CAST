@@ -41,6 +41,8 @@ export interface PreviewTimelineProps {
   musicPlayhead?: number;
   selectedMusicClipId?: string | null;
   showAudioTracks?: boolean;
+  musicMuted?: boolean;
+  onToggleMusicMuted?: () => void;
   selectedId: string | null;
   pendingClipStart: number | null;
   onSelectClip: (id: string | null) => void;
