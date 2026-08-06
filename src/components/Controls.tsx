@@ -70,10 +70,12 @@ export const Slider: React.FC<{
   min: number;
   max: number;
   step?: number;
+  /** Shows a live value without allowing direct edits. */
+  readOnly?: boolean;
   /** Optional tick marks rendered via <datalist>. Browsers draw small notches on the track. */
   ticks?: number[];
   onChange: (v: number) => void;
-}> = ({ label, value, min, max, step = 0.01, ticks, onChange }) => {
+}> = ({ label, value, min, max, step = 0.01, readOnly = false, ticks, onChange }) => {
   const listId = React.useId();
   return (
     <Row label={label}>
@@ -85,7 +87,8 @@ export const Slider: React.FC<{
         value={value}
         list={ticks && ticks.length ? listId : undefined}
         onChange={(e) => onChange(parseFloat(e.target.value))}
-        style={{ width: '100%' }}
+        aria-readonly={readOnly}
+        style={{ width: '100%', pointerEvents: readOnly ? 'none' : undefined }}
       />
       {ticks && ticks.length ? (
         <datalist id={listId}>
@@ -99,6 +102,7 @@ export const Slider: React.FC<{
         step={step}
         value={Number.isFinite(value) ? Number(value.toFixed(4)) : 0}
         onChange={(e) => onChange(parseFloat(e.target.value))}
+        readOnly={readOnly}
         style={{ width: 60, background: '#0a0a0a', color: '#ddd', border: '1px solid #333', padding: '2px 4px' }}
       />
     </Row>

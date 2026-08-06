@@ -5,6 +5,7 @@ import {
   dancingVideoShaderUniforms,
 } from '../shaders/videoShader';
 import { MAX_VIDEO_GRADIENT_STOPS, type VideoShaderParams, type VideoGradientStop } from './types';
+import { resolveAnimationValue } from './videoPositionAnimation';
 
 /**
  * Renders an HTMLVideoElement through the single-pass video shader
@@ -177,8 +178,26 @@ export class VideoRenderer {
     }
     
     this.videoTexture.needsUpdate = true;
-    this.material.uniforms.uTime.value = timeSeconds !== undefined ? timeSeconds : (performance.now() - this.startTime) / 1000;
+    const renderTime = timeSeconds !== undefined ? timeSeconds : (performance.now() - this.startTime) / 1000;
+    this.material.uniforms.uTime.value = renderTime;
+    this.applyAnimations(renderTime);
     this.renderer.render(this.scene, this.camera);
+  }
+
+  private applyAnimations(timeSeconds: number) {
+    const position = this.params.positionAnimation;
+    const distortion = this.params.distortionAnimation;
+    const u = this.material.uniforms;
+    u.uPositionX.value = resolveAnimationValue(position.horizontal, this.params.positionX, timeSeconds);
+    u.uPositionY.value = resolveAnimationValue(position.vertical, this.params.positionY, timeSeconds);
+    u.uPositionRotation.value = resolveAnimationValue(position.rotation, this.params.positionRotation, timeSeconds);
+    u.uPositionScale.value = resolveAnimationValue(position.scale, this.params.positionScale, timeSeconds);
+    u.uRotation.value = resolveAnimationValue(distortion.rotation, this.params.rotation, timeSeconds);
+    u.uScale.value = resolveAnimationValue(distortion.scale, this.params.scale, timeSeconds);
+    u.uDistortionFrequency.value = resolveAnimationValue(distortion.frequency, this.params.distortionFrequency, timeSeconds);
+    u.uDistortionAmplitude.value = resolveAnimationValue(distortion.amplitude, this.params.distortionAmplitude, timeSeconds);
+    u.uDistortionSpeed.value = resolveAnimationValue(distortion.speed, this.params.distortionSpeed, timeSeconds);
+    u.uDistortionAngle.value = resolveAnimationValue(distortion.angle, this.params.distortionAngle, timeSeconds);
   }
 
   dispose() {

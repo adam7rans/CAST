@@ -6,6 +6,7 @@ import {
   type VideoShaderParams,
 } from '../lib/types';
 import { DITHER_TYPES } from '../shaders/ditherShader';
+import { resolveAnimationValue } from '../lib/videoPositionAnimation';
 import { VideoGradientSection } from './ParamControls.gradient';
 export { VideoGradientSection } from './ParamControls.gradient';
 
@@ -143,38 +144,46 @@ export const VideoRezSection: React.FC<{ value: VideoShaderParams; onChange: (v:
   );
 };
 
-export const VideoPositionSection: React.FC<{ value: VideoShaderParams; onChange: (v: VideoShaderParams) => void } & WithReset> = ({ value, onChange, onReset }) => {
+export const VideoPositionSection: React.FC<{ value: VideoShaderParams; onChange: (v: VideoShaderParams) => void; animationTime?: number } & WithReset> = ({ value, onChange, animationTime = 0, onReset }) => {
   const set = (patch: Partial<VideoShaderParams>) => onChange({ ...value, ...patch });
+  const animation = value.positionAnimation;
+  const liveValue = (range: typeof animation.horizontal, fallback: number) => (
+    resolveAnimationValue(range, fallback, animationTime)
+  );
   return (
     <Section title="Position" onReset={onReset}>
-      <Slider label="horizontal" value={value.positionX} min={-1} max={1} step={0.005} onChange={(v) => set({ positionX: v })} />
-      <Slider label="vertical" value={value.positionY} min={-1} max={1} step={0.005} onChange={(v) => set({ positionY: v })} />
+      <Slider label="horizontal" value={liveValue(animation.horizontal, value.positionX)} min={-1} max={1} step={0.005} readOnly={animation.horizontal.enabled} onChange={(v) => set({ positionX: v })} />
+      <Slider label="vertical" value={liveValue(animation.vertical, value.positionY)} min={-1} max={1} step={0.005} readOnly={animation.vertical.enabled} onChange={(v) => set({ positionY: v })} />
       <Slider
         label="rotation"
-        value={value.positionRotation / RAD_PER_DEG}
+        value={liveValue(animation.rotation, value.positionRotation) / RAD_PER_DEG}
         min={0} max={360} step={0.5}
+        readOnly={animation.rotation.enabled}
         onChange={(v) => set({ positionRotation: v * RAD_PER_DEG })}
       />
-      <Slider label="scale" value={value.positionScale} min={0.1} max={3} step={0.01} onChange={(v) => set({ positionScale: v })} />
+      <Slider label="scale" value={liveValue(animation.scale, value.positionScale)} min={0.1} max={3} step={0.01} readOnly={animation.scale.enabled} onChange={(v) => set({ positionScale: v })} />
     </Section>
   );
 };
 
-export const VideoDistortionSection: React.FC<{ value: VideoShaderParams; onChange: (v: VideoShaderParams) => void } & WithReset> = ({ value, onChange, onReset }) => {
+export const VideoDistortionSection: React.FC<{ value: VideoShaderParams; onChange: (v: VideoShaderParams) => void; animationTime?: number } & WithReset> = ({ value, onChange, animationTime = 0, onReset }) => {
   const set = (patch: Partial<VideoShaderParams>) => onChange({ ...value, ...patch });
+  const animation = value.distortionAnimation;
+  const liveValue = (range: typeof animation.rotation, fallback: number) => resolveAnimationValue(range, fallback, animationTime);
   return (
     <Section title="Distortion (UV)" onReset={onReset}>
       <Slider
         label="rotation°"
-        value={value.rotation / RAD_PER_DEG}
+        value={liveValue(animation.rotation, value.rotation) / RAD_PER_DEG}
         min={-180} max={180} step={0.5}
+        readOnly={animation.rotation.enabled}
         onChange={(v) => set({ rotation: v * RAD_PER_DEG })}
       />
-      <Slider label="scale" value={value.scale} min={0.1} max={3} step={0.01} onChange={(v) => set({ scale: v })} />
-      <Slider label="wave freq" value={value.distortionFrequency} min={0} max={200} step={0.5} onChange={(v) => set({ distortionFrequency: v })} />
-      <Slider label="wave amp" value={value.distortionAmplitude} min={0} max={0.1} step={0.001} onChange={(v) => set({ distortionAmplitude: v })} />
-      <Slider label="wave speed" value={value.distortionSpeed} min={-5} max={5} step={0.05} onChange={(v) => set({ distortionSpeed: v })} />
-      <Slider label="wave angle" value={value.distortionAngle} min={0} max={Math.PI * 2} step={0.01} onChange={(v) => set({ distortionAngle: v })} />
+      <Slider label="scale" value={liveValue(animation.scale, value.scale)} min={0.1} max={3} step={0.01} readOnly={animation.scale.enabled} onChange={(v) => set({ scale: v })} />
+      <Slider label="wave freq" value={liveValue(animation.frequency, value.distortionFrequency)} min={0} max={200} step={0.5} readOnly={animation.frequency.enabled} onChange={(v) => set({ distortionFrequency: v })} />
+      <Slider label="wave amp" value={liveValue(animation.amplitude, value.distortionAmplitude)} min={0} max={0.1} step={0.001} readOnly={animation.amplitude.enabled} onChange={(v) => set({ distortionAmplitude: v })} />
+      <Slider label="wave speed" value={liveValue(animation.speed, value.distortionSpeed)} min={-5} max={5} step={0.05} readOnly={animation.speed.enabled} onChange={(v) => set({ distortionSpeed: v })} />
+      <Slider label="wave angle" value={liveValue(animation.angle, value.distortionAngle)} min={0} max={Math.PI * 2} step={0.01} readOnly={animation.angle.enabled} onChange={(v) => set({ distortionAngle: v })} />
     </Section>
   );
 };

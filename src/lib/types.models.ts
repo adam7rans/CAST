@@ -20,6 +20,29 @@ export interface VideoGradientStop {
   position: number;
 }
 
+export interface AnimationRange {
+  enabled: boolean;
+  from: number;
+  to: number;
+  loop: number;
+}
+
+export interface VideoPositionAnimationParams {
+  horizontal: AnimationRange;
+  vertical: AnimationRange;
+  rotation: AnimationRange;
+  scale: AnimationRange;
+}
+
+export interface VideoDistortionAnimationParams {
+  rotation: AnimationRange;
+  scale: AnimationRange;
+  frequency: AnimationRange;
+  amplitude: AnimationRange;
+  speed: AnimationRange;
+  angle: AnimationRange;
+}
+
 export interface VideoShaderParams {
   gradientEnabled: boolean;
   gradientType: number;
@@ -57,12 +80,14 @@ export interface VideoShaderParams {
   positionY: number;
   positionRotation: number;
   positionScale: number;
+  positionAnimation: VideoPositionAnimationParams;
   rotation: number;
   scale: number;
   distortionFrequency: number;
   distortionAmplitude: number;
   distortionSpeed: number;
   distortionAngle: number;
+  distortionAnimation: VideoDistortionAnimationParams;
   ditherEnabled: boolean;
   ditherType: number;
   ditherScale: number;

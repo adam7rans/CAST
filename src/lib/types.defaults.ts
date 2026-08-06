@@ -13,7 +13,22 @@ export const DEFAULT_VIDEO: VideoShaderParams = {
   gradientColorA: '#000000', gradientOpacityA: 1, gradientColorB: '#ffffff', gradientOpacityB: 1, gradientOpacity: 1, gradientBlendMode: 1, gradientAngle: 0, gradientScale: 1, gradientOffsetX: 0, gradientOffsetY: 0,
   shaderEnabled: true, blackPoint: 0, whitePoint: 1, brightness: 0.8, contrast: 0.9, shadows: 0, midtones: 0, highlights: 0, exposure: 0, gamma: 1, saturation: 1, clarity: 0,
   rezEnabled: false, rezCellWidth: 8, rezCellHeight: 8, rezColorLevels: 24, rezMix: 1, rezJitter: 0,
-  positionX: 0, positionY: 0, positionRotation: 0, positionScale: 1, rotation: 0, scale: 1, distortionFrequency: 82, distortionAmplitude: 0.005, distortionSpeed: 1.7, distortionAngle: 1,
+  positionX: 0, positionY: 0, positionRotation: 0, positionScale: 1,
+  positionAnimation: {
+    horizontal: { enabled: false, from: 0, to: 0.5, loop: 4 },
+    vertical: { enabled: false, from: 0, to: 0.5, loop: 4 },
+    rotation: { enabled: false, from: 0, to: Math.PI * 2, loop: 4 },
+    scale: { enabled: false, from: 1, to: 0.5, loop: 4 },
+  },
+  rotation: 0, scale: 1, distortionFrequency: 82, distortionAmplitude: 0.005, distortionSpeed: 1.7, distortionAngle: 1,
+  distortionAnimation: {
+    rotation: { enabled: false, from: 0, to: Math.PI / 4, loop: 4 },
+    scale: { enabled: false, from: 1, to: 2, loop: 4 },
+    frequency: { enabled: false, from: 82, to: 150, loop: 4 },
+    amplitude: { enabled: false, from: 0.005, to: 0.02, loop: 4 },
+    speed: { enabled: false, from: 1.7, to: 4, loop: 4 },
+    angle: { enabled: false, from: 1, to: 2.9, loop: 4 },
+  },
   ditherEnabled: true, ditherType: 8, ditherScale: 1.1, threshold: 1, alphaThreshold: 0.95, ditherGradient: true, ditherColor: '#ffffff', ditherGradientColorA: '#5754ff', ditherGradientColorB: '#666eae', ditherGradientAngle: 0, ditherGradientScale: 1, ditherGradientOffsetX: 0, ditherGradientOffsetY: 0,
 };
 
@@ -36,10 +51,34 @@ export const DEFAULT_VIDEO_GRADIENT: Partial<VideoShaderParams> = {
 
 export function normalizeVideoShaderParams(input?: Partial<VideoShaderParams> | null): VideoShaderParams {
   const merged = { ...DEFAULT_VIDEO, ...(input ?? {}) };
+  const legacyLoop = (input?.positionAnimation as { duration?: number } | undefined)?.duration;
+  const animationRange = (key: keyof VideoShaderParams['positionAnimation']) => ({
+    ...DEFAULT_VIDEO.positionAnimation[key],
+    ...(legacyLoop === undefined ? {} : { loop: legacyLoop }),
+    ...(input?.positionAnimation?.[key] ?? {}),
+  });
+  const distortionAnimationRange = (key: keyof VideoShaderParams['distortionAnimation']) => ({
+    ...DEFAULT_VIDEO.distortionAnimation[key],
+    ...(input?.distortionAnimation?.[key] ?? {}),
+  });
   return {
     ...withGradientStops(merged, normalizeVideoGradientStops(input?.gradientStops, merged.gradientColorA, merged.gradientOpacityA, merged.gradientColorB, merged.gradientOpacityB)),
     gradientGuideVisible: typeof input?.gradientGuideVisible === 'boolean' ? input.gradientGuideVisible : DEFAULT_VIDEO.gradientGuideVisible,
     gradientScale: clampGradientScale(merged.gradientScale),
+    positionAnimation: {
+      horizontal: animationRange('horizontal'),
+      vertical: animationRange('vertical'),
+      rotation: animationRange('rotation'),
+      scale: animationRange('scale'),
+    },
+    distortionAnimation: {
+      rotation: distortionAnimationRange('rotation'),
+      scale: distortionAnimationRange('scale'),
+      frequency: distortionAnimationRange('frequency'),
+      amplitude: distortionAnimationRange('amplitude'),
+      speed: distortionAnimationRange('speed'),
+      angle: distortionAnimationRange('angle'),
+    },
   };
 }
 
@@ -47,8 +86,10 @@ export const DEFAULT_VIDEO_LEVELS: Partial<VideoShaderParams> = { blackPoint: DE
 export const DEFAULT_VIDEO_TONE: Partial<VideoShaderParams> = { shadows: DEFAULT_VIDEO.shadows, midtones: DEFAULT_VIDEO.midtones, highlights: DEFAULT_VIDEO.highlights };
 export const DEFAULT_VIDEO_COLOR: Partial<VideoShaderParams> = { exposure: DEFAULT_VIDEO.exposure, gamma: DEFAULT_VIDEO.gamma, saturation: DEFAULT_VIDEO.saturation, clarity: DEFAULT_VIDEO.clarity };
 export const DEFAULT_VIDEO_POSITION: Partial<VideoShaderParams> = { positionX: DEFAULT_VIDEO.positionX, positionY: DEFAULT_VIDEO.positionY, positionRotation: DEFAULT_VIDEO.positionRotation, positionScale: DEFAULT_VIDEO.positionScale };
+export const DEFAULT_VIDEO_POSITION_ANIMATION: Partial<VideoShaderParams> = { positionAnimation: DEFAULT_VIDEO.positionAnimation };
 export const DEFAULT_VIDEO_REZ: Partial<VideoShaderParams> = { rezEnabled: DEFAULT_VIDEO.rezEnabled, rezCellWidth: DEFAULT_VIDEO.rezCellWidth, rezCellHeight: DEFAULT_VIDEO.rezCellHeight, rezColorLevels: DEFAULT_VIDEO.rezColorLevels, rezMix: DEFAULT_VIDEO.rezMix, rezJitter: DEFAULT_VIDEO.rezJitter };
 export const DEFAULT_VIDEO_DISTORTION: Partial<VideoShaderParams> = { rotation: DEFAULT_VIDEO.rotation, scale: DEFAULT_VIDEO.scale, distortionFrequency: DEFAULT_VIDEO.distortionFrequency, distortionAmplitude: DEFAULT_VIDEO.distortionAmplitude, distortionSpeed: DEFAULT_VIDEO.distortionSpeed, distortionAngle: DEFAULT_VIDEO.distortionAngle };
+export const DEFAULT_VIDEO_DISTORTION_ANIMATION: Partial<VideoShaderParams> = { distortionAnimation: DEFAULT_VIDEO.distortionAnimation };
 export const DEFAULT_VIDEO_DITHER: Partial<VideoShaderParams> = {
   ditherEnabled: DEFAULT_VIDEO.ditherEnabled, ditherType: DEFAULT_VIDEO.ditherType, ditherScale: DEFAULT_VIDEO.ditherScale, threshold: DEFAULT_VIDEO.threshold, alphaThreshold: DEFAULT_VIDEO.alphaThreshold,
   ditherGradient: DEFAULT_VIDEO.ditherGradient, ditherColor: DEFAULT_VIDEO.ditherColor, ditherGradientColorA: DEFAULT_VIDEO.ditherGradientColorA, ditherGradientColorB: DEFAULT_VIDEO.ditherGradientColorB, ditherGradientAngle: DEFAULT_VIDEO.ditherGradientAngle, ditherGradientScale: DEFAULT_VIDEO.ditherGradientScale, ditherGradientOffsetX: DEFAULT_VIDEO.ditherGradientOffsetX, ditherGradientOffsetY: DEFAULT_VIDEO.ditherGradientOffsetY,

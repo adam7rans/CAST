@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import {
   DEFAULT_VIDEO, DEFAULT_VIDEO_GRADIENT, DEFAULT_VIDEO_LEVELS, DEFAULT_VIDEO_TONE,
-  DEFAULT_VIDEO_COLOR, DEFAULT_VIDEO_DISTORTION, DEFAULT_VIDEO_DITHER, DEFAULT_VIDEO_REZ,
-  DEFAULT_VIDEO_POSITION, normalizeVideoShaderParams, type VideoShaderParams,
+  DEFAULT_VIDEO_COLOR, DEFAULT_VIDEO_DISTORTION, DEFAULT_VIDEO_DISTORTION_ANIMATION, DEFAULT_VIDEO_DITHER, DEFAULT_VIDEO_REZ,
+  DEFAULT_VIDEO_POSITION, DEFAULT_VIDEO_POSITION_ANIMATION, normalizeVideoShaderParams, type VideoShaderParams,
 } from '../../lib/types';
 import { VIDEO_PRESETS } from '../../lib/presets';
 import { Section, Select } from '../Controls';
@@ -10,6 +10,8 @@ import {
   VideoGradientSection, VideoImageSection, VideoRezSection,
   VideoPositionSection, VideoDistortionSection, VideoDitherSection,
 } from '../ParamControls';
+import { VideoPositionAnimationSection } from '../VideoPositionAnimationSection';
+import { VideoDistortionAnimationSection } from '../VideoDistortionAnimationSection';
 import { TabBar } from '../Tabs';
 import type { VideoShaderSubTab, VideoSubTab } from '../../lib/constants';
 
@@ -55,13 +57,14 @@ interface Props {
   videoInfo: { name: string; duration: number; w: number; h: number } | null;
   audioInfo: { name: string; duration: number } | null;
   audioMode: boolean;
+  playheadSecond: number;
   onPickFile: React.ChangeEventHandler<HTMLInputElement>;
   onDrop: React.DragEventHandler<HTMLDivElement>;
   onImportNativeMedia: () => void;
 }
 
 export const VideoPanel: React.FC<Props> = ({
-  vid, setVid, videoSubTab, setVideoSubTab, videoShaderSubTab, setVideoShaderSubTab, invertFinalOutput, setInvertFinalOutput, videoInfo, audioInfo, audioMode, onPickFile, onDrop, onImportNativeMedia,
+  vid, setVid, videoSubTab, setVideoSubTab, videoShaderSubTab, setVideoShaderSubTab, invertFinalOutput, setInvertFinalOutput, videoInfo, audioInfo, audioMode, playheadSecond, onPickFile, onDrop, onImportNativeMedia,
 }) => (
   <>
     {!videoInfo && !audioInfo ? (
@@ -166,9 +169,19 @@ export const VideoPanel: React.FC<Props> = ({
                 />
                 {videoShaderSubTab === 'image' && <VideoImageSection value={vid} onChange={setVid} onReset={() => setVid(v => ({ ...v, ...DEFAULT_VIDEO_LEVELS, ...DEFAULT_VIDEO_TONE, ...DEFAULT_VIDEO_COLOR }))} />}
                 {videoShaderSubTab === 'rez' && <VideoRezSection value={vid} onChange={setVid} onReset={() => setVid(v => ({ ...v, ...DEFAULT_VIDEO_REZ }))} />}
-                {videoShaderSubTab === 'distortion' && <VideoDistortionSection value={vid} onChange={setVid} onReset={() => setVid(v => ({ ...v, ...DEFAULT_VIDEO_DISTORTION }))} />}
+                {videoShaderSubTab === 'distortion' && (
+                  <>
+                    <VideoDistortionSection value={vid} onChange={setVid} animationTime={playheadSecond} onReset={() => setVid(v => ({ ...v, ...DEFAULT_VIDEO_DISTORTION }))} />
+                    <VideoDistortionAnimationSection value={vid} onChange={setVid} onReset={() => setVid(v => ({ ...v, ...DEFAULT_VIDEO_DISTORTION_ANIMATION }))} />
+                  </>
+                )}
                 {videoShaderSubTab === 'dither' && <VideoDitherSection value={vid} onChange={setVid} onReset={() => setVid(v => ({ ...v, ...DEFAULT_VIDEO_DITHER }))} />}
-                {videoShaderSubTab === 'position' && <VideoPositionSection value={vid} onChange={setVid} onReset={() => setVid(v => ({ ...v, ...DEFAULT_VIDEO_POSITION }))} />}
+                {videoShaderSubTab === 'position' && (
+                  <>
+                    <VideoPositionSection value={vid} onChange={setVid} animationTime={playheadSecond} onReset={() => setVid(v => ({ ...v, ...DEFAULT_VIDEO_POSITION }))} />
+                    <VideoPositionAnimationSection value={vid} onChange={setVid} onReset={() => setVid(v => ({ ...v, ...DEFAULT_VIDEO_POSITION_ANIMATION }))} />
+                  </>
+                )}
               </>
             )}
           </>
