@@ -121,7 +121,7 @@ export const ShaderCaptions: React.FC<ShaderCaptionsProps> = ({
         drawCaptionsToCanvas(
           ctx, transcriptRef.current, modeRef.current, timeMs, f.w, f.h, effectiveStyle, captionScale, playbackStartMsRef.current,
         );
-        renderer.render(offscreen, params);
+        renderer.render(offscreen, params, timeMs / 1000);
       } catch (err) {
         // Surface the underlying issue but never let it break the render loop.
         // eslint-disable-next-line no-console

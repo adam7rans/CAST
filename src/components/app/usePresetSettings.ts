@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import type React from 'react';
-import { DEFAULT_AUDIO_REACTIVITY, DEFAULT_BACKGROUND, DEFAULT_CAPTION_SHADER, DEFAULT_CAPTION_STYLE, DEFAULT_DITHER, DEFAULT_VIDEO, normalizeVideoShaderParams } from '../../lib/types';
+import { DEFAULT_AUDIO_REACTIVITY, DEFAULT_BACKGROUND, DEFAULT_CAPTION_SHADER, DEFAULT_CAPTION_STYLE, DEFAULT_DITHER, DEFAULT_VIDEO, normalizeCaptionShaderParams, normalizeVideoShaderParams } from '../../lib/types';
 import { DEFAULT_LIMITER } from '../../lib/AudioSource';
 import { DEFAULT_MUSIC_PARAMS } from '../../lib/MusicPlayer';
 import { seedGuideMap } from '../../lib/constants';
@@ -99,11 +99,11 @@ export function usePresetSettings({ state, setters }: Args) {
     if (data.captionShaderByGuide && typeof data.captionShaderByGuide === 'object') {
       const m: Record<string, typeof DEFAULT_CAPTION_SHADER> = {};
       for (const [k, v] of Object.entries(data.captionShaderByGuide as Record<string, any>)) {
-        if (v && typeof v === 'object') m[k] = { ...DEFAULT_CAPTION_SHADER, ...v };
+        if (v && typeof v === 'object') m[k] = normalizeCaptionShaderParams(v);
       }
       setters.setCaptionShaderByGuide(m);
     } else if (data.captionShader) {
-      setters.setCaptionShaderByGuide(seedGuideMap({ ...DEFAULT_CAPTION_SHADER, ...data.captionShader }));
+      setters.setCaptionShaderByGuide(seedGuideMap(normalizeCaptionShaderParams(data.captionShader)));
     }
     if (data.limiter) setters.setLimiter({ ...DEFAULT_LIMITER, ...data.limiter });
     if (data.music) {

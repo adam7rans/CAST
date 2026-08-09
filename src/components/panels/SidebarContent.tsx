@@ -63,6 +63,7 @@ export const SidebarContent: React.FC<SidebarPanelProps> = (p) => (
         setCaptionStyle={p.setCaptionStyle}
         captionShader={p.captionShader}
         setCaptionShader={p.setCaptionShader}
+        playheadSecond={p.playheadSecond}
         onPickTranscript={p.onPickTranscript}
         onEditorUpdate={p.onEditorUpdate}
         onSearchMatchNavigate={p.onSearchMatchNavigate}

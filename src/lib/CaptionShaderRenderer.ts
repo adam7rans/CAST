@@ -12,6 +12,7 @@
  * upload the captions texture each frame.
  */
 import type { CaptionShaderParams, CaptionShaderWaveType } from './types';
+import { resolveCaptionShaderParams } from './captionShaderAnimation';
 
 const WAVE_TYPE_INDEX: Record<CaptionShaderWaveType, number> = {
   sine: 0,
@@ -197,6 +198,8 @@ export class CaptionShaderRenderer {
   render(sourceCanvas: HTMLCanvasElement, params: CaptionShaderParams, timeSeconds?: number) {
     const gl = this.gl;
     if (!gl || !this.prog || !this.texture) return;
+    const tSec = timeSeconds !== undefined ? timeSeconds : (performance.now() - this.startMs) / 1000;
+    const effectiveParams = resolveCaptionShaderParams(params, tSec);
 
     // When the shader is disabled we want a blank canvas (the React layer
     // also unmounts us, but this is a defensive fallback).
@@ -209,18 +212,17 @@ export class CaptionShaderRenderer {
     // mid-drag, zero-size source, NaN) would make captions blink out.
     if (
       sourceCanvas.width === 0 || sourceCanvas.height === 0 ||
-      !Number.isFinite(params.speed) ||
-      !Number.isFinite(params.frequency) ||
-      !Number.isFinite(params.amplitude) ||
-      !Number.isFinite(params.angleDeg) ||
-      !Number.isFinite(params.pulseWidth)
+      !Number.isFinite(effectiveParams.speed) ||
+      !Number.isFinite(effectiveParams.frequency) ||
+      !Number.isFinite(effectiveParams.amplitude) ||
+      !Number.isFinite(effectiveParams.angleDeg) ||
+      !Number.isFinite(effectiveParams.pulseWidth)
     ) {
       return;
     }
 
     gl.clear(gl.COLOR_BUFFER_BIT);
-    const tSec = timeSeconds !== undefined ? timeSeconds : (performance.now() - this.startMs) / 1000;
-    const a = (params.angleDeg * Math.PI) / 180;
+    const a = (effectiveParams.angleDeg * Math.PI) / 180;
     const dirX = Math.cos(a);
     const dirY = Math.sin(a);
 
@@ -233,12 +235,12 @@ export class CaptionShaderRenderer {
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, sourceCanvas);
 
     if (this.uTime) gl.uniform1f(this.uTime, tSec);
-    if (this.uSpeed) gl.uniform1f(this.uSpeed, params.speed);
-    if (this.uFreq) gl.uniform1f(this.uFreq, params.frequency);
-    if (this.uAmp) gl.uniform1f(this.uAmp, params.amplitude);
+    if (this.uSpeed) gl.uniform1f(this.uSpeed, effectiveParams.speed);
+    if (this.uFreq) gl.uniform1f(this.uFreq, effectiveParams.frequency);
+    if (this.uAmp) gl.uniform1f(this.uAmp, effectiveParams.amplitude);
     if (this.uDir) gl.uniform2f(this.uDir, dirX, dirY);
     if (this.uWaveType) gl.uniform1i(this.uWaveType, WAVE_TYPE_INDEX[params.waveType] ?? 0);
-    if (this.uPulseW) gl.uniform1f(this.uPulseW, params.pulseWidth);
+    if (this.uPulseW) gl.uniform1f(this.uPulseW, effectiveParams.pulseWidth);
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
     gl.bindVertexArray(null);
   }

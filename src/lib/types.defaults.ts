@@ -98,7 +98,35 @@ export const DEFAULT_VIDEO_DITHER: Partial<VideoShaderParams> = {
 export const MICRO_TIMELINE_COLORS = ['#1f6feb', '#30d158', '#eb6f1f', '#ff453a', '#bf5af2', '#ffd60a', '#64d2ff'];
 export const DEFAULT_EXPORT: ExportParams = { width: 1920, height: 1080, fps: 30, duration: 10, filenamePrefix: 'dither', exportMode: 'master', invertFinalOutput: false, startSecond: 0, endSecond: 10, outroEnabled: false };
 export const DEFAULT_AUDIO_REACTIVITY: AudioReactivityParams = { enabled: true, attack: 0.6, release: 0.12, gain: 1, modSpeed: 0.6, modBrightness: 0.6 };
-export const DEFAULT_CAPTION_SHADER: CaptionShaderParams = { enabled: false, waveType: 'sine', frequency: 8, speed: 2, amplitude: 0.01, angleDeg: 0, pulseWidth: 0.5 };
+export const DEFAULT_CAPTION_SHADER: CaptionShaderParams = {
+  enabled: false, waveType: 'sine', frequency: 8, speed: 2, amplitude: 0.01, angleDeg: 0, pulseWidth: 0.5,
+  animation: {
+    speed: { enabled: false, from: 2, to: 5, loop: 4 },
+    frequency: { enabled: false, from: 8, to: 20, loop: 4 },
+    amplitude: { enabled: false, from: 0.01, to: 0.005, loop: 4 },
+    angle: { enabled: false, from: 0, to: 90, loop: 4 },
+    pulseWidth: { enabled: false, from: 0.5, to: 0.75, loop: 4 },
+  },
+};
+export const DEFAULT_CAPTION_SHADER_ANIMATION: Partial<CaptionShaderParams> = { animation: DEFAULT_CAPTION_SHADER.animation };
+
+export function normalizeCaptionShaderParams(input?: Partial<CaptionShaderParams> | null): CaptionShaderParams {
+  const animationRange = (key: keyof CaptionShaderParams['animation']) => ({
+    ...DEFAULT_CAPTION_SHADER.animation[key],
+    ...(input?.animation?.[key] ?? {}),
+  });
+  return {
+    ...DEFAULT_CAPTION_SHADER,
+    ...(input ?? {}),
+    animation: {
+      speed: animationRange('speed'),
+      frequency: animationRange('frequency'),
+      amplitude: animationRange('amplitude'),
+      angle: animationRange('angle'),
+      pulseWidth: animationRange('pulseWidth'),
+    },
+  };
+}
 export const DEFAULT_CAPTION_STYLE: CaptionStyle = {
   fontFamily: '"Source Code Pro", ui-monospace, "SF Mono", Menlo, Consolas, monospace', lineFontSize: 28, wordFontSize: 64, fontWeight: 700, letterSpacing: 0.06, lineHeight: 1.4,
   horizontalPosition: 50, verticalPosition: 72, lineMaxWidth: 92, textAlign: 'center', underlineMode: 'draw', underlineFadeMs: 150, wordHighlightEnabled: true,

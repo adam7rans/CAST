@@ -1,6 +1,6 @@
 import { DEFAULT_LIMITER } from '../lib/AudioSource';
 import { DEFAULT_MUSIC_PARAMS } from '../lib/MusicPlayer';
-import { DEFAULT_AUDIO_REACTIVITY, DEFAULT_BACKGROUND, DEFAULT_CAPTION_SHADER, DEFAULT_CAPTION_STYLE, DEFAULT_DITHER, DEFAULT_EXPORT, DEFAULT_VIDEO, normalizeVideoShaderParams } from '../lib/types';
+import { DEFAULT_AUDIO_REACTIVITY, DEFAULT_BACKGROUND, DEFAULT_CAPTION_SHADER, DEFAULT_CAPTION_STYLE, DEFAULT_DITHER, DEFAULT_EXPORT, DEFAULT_VIDEO, normalizeCaptionShaderParams, normalizeVideoShaderParams } from '../lib/types';
 import { seedGuideMap, type GuideKey } from '../lib/constants';
 import type { CaptionShaderParams, CaptionStyle } from '../lib/types';
 import type { ProjectData } from '../lib/projectApi';
@@ -17,7 +17,7 @@ function normalizeStyleMap(map: Record<string, any>): Record<string, CaptionStyl
 function normalizeShaderMap(map: Record<string, any>): Record<string, CaptionShaderParams> {
   const out: Record<string, CaptionShaderParams> = {};
   for (const [key, value] of Object.entries(map)) {
-    if (value && typeof value === 'object') out[key] = { ...DEFAULT_CAPTION_SHADER, ...value };
+    if (value && typeof value === 'object') out[key] = normalizeCaptionShaderParams(value);
   }
   return out;
 }
@@ -117,7 +117,7 @@ export function applyProjectVisualState(proj: ProjectData, setters: ProjectHandl
   if (proj.captionShaderByGuide && typeof proj.captionShaderByGuide === 'object') {
     setters.setCaptionShaderByGuide(normalizeShaderMap(proj.captionShaderByGuide));
   } else if (proj.captionShader) {
-    setters.setCaptionShaderByGuide(seedGuideMap({ ...DEFAULT_CAPTION_SHADER, ...proj.captionShader }));
+    setters.setCaptionShaderByGuide(seedGuideMap(normalizeCaptionShaderParams(proj.captionShader)));
   } else {
     setters.setCaptionShaderByGuide({});
   }

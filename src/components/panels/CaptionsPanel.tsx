@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-  DEFAULT_CAPTION_STYLE, DEFAULT_CAPTION_SHADER,
+  DEFAULT_CAPTION_STYLE, DEFAULT_CAPTION_SHADER, DEFAULT_CAPTION_SHADER_ANIMATION,
   type CaptionStyle, type CaptionShaderParams, type CaptionShaderWaveType,
 } from '../../lib/types';
 import type { CaptionMode, TranscriptData } from '../../lib/transcript';
@@ -10,6 +10,8 @@ import { TabBar } from '../Tabs';
 import { PillToggle } from '../LayerToggle';
 import { CaptionFontControls, CaptionTypeControls } from '../CaptionFontControls';
 import { CaptionsEditor } from '../CaptionsEditor';
+import { CaptionShaderAnimationSection } from '../CaptionShaderAnimationSection';
+import { resolveCaptionShaderParams } from '../../lib/captionShaderAnimation';
 
 const WAVE_TYPE_OPTIONS: { label: string; value: CaptionShaderWaveType }[] = [
   { label: 'Sine',     value: 'sine' },
@@ -40,6 +42,7 @@ interface Props {
   setCaptionStyle: React.Dispatch<React.SetStateAction<CaptionStyle>>;
   captionShader: CaptionShaderParams;
   setCaptionShader: React.Dispatch<React.SetStateAction<CaptionShaderParams>>;
+  playheadSecond: number;
   onPickTranscript: React.ChangeEventHandler<HTMLInputElement>;
   onEditorUpdate: (data: TranscriptData) => void;
   onSearchMatchNavigate: (startMs: number, endMs: number) => void;
@@ -51,9 +54,12 @@ export const CaptionsPanel: React.FC<Props> = ({
   captionMode, setCaptionMode,
   captionStyle, setCaptionStyle,
   captionShader, setCaptionShader,
+  playheadSecond,
   onPickTranscript, onEditorUpdate, onSearchMatchNavigate,
-}) => (
-  <>
+}) => {
+  const liveShader = resolveCaptionShaderParams(captionShader, playheadSecond);
+  return (
+    <>
     <TabBar<CaptionsSubTab>
       tabs={[
         { value: 'editor', label: 'Editor' },
@@ -126,7 +132,8 @@ export const CaptionsPanel: React.FC<Props> = ({
     )}
 
     {captionsSubTab === 'shader' && (
-      <Section title={`Shader (${WAVE_TYPE_LABEL[captionShader.waveType]})`} onReset={() => setCaptionShader(DEFAULT_CAPTION_SHADER)}>
+      <>
+        <Section title={`Shader (${WAVE_TYPE_LABEL[captionShader.waveType]})`} onReset={() => setCaptionShader(DEFAULT_CAPTION_SHADER)}>
         <Toggle
           label="enabled"
           value={captionShader.enabled}
@@ -140,23 +147,26 @@ export const CaptionsPanel: React.FC<Props> = ({
         />
         <Slider
           label="speed"
-          value={captionShader.speed}
+          value={liveShader.speed}
           min={0} max={20} step={0.1}
           ticks={[2, 5, 10]}
+          readOnly={captionShader.animation.speed.enabled}
           onChange={(speed) => setCaptionShader({ ...captionShader, speed })}
         />
         <Slider
           label={captionShader.waveType === 'noise' ? 'scale' : 'frequency'}
-          value={captionShader.frequency}
+          value={liveShader.frequency}
           min={0} max={240} step={0.5}
           ticks={[20, 60, 120, 180]}
+          readOnly={captionShader.animation.frequency.enabled}
           onChange={(frequency) => setCaptionShader({ ...captionShader, frequency })}
         />
         <Slider
           label="amplitude"
-          value={Math.max(0, Math.min(0.01, captionShader.amplitude))}
+          value={Math.max(0, Math.min(0.01, liveShader.amplitude))}
           min={0} max={0.01} step={0.00005}
           ticks={[0.001, 0.003, 0.005, 0.008]}
+          readOnly={captionShader.animation.amplitude.enabled}
           onChange={(amplitude) => setCaptionShader({
             ...captionShader,
             amplitude: Math.max(0, Math.min(0.01, amplitude)),
@@ -165,22 +175,31 @@ export const CaptionsPanel: React.FC<Props> = ({
         {captionShader.waveType !== 'noise' && (
           <Slider
             label="angle°"
-            value={captionShader.angleDeg}
+            value={liveShader.angleDeg}
             min={0} max={360} step={1}
             ticks={[0, 90, 180, 270]}
+            readOnly={captionShader.animation.angle.enabled}
             onChange={(angleDeg) => setCaptionShader({ ...captionShader, angleDeg: Math.round(angleDeg) })}
           />
         )}
         {captionShader.waveType === 'pulse' && (
           <Slider
             label="pulse width"
-            value={captionShader.pulseWidth}
+            value={liveShader.pulseWidth}
             min={0.05} max={0.95} step={0.01}
             ticks={[0.25, 0.5, 0.75]}
+            readOnly={captionShader.animation.pulseWidth.enabled}
             onChange={(pulseWidth) => setCaptionShader({ ...captionShader, pulseWidth })}
           />
         )}
-      </Section>
+        </Section>
+        <CaptionShaderAnimationSection
+          value={captionShader}
+          onChange={setCaptionShader}
+          onReset={() => setCaptionShader((current) => ({ ...current, ...DEFAULT_CAPTION_SHADER_ANIMATION }))}
+        />
+      </>
     )}
-  </>
-);
+    </>
+  );
+};

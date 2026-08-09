@@ -195,6 +195,14 @@ export interface MusicTimelineClip {
 
 export type CaptionShaderWaveType = 'sine' | 'triangle' | 'sawtooth' | 'square' | 'pulse' | 'noise';
 
+export interface CaptionShaderAnimationParams {
+  speed: AnimationRange;
+  frequency: AnimationRange;
+  amplitude: AnimationRange;
+  angle: AnimationRange;
+  pulseWidth: AnimationRange;
+}
+
 export interface CaptionShaderParams {
   enabled: boolean;
   waveType: CaptionShaderWaveType;
@@ -204,4 +212,5 @@ export interface CaptionShaderParams {
   angleDeg: number;
   /** Duty cycle for pulse wave (0..1). Ignored for other wave types. */
   pulseWidth: number;
+  animation: CaptionShaderAnimationParams;
 }
