@@ -167,7 +167,7 @@ relocations:
   - { offset: 0x139AFC, size: 0x8, addend: 0x0, symName: '_$s13CastMetalCore13ControlServerCfD', symObjAddr: 0x89F8, symBinAddr: 0x10000A050, symSize: 0x20 }
   - { offset: 0x139BA1, size: 0x8, addend: 0x0, symName: '_$s13CastMetalCore6CryptoO4sha1y10Foundation4DataVAGFZTf4nd_n', symObjAddr: 0xAE78, symBinAddr: 0x10000C4BC, symSize: 0xCEC }
   - { offset: 0x13A98A, size: 0x8, addend: 0x0, symName: '_$s13CastMetalCore14UniformEncoderO9slotCountSivau', symObjAddr: 0x0, symBinAddr: 0x10000D298, symSize: 0xC }
-  - { offset: 0x13A9AE, size: 0x8, addend: 0x0, symName: '_$s13CastMetalCore14UniformEncoderO9slotCountSivpZ', symObjAddr: 0x1300, symBinAddr: 0x100024C18, symSize: 0x0 }
+  - { offset: 0x13A9AE, size: 0x8, addend: 0x0, symName: '_$s13CastMetalCore14UniformEncoderO9slotCountSivpZ', symObjAddr: 0x1300, symBinAddr: 0x100024C08, symSize: 0x0 }
   - { offset: 0x13A9BC, size: 0x8, addend: 0x0, symName: '_$s13CastMetalCore14UniformEncoderO9slotCountSivau', symObjAddr: 0x0, symBinAddr: 0x10000D298, symSize: 0xC }
   - { offset: 0x13AB66, size: 0x8, addend: 0x0, symName: '_$ss12_ArrayBufferV20_consumeAndCreateNewAByxGyFSf_Tg5', symObjAddr: 0x7AC, symBinAddr: 0x10000DA44, symSize: 0x14 }
   - { offset: 0x13ACA7, size: 0x8, addend: 0x0, symName: '_$s13CastMetalCore14UniformEncoderOMa', symObjAddr: 0x1290, symBinAddr: 0x10000E4E4, symSize: 0x10 }
@@ -770,23 +770,23 @@ relocations:
   - { offset: 0x14DD47, size: 0x8, addend: 0x0, symName: '_$s9castmetal13CameraCaptureCfD', symObjAddr: 0x1488, symBinAddr: 0x1000211F8, symSize: 0x34 }
   - { offset: 0x14DD86, size: 0x8, addend: 0x0, symName: '_$s9castmetal13CameraCaptureC11listCamerasSaySo15AVCaptureDeviceCGyFZTf4d_n', symObjAddr: 0x1854, symBinAddr: 0x1000214AC, symSize: 0x1E8 }
   - { offset: 0x14DE72, size: 0x8, addend: 0x0, symName: '_$s9castmetal13CameraCaptureC10bestFormat33_E9C56D52EAABAD90ABE31FD94990D125LL3for5width6height3fpsAC0E4PickAELLVSgSo15AVCaptureDeviceC_S2iSdtFTf4nnnnd_n', symObjAddr: 0x1BD4, symBinAddr: 0x1000216DC, symSize: 0x3CC }
-  - { offset: 0x14E466, size: 0x8, addend: 0x0, symName: '_$s9castmetal13PreviewWindowCfETo', symObjAddr: 0x64, symBinAddr: 0x100021C70, symSize: 0x10 }
-  - { offset: 0x14E495, size: 0x8, addend: 0x0, symName: '_$s9castmetal13PreviewWindowCMa', symObjAddr: 0x74, symBinAddr: 0x100021C80, symSize: 0x20 }
-  - { offset: 0x14E532, size: 0x8, addend: 0x0, symName: '_$s9castmetal12ViewRendererCfETo', symObjAddr: 0x53C, symBinAddr: 0x100022148, symSize: 0x58 }
-  - { offset: 0x14E561, size: 0x8, addend: 0x0, symName: '_$s9castmetal12ViewRendererCMa', symObjAddr: 0x594, symBinAddr: 0x1000221A0, symSize: 0x20 }
-  - { offset: 0x14E5CE, size: 0x8, addend: 0x0, symName: '_$s9castmetal13PreviewWindowC17windowShouldCloseySbSo8NSWindowCFTo', symObjAddr: 0x0, symBinAddr: 0x100021C0C, symSize: 0x38 }
-  - { offset: 0x14E652, size: 0x8, addend: 0x0, symName: '_$s9castmetal13PreviewWindowC11contentRect9styleMask7backing5deferACSo6CGRectV_So013NSWindowStyleG0VSo18NSBackingStoreTypeVSbtcfcTo', symObjAddr: 0x38, symBinAddr: 0x100021C44, symSize: 0x2C }
-  - { offset: 0x14E6F8, size: 0x8, addend: 0x0, symName: '_$s9castmetal12ViewRendererC4draw2inySo7MTKViewC_tF', symObjAddr: 0x94, symBinAddr: 0x100021CA0, symSize: 0x3F0 }
-  - { offset: 0x14E84F, size: 0x8, addend: 0x0, symName: '_$s9castmetal12ViewRendererC4draw2inySo7MTKViewC_tFTo', symObjAddr: 0x484, symBinAddr: 0x100022090, symSize: 0x50 }
-  - { offset: 0x14E863, size: 0x8, addend: 0x0, symName: '_$s9castmetal12ViewRendererC03mtkB0_22drawableSizeWillChangeySo7MTKViewC_So6CGSizeVtFTo', symObjAddr: 0x4D4, symBinAddr: 0x1000220E0, symSize: 0x4 }
-  - { offset: 0x14E890, size: 0x8, addend: 0x0, symName: '_$s9castmetal12ViewRendererCACycfcTo', symObjAddr: 0x4D8, symBinAddr: 0x1000220E4, symSize: 0x2C }
-  - { offset: 0x14EA7D, size: 0x8, addend: 0x0, symName: '_$s9castmetal10stillsMains5Int32VyF', symObjAddr: 0x0, symBinAddr: 0x1000221C4, symSize: 0x318 }
-  - { offset: 0x14EB54, size: 0x8, addend: 0x0, symName: '_$s9castmetal10stillsMains5Int32VyF', symObjAddr: 0x0, symBinAddr: 0x1000221C4, symSize: 0x318 }
-  - { offset: 0x14EEE5, size: 0x8, addend: 0x0, symName: '_$s9castmetal15TextureUploaderC6deviceACSo9MTLDevice_p_tcfC', symObjAddr: 0x0, symBinAddr: 0x1000224DC, symSize: 0xA0 }
-  - { offset: 0x14EFDB, size: 0x8, addend: 0x0, symName: '_$s9castmetal15TextureUploaderCMa', symObjAddr: 0x2B0, symBinAddr: 0x10002278C, symSize: 0x20 }
-  - { offset: 0x14F03F, size: 0x8, addend: 0x0, symName: '_$s9castmetal15TextureUploaderC6deviceACSo9MTLDevice_p_tcfC', symObjAddr: 0x0, symBinAddr: 0x1000224DC, symSize: 0xA0 }
-  - { offset: 0x14F081, size: 0x8, addend: 0x0, symName: '_$s9castmetal15TextureUploaderC7texture3forSo10MTLTexture_pSg_So11CVBufferRefaSgtAI_tF', symObjAddr: 0xA0, symBinAddr: 0x10002257C, symSize: 0x134 }
-  - { offset: 0x14F140, size: 0x8, addend: 0x0, symName: '_$s9castmetal15TextureUploaderC6deviceACSo9MTLDevice_p_tcfc', symObjAddr: 0x1D4, symBinAddr: 0x1000226B0, symSize: 0x8C }
-  - { offset: 0x14F177, size: 0x8, addend: 0x0, symName: '_$s9castmetal15TextureUploaderCfd', symObjAddr: 0x260, symBinAddr: 0x10002273C, symSize: 0x24 }
-  - { offset: 0x14F1AF, size: 0x8, addend: 0x0, symName: '_$s9castmetal15TextureUploaderCfD', symObjAddr: 0x284, symBinAddr: 0x100022760, symSize: 0x2C }
+  - { offset: 0x14E466, size: 0x8, addend: 0x0, symName: '_$s9castmetal13PreviewWindowCfETo', symObjAddr: 0x54, symBinAddr: 0x100021C60, symSize: 0x10 }
+  - { offset: 0x14E495, size: 0x8, addend: 0x0, symName: '_$s9castmetal13PreviewWindowCMa', symObjAddr: 0x64, symBinAddr: 0x100021C70, symSize: 0x20 }
+  - { offset: 0x14E532, size: 0x8, addend: 0x0, symName: '_$s9castmetal12ViewRendererCfETo', symObjAddr: 0x52C, symBinAddr: 0x100022138, symSize: 0x58 }
+  - { offset: 0x14E561, size: 0x8, addend: 0x0, symName: '_$s9castmetal12ViewRendererCMa', symObjAddr: 0x584, symBinAddr: 0x100022190, symSize: 0x20 }
+  - { offset: 0x14E5DE, size: 0x8, addend: 0x0, symName: '_$s9castmetal13PreviewWindowC17windowShouldCloseySbSo8NSWindowCFTo', symObjAddr: 0x0, symBinAddr: 0x100021C0C, symSize: 0x28 }
+  - { offset: 0x14E65E, size: 0x8, addend: 0x0, symName: '_$s9castmetal13PreviewWindowC11contentRect9styleMask7backing5deferACSo6CGRectV_So013NSWindowStyleG0VSo18NSBackingStoreTypeVSbtcfcTo', symObjAddr: 0x28, symBinAddr: 0x100021C34, symSize: 0x2C }
+  - { offset: 0x14E70B, size: 0x8, addend: 0x0, symName: '_$s9castmetal12ViewRendererC4draw2inySo7MTKViewC_tF', symObjAddr: 0x84, symBinAddr: 0x100021C90, symSize: 0x3F0 }
+  - { offset: 0x14E862, size: 0x8, addend: 0x0, symName: '_$s9castmetal12ViewRendererC4draw2inySo7MTKViewC_tFTo', symObjAddr: 0x474, symBinAddr: 0x100022080, symSize: 0x50 }
+  - { offset: 0x14E876, size: 0x8, addend: 0x0, symName: '_$s9castmetal12ViewRendererC03mtkB0_22drawableSizeWillChangeySo7MTKViewC_So6CGSizeVtFTo', symObjAddr: 0x4C4, symBinAddr: 0x1000220D0, symSize: 0x4 }
+  - { offset: 0x14E8A3, size: 0x8, addend: 0x0, symName: '_$s9castmetal12ViewRendererCACycfcTo', symObjAddr: 0x4C8, symBinAddr: 0x1000220D4, symSize: 0x2C }
+  - { offset: 0x14EA90, size: 0x8, addend: 0x0, symName: '_$s9castmetal10stillsMains5Int32VyF', symObjAddr: 0x0, symBinAddr: 0x1000221B4, symSize: 0x318 }
+  - { offset: 0x14EB67, size: 0x8, addend: 0x0, symName: '_$s9castmetal10stillsMains5Int32VyF', symObjAddr: 0x0, symBinAddr: 0x1000221B4, symSize: 0x318 }
+  - { offset: 0x14EEF8, size: 0x8, addend: 0x0, symName: '_$s9castmetal15TextureUploaderC6deviceACSo9MTLDevice_p_tcfC', symObjAddr: 0x0, symBinAddr: 0x1000224CC, symSize: 0xA0 }
+  - { offset: 0x14EFEE, size: 0x8, addend: 0x0, symName: '_$s9castmetal15TextureUploaderCMa', symObjAddr: 0x2B0, symBinAddr: 0x10002277C, symSize: 0x20 }
+  - { offset: 0x14F052, size: 0x8, addend: 0x0, symName: '_$s9castmetal15TextureUploaderC6deviceACSo9MTLDevice_p_tcfC', symObjAddr: 0x0, symBinAddr: 0x1000224CC, symSize: 0xA0 }
+  - { offset: 0x14F094, size: 0x8, addend: 0x0, symName: '_$s9castmetal15TextureUploaderC7texture3forSo10MTLTexture_pSg_So11CVBufferRefaSgtAI_tF', symObjAddr: 0xA0, symBinAddr: 0x10002256C, symSize: 0x134 }
+  - { offset: 0x14F153, size: 0x8, addend: 0x0, symName: '_$s9castmetal15TextureUploaderC6deviceACSo9MTLDevice_p_tcfc', symObjAddr: 0x1D4, symBinAddr: 0x1000226A0, symSize: 0x8C }
+  - { offset: 0x14F18A, size: 0x8, addend: 0x0, symName: '_$s9castmetal15TextureUploaderCfd', symObjAddr: 0x260, symBinAddr: 0x10002272C, symSize: 0x24 }
+  - { offset: 0x14F1C2, size: 0x8, addend: 0x0, symName: '_$s9castmetal15TextureUploaderCfD', symObjAddr: 0x284, symBinAddr: 0x100022750, symSize: 0x2C }
 ...

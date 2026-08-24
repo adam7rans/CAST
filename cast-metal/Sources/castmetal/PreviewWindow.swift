@@ -26,7 +26,9 @@ final class PreviewWindow: NSWindow, NSWindowDelegate {
     }
 
     func windowShouldClose(_ sender: NSWindow) -> Bool {
-        NSApp.terminate(nil)
+        // Hide instead of quit: the shader engine must stay alive while
+        // OBS captures this window. Quit with Cmd+Q or the menu.
+        sender.orderOut(nil)
         return false
     }
 }
