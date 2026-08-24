@@ -198,6 +198,14 @@
       "inputs" : [
         {
           "kind" : "file",
+          "name" : "/Users/adam/Documents/CAST/cast-metal/Sources/castmetal/CameraCapture.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/adam/Documents/CAST/cast-metal/Sources/castmetal/TextureUploader.swift"
+        },
+        {
+          "kind" : "file",
           "name" : "/Users/adam/Documents/CAST/cast-metal/Sources/castmetal/main.swift"
         },
         {
@@ -217,6 +225,8 @@
       "moduleName" : "castmetal",
       "moduleOutputPath" : "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/Modules/castmetal.swiftmodule",
       "objects" : [
+        "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/castmetal.build/CameraCapture.swift.o",
+        "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/castmetal.build/TextureUploader.swift.o",
         "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/castmetal.build/main.swift.o"
       ],
       "otherArguments" : [
@@ -266,6 +276,14 @@
       "outputs" : [
         {
           "kind" : "file",
+          "name" : "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/castmetal.build/CameraCapture.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/castmetal.build/TextureUploader.swift.o"
+        },
+        {
+          "kind" : "file",
           "name" : "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/castmetal.build/main.swift.o"
         },
         {
@@ -275,6 +293,8 @@
       ],
       "prepareForIndexing" : false,
       "sources" : [
+        "/Users/adam/Documents/CAST/cast-metal/Sources/castmetal/CameraCapture.swift",
+        "/Users/adam/Documents/CAST/cast-metal/Sources/castmetal/TextureUploader.swift",
         "/Users/adam/Documents/CAST/cast-metal/Sources/castmetal/main.swift"
       ],
       "tempsPath" : "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/castmetal.build",
@@ -400,6 +420,8 @@
       "-package-name",
       "cast_metal",
       "-c",
+      "/Users/adam/Documents/CAST/cast-metal/Sources/castmetal/CameraCapture.swift",
+      "/Users/adam/Documents/CAST/cast-metal/Sources/castmetal/TextureUploader.swift",
       "/Users/adam/Documents/CAST/cast-metal/Sources/castmetal/main.swift",
       "-I",
       "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/Modules",
@@ -554,6 +576,14 @@
         },
         {
           "kind" : "file",
+          "name" : "/Users/adam/Documents/CAST/cast-metal/Sources/castmetal/CameraCapture.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/adam/Documents/CAST/cast-metal/Sources/castmetal/TextureUploader.swift"
+        },
+        {
+          "kind" : "file",
           "name" : "/Users/adam/Documents/CAST/cast-metal/Sources/castmetal/main.swift"
         }
       ],
@@ -569,6 +599,14 @@
         {
           "kind" : "file",
           "name" : "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/CastMetalCore.build/ShaderParams.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/castmetal.build/CameraCapture.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/castmetal.build/TextureUploader.swift.o"
         },
         {
           "kind" : "file",
