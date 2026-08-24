@@ -1,0 +1,3 @@
+module CastMetalPackageTests {
+    header "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/CastMetalPackageTests.build/include/CastMetalPackageTests-Swift.h"
+}

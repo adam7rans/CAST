@@ -1,0 +1,3 @@
+module CastMetalCore {
+    header "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/CastMetalCore.build/include/CastMetalCore-Swift.h"
+}

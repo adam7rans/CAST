@@ -1,0 +1,39 @@
+---
+triple:          'arm64-apple-darwin'
+binary-path:     '/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/castmetal'
+relocations:
+  - { offset: 0x88C46, size: 0x8, addend: 0x0, symName: '_$s13CastMetalCore12ShaderParamsVACycfC', symObjAddr: 0x0, symBinAddr: 0x100000DD8, symSize: 0x4 }
+  - { offset: 0x88E04, size: 0x8, addend: 0x0, symName: '_$s13CastMetalCore12ShaderParamsV10CodingKeys33_7547AA1E1C53839797426611C1DB113BLLOAFs0F3KeyAAWl', symObjAddr: 0x144, symBinAddr: 0x100000F1C, symSize: 0x68 }
+  - { offset: 0x88E18, size: 0x8, addend: 0x0, symName: ___swift_instantiateConcreteTypeFromMangledNameV2, symObjAddr: 0x2CC, symBinAddr: 0x1000010A4, symSize: 0x68 }
+  - { offset: 0x88E2C, size: 0x8, addend: 0x0, symName: ___swift_project_boxed_opaque_existential_1, symObjAddr: 0x334, symBinAddr: 0x10000110C, symSize: 0x4C }
+  - { offset: 0x88E40, size: 0x8, addend: 0x0, symName: ___swift_destroy_boxed_opaque_existential_1, symObjAddr: 0x3B0, symBinAddr: 0x100001188, symSize: 0x60 }
+  - { offset: 0x88E54, size: 0x8, addend: 0x0, symName: '_$s13CastMetalCore12ShaderParamsVMa', symObjAddr: 0x4C8, symBinAddr: 0x1000012A0, symSize: 0x14 }
+  - { offset: 0x88E68, size: 0x8, addend: 0x0, symName: '_$s13CastMetalCore12ShaderParamsV10CodingKeys33_7547AA1E1C53839797426611C1DB113BLLOMa', symObjAddr: 0x4DC, symBinAddr: 0x1000012B4, symSize: 0x14 }
+  - { offset: 0x88E7C, size: 0x8, addend: 0x0, symName: '_$s13CastMetalCore12ShaderParamsV10CodingKeys33_7547AA1E1C53839797426611C1DB113BLLOs0F3KeyAAs28CustomDebugStringConvertiblePWb', symObjAddr: 0x4F0, symBinAddr: 0x1000012C8, symSize: 0x14 }
+  - { offset: 0x88E90, size: 0x8, addend: 0x0, symName: '_$s13CastMetalCore12ShaderParamsV10CodingKeys33_7547AA1E1C53839797426611C1DB113BLLOAFs28CustomDebugStringConvertibleAAWl', symObjAddr: 0x504, symBinAddr: 0x1000012DC, symSize: 0x68 }
+  - { offset: 0x88EA4, size: 0x8, addend: 0x0, symName: '_$s13CastMetalCore12ShaderParamsV10CodingKeys33_7547AA1E1C53839797426611C1DB113BLLOs0F3KeyAAs23CustomStringConvertiblePWb', symObjAddr: 0x56C, symBinAddr: 0x100001344, symSize: 0x14 }
+  - { offset: 0x88EB8, size: 0x8, addend: 0x0, symName: '_$s13CastMetalCore12ShaderParamsV10CodingKeys33_7547AA1E1C53839797426611C1DB113BLLOAFs23CustomStringConvertibleAAWl', symObjAddr: 0x580, symBinAddr: 0x100001358, symSize: 0x68 }
+  - { offset: 0x88ED9, size: 0x8, addend: 0x0, symName: '_$s13CastMetalCore12ShaderParamsVACycfC', symObjAddr: 0x0, symBinAddr: 0x100000DD8, symSize: 0x4 }
+  - { offset: 0x88F2A, size: 0x8, addend: 0x0, symName: '_$s13CastMetalCore12ShaderParamsV10CodingKeys33_7547AA1E1C53839797426611C1DB113BLLOs28CustomDebugStringConvertibleAAsAGP16debugDescriptionSSvgTW', symObjAddr: 0x118, symBinAddr: 0x100000EF0, symSize: 0x2C }
+  - { offset: 0x88F46, size: 0x8, addend: 0x0, symName: '_$s13CastMetalCore12ShaderParamsV10CodingKeys33_7547AA1E1C53839797426611C1DB113BLLOs23CustomStringConvertibleAAsAGP11descriptionSSvgTW', symObjAddr: 0x1AC, symBinAddr: 0x100000F84, symSize: 0x2C }
+  - { offset: 0x88F95, size: 0x8, addend: 0x0, symName: '_$s13CastMetalCore12ShaderParamsV10CodingKeys33_7547AA1E1C53839797426611C1DB113BLLO11stringValueAFSgSS_tcfC', symObjAddr: 0x4, symBinAddr: 0x100000DDC, symSize: 0x3C }
+  - { offset: 0x88FB7, size: 0x8, addend: 0x0, symName: '_$s13CastMetalCore12ShaderParamsV10CodingKeys33_7547AA1E1C53839797426611C1DB113BLLO8intValueAFSgSi_tcfC', symObjAddr: 0x40, symBinAddr: 0x100000E18, symSize: 0x18 }
+  - { offset: 0x88FD9, size: 0x8, addend: 0x0, symName: '_$s13CastMetalCore12ShaderParamsV10CodingKeys33_7547AA1E1C53839797426611C1DB113BLLO8intValueSiSgvg', symObjAddr: 0x58, symBinAddr: 0x100000E30, symSize: 0xC }
+  - { offset: 0x88FF9, size: 0x8, addend: 0x0, symName: '_$s13CastMetalCore12ShaderParamsV10CodingKeys33_7547AA1E1C53839797426611C1DB113BLLO11stringValueSSvg', symObjAddr: 0x64, symBinAddr: 0x100000E3C, symSize: 0x28 }
+  - { offset: 0x89019, size: 0x8, addend: 0x0, symName: '_$s13CastMetalCore12ShaderParamsV10CodingKeys33_7547AA1E1C53839797426611C1DB113BLLOs0F3KeyAAsAGP11stringValueSSvgTW', symObjAddr: 0x8C, symBinAddr: 0x100000E64, symSize: 0x14 }
+  - { offset: 0x89034, size: 0x8, addend: 0x0, symName: '_$s13CastMetalCore12ShaderParamsV10CodingKeys33_7547AA1E1C53839797426611C1DB113BLLOs0F3KeyAAsAGP11stringValuexSgSS_tcfCTW', symObjAddr: 0xA0, symBinAddr: 0x100000E78, symSize: 0x30 }
+  - { offset: 0x89048, size: 0x8, addend: 0x0, symName: '_$s13CastMetalCore12ShaderParamsV10CodingKeys33_7547AA1E1C53839797426611C1DB113BLLOs0F3KeyAAsAGP8intValueSiSgvgTW', symObjAddr: 0xD0, symBinAddr: 0x100000EA8, symSize: 0x18 }
+  - { offset: 0x8905C, size: 0x8, addend: 0x0, symName: '_$s13CastMetalCore12ShaderParamsV10CodingKeys33_7547AA1E1C53839797426611C1DB113BLLOs0F3KeyAAsAGP8intValuexSgSi_tcfCTW', symObjAddr: 0xE8, symBinAddr: 0x100000EC0, symSize: 0x30 }
+  - { offset: 0x89070, size: 0x8, addend: 0x0, symName: '_$s13CastMetalCore12ShaderParamsV23__derived_struct_equalsySbAC_ACtFZ', symObjAddr: 0x1D8, symBinAddr: 0x100000FB0, symSize: 0xC }
+  - { offset: 0x890AD, size: 0x8, addend: 0x0, symName: '_$s13CastMetalCore12ShaderParamsV6encode2toys7Encoder_p_tKF', symObjAddr: 0x1E4, symBinAddr: 0x100000FBC, symSize: 0xE8 }
+  - { offset: 0x890DE, size: 0x8, addend: 0x0, symName: '_$s13CastMetalCore12ShaderParamsV4fromACs7Decoder_p_tKcfC', symObjAddr: 0x380, symBinAddr: 0x100001158, symSize: 0x30 }
+  - { offset: 0x89108, size: 0x8, addend: 0x0, symName: '_$s13CastMetalCore12ShaderParamsVSeAASe4fromxs7Decoder_p_tKcfCTW', symObjAddr: 0x410, symBinAddr: 0x1000011E8, symSize: 0x50 }
+  - { offset: 0x8911C, size: 0x8, addend: 0x0, symName: '_$s13CastMetalCore12ShaderParamsVSEAASE6encode2toys7Encoder_p_tKFTW', symObjAddr: 0x460, symBinAddr: 0x100001238, symSize: 0x50 }
+  - { offset: 0x89130, size: 0x8, addend: 0x0, symName: '_$s13CastMetalCore12ShaderParamsVSQAASQ2eeoiySbx_xtFZTW', symObjAddr: 0x4B0, symBinAddr: 0x100001288, symSize: 0x18 }
+  - { offset: 0x891F2, size: 0x8, addend: 0x0, symName: _castmetal_main, symObjAddr: 0x0, symBinAddr: 0x1000013C0, symSize: 0xD0 }
+  - { offset: 0x8920A, size: 0x8, addend: 0x0, symName: _castmetal_main, symObjAddr: 0x0, symBinAddr: 0x1000013C0, symSize: 0xD0 }
+  - { offset: 0x89228, size: 0x8, addend: 0x0, symName: '_$sSa12_endMutationyyF', symObjAddr: 0x168, symBinAddr: 0x100001528, symSize: 0xC }
+  - { offset: 0x8924B, size: 0x8, addend: 0x0, symName: '_$ss27_finalizeUninitializedArrayySayxGABnlF', symObjAddr: 0xD0, symBinAddr: 0x100001490, symSize: 0x40 }
+  - { offset: 0x89275, size: 0x8, addend: 0x0, symName: '_$ss5print_9separator10terminatoryypd_S2StFfA0_', symObjAddr: 0x110, symBinAddr: 0x1000014D0, symSize: 0x2C }
+  - { offset: 0x89291, size: 0x8, addend: 0x0, symName: '_$ss5print_9separator10terminatoryypd_S2StFfA1_', symObjAddr: 0x13C, symBinAddr: 0x1000014FC, symSize: 0x2C }
+...
