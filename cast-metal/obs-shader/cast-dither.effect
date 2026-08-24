@@ -29,9 +29,13 @@ uniform float u_keyTransparent<
     float step = 1.0;
 > = 0.0;
 
-uniform int u_ditherType<
-    string label = "Dither Type (0-8)";
-> = 1;
+uniform float u_ditherType<
+    string label = "Dither Type (0=Bayer2 1=Bayer4 2=Bayer8 3=Random 4=BlueNoise)";
+    string widget_type = "slider";
+    float minimum = 0.0;
+    float maximum = 8.0;
+    float step = 1.0;
+> = 1.0;
 
 uniform float u_alphaThreshold<
     string label = "Alpha Threshold";
