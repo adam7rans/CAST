@@ -81,11 +81,9 @@ do {
     checks += 1; failures += 1; print("FAIL [out-of-range enum should throw]")
 } catch { checks += 1 } // expected
 
-// ---- MSLUniforms byte-layout sanity ----
-let gpu = MSLUniforms.from(params: ShaderParams(), time: 0.5)
-let encoded = gpu.encode()
-let expectedBytes = 8+8+120+24+4+24+52+16+8+36+16+16+36+4
-expect(encoded.count, expectedBytes, "uniform block size == \(expectedBytes)")
+// ---- UniformEncoder byte-layout sanity ----
+let gpu = UniformEncoder.encode(params: ShaderParams(), time: 0.5)
+expect(gpu.count, 29 * 4, "uniform float count == 29 slots")
 
 if failures == 0 {
     print("OK — \(checks) checks passed")

@@ -2,6 +2,13 @@
   "": {
     "swift-dependencies": "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/CastMetalCore.build/master.swiftdeps"
   },
+  "/Users/adam/Documents/CAST/cast-metal/Sources/CastMetalCore/ControlServer.swift": {
+    "dependencies": "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/CastMetalCore.build/ControlServer.d",
+    "object": "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/CastMetalCore.build/ControlServer.swift.o",
+    "swiftmodule": "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/CastMetalCore.build/ControlServer~partial.swiftmodule",
+    "swift-dependencies": "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/CastMetalCore.build/ControlServer.swiftdeps",
+    "diagnostics": "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/CastMetalCore.build/ControlServer.dia"
+  },
   "/Users/adam/Documents/CAST/cast-metal/Sources/CastMetalCore/FrameRenderer.swift": {
     "dependencies": "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/CastMetalCore.build/FrameRenderer.d",
     "object": "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/CastMetalCore.build/FrameRenderer.swift.o",

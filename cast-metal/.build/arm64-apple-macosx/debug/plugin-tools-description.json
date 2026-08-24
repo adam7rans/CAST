@@ -24,6 +24,10 @@
       "inputs" : [
         {
           "kind" : "file",
+          "name" : "/Users/adam/Documents/CAST/cast-metal/Sources/CastMetalCore/ControlServer.swift"
+        },
+        {
+          "kind" : "file",
           "name" : "/Users/adam/Documents/CAST/cast-metal/Sources/CastMetalCore/FrameRenderer.swift"
         },
         {
@@ -47,6 +51,7 @@
       "moduleName" : "CastMetalCore",
       "moduleOutputPath" : "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/Modules/CastMetalCore.swiftmodule",
       "objects" : [
+        "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/CastMetalCore.build/ControlServer.swift.o",
         "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/CastMetalCore.build/FrameRenderer.swift.o",
         "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/CastMetalCore.build/ShaderCompiler.swift.o",
         "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/CastMetalCore.build/ShaderParams.swift.o"
@@ -98,6 +103,10 @@
       "outputs" : [
         {
           "kind" : "file",
+          "name" : "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/CastMetalCore.build/ControlServer.swift.o"
+        },
+        {
+          "kind" : "file",
           "name" : "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/CastMetalCore.build/FrameRenderer.swift.o"
         },
         {
@@ -115,6 +124,7 @@
       ],
       "prepareForIndexing" : false,
       "sources" : [
+        "/Users/adam/Documents/CAST/cast-metal/Sources/CastMetalCore/ControlServer.swift",
         "/Users/adam/Documents/CAST/cast-metal/Sources/CastMetalCore/FrameRenderer.swift",
         "/Users/adam/Documents/CAST/cast-metal/Sources/CastMetalCore/ShaderCompiler.swift",
         "/Users/adam/Documents/CAST/cast-metal/Sources/CastMetalCore/ShaderParams.swift"
@@ -396,7 +406,19 @@
       "inputs" : [
         {
           "kind" : "file",
+          "name" : "/Users/adam/Documents/CAST/cast-metal/Sources/castmetal/AppMain.swift"
+        },
+        {
+          "kind" : "file",
           "name" : "/Users/adam/Documents/CAST/cast-metal/Sources/castmetal/CameraCapture.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/adam/Documents/CAST/cast-metal/Sources/castmetal/PreviewWindow.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/adam/Documents/CAST/cast-metal/Sources/castmetal/StillsMode.swift"
         },
         {
           "kind" : "file",
@@ -423,7 +445,10 @@
       "moduleName" : "castmetal",
       "moduleOutputPath" : "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/Modules/castmetal.swiftmodule",
       "objects" : [
+        "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/castmetal.build/AppMain.swift.o",
         "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/castmetal.build/CameraCapture.swift.o",
+        "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/castmetal.build/PreviewWindow.swift.o",
+        "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/castmetal.build/StillsMode.swift.o",
         "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/castmetal.build/TextureUploader.swift.o",
         "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/castmetal.build/main.swift.o"
       ],
@@ -474,7 +499,19 @@
       "outputs" : [
         {
           "kind" : "file",
+          "name" : "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/castmetal.build/AppMain.swift.o"
+        },
+        {
+          "kind" : "file",
           "name" : "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/castmetal.build/CameraCapture.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/castmetal.build/PreviewWindow.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/castmetal.build/StillsMode.swift.o"
         },
         {
           "kind" : "file",
@@ -491,7 +528,10 @@
       ],
       "prepareForIndexing" : false,
       "sources" : [
+        "/Users/adam/Documents/CAST/cast-metal/Sources/castmetal/AppMain.swift",
         "/Users/adam/Documents/CAST/cast-metal/Sources/castmetal/CameraCapture.swift",
+        "/Users/adam/Documents/CAST/cast-metal/Sources/castmetal/PreviewWindow.swift",
+        "/Users/adam/Documents/CAST/cast-metal/Sources/castmetal/StillsMode.swift",
         "/Users/adam/Documents/CAST/cast-metal/Sources/castmetal/TextureUploader.swift",
         "/Users/adam/Documents/CAST/cast-metal/Sources/castmetal/main.swift"
       ],
@@ -510,6 +550,7 @@
       "-package-name",
       "cast_metal",
       "-c",
+      "/Users/adam/Documents/CAST/cast-metal/Sources/CastMetalCore/ControlServer.swift",
       "/Users/adam/Documents/CAST/cast-metal/Sources/CastMetalCore/FrameRenderer.swift",
       "/Users/adam/Documents/CAST/cast-metal/Sources/CastMetalCore/ShaderCompiler.swift",
       "/Users/adam/Documents/CAST/cast-metal/Sources/CastMetalCore/ShaderParams.swift",
@@ -728,7 +769,10 @@
       "-package-name",
       "cast_metal",
       "-c",
+      "/Users/adam/Documents/CAST/cast-metal/Sources/castmetal/AppMain.swift",
       "/Users/adam/Documents/CAST/cast-metal/Sources/castmetal/CameraCapture.swift",
+      "/Users/adam/Documents/CAST/cast-metal/Sources/castmetal/PreviewWindow.swift",
+      "/Users/adam/Documents/CAST/cast-metal/Sources/castmetal/StillsMode.swift",
       "/Users/adam/Documents/CAST/cast-metal/Sources/castmetal/TextureUploader.swift",
       "/Users/adam/Documents/CAST/cast-metal/Sources/castmetal/main.swift",
       "-I",
@@ -816,6 +860,10 @@
         },
         {
           "kind" : "file",
+          "name" : "/Users/adam/Documents/CAST/cast-metal/Sources/CastMetalCore/ControlServer.swift"
+        },
+        {
+          "kind" : "file",
           "name" : "/Users/adam/Documents/CAST/cast-metal/Sources/CastMetalCore/FrameRenderer.swift"
         },
         {
@@ -828,28 +876,6 @@
         }
       ],
       "outputFilePath" : "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/CastMetalCore.build/sources"
-    },
-    "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/cast-metal__REPL.product/Objects.LinkFileList" : {
-      "alwaysOutOfDate" : false,
-      "inputs" : [
-        {
-          "kind" : "virtual",
-          "name" : "<link-file-list>"
-        },
-        {
-          "kind" : "file",
-          "name" : "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/CastMetalCore.build/FrameRenderer.swift.o"
-        },
-        {
-          "kind" : "file",
-          "name" : "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/CastMetalCore.build/ShaderCompiler.swift.o"
-        },
-        {
-          "kind" : "file",
-          "name" : "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/CastMetalCore.build/ShaderParams.swift.o"
-        }
-      ],
-      "outputFilePath" : "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/cast-metal__REPL.product/Objects.LinkFileList"
     },
     "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/cast-pixcheck-entitlement.plist" : {
       "alwaysOutOfDate" : false,
@@ -871,6 +897,10 @@
         {
           "kind" : "virtual",
           "name" : "<link-file-list>"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/CastMetalCore.build/ControlServer.swift.o"
         },
         {
           "kind" : "file",
@@ -914,6 +944,10 @@
         },
         {
           "kind" : "file",
+          "name" : "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/CastMetalCore.build/ControlServer.swift.o"
+        },
+        {
+          "kind" : "file",
           "name" : "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/CastMetalCore.build/FrameRenderer.swift.o"
         },
         {
@@ -951,6 +985,10 @@
         {
           "kind" : "virtual",
           "name" : "<link-file-list>"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/CastMetalCore.build/ControlServer.swift.o"
         },
         {
           "kind" : "file",
@@ -1036,7 +1074,19 @@
         },
         {
           "kind" : "file",
+          "name" : "/Users/adam/Documents/CAST/cast-metal/Sources/castmetal/AppMain.swift"
+        },
+        {
+          "kind" : "file",
           "name" : "/Users/adam/Documents/CAST/cast-metal/Sources/castmetal/CameraCapture.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/adam/Documents/CAST/cast-metal/Sources/castmetal/PreviewWindow.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/adam/Documents/CAST/cast-metal/Sources/castmetal/StillsMode.swift"
         },
         {
           "kind" : "file",
@@ -1058,6 +1108,10 @@
         },
         {
           "kind" : "file",
+          "name" : "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/CastMetalCore.build/ControlServer.swift.o"
+        },
+        {
+          "kind" : "file",
           "name" : "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/CastMetalCore.build/FrameRenderer.swift.o"
         },
         {
@@ -1070,7 +1124,19 @@
         },
         {
           "kind" : "file",
+          "name" : "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/castmetal.build/AppMain.swift.o"
+        },
+        {
+          "kind" : "file",
           "name" : "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/castmetal.build/CameraCapture.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/castmetal.build/PreviewWindow.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/castmetal.build/StillsMode.swift.o"
         },
         {
           "kind" : "file",

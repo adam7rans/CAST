@@ -2,12 +2,33 @@
   "": {
     "swift-dependencies": "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/castmetal.build/master.swiftdeps"
   },
+  "/Users/adam/Documents/CAST/cast-metal/Sources/castmetal/AppMain.swift": {
+    "dependencies": "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/castmetal.build/AppMain.d",
+    "object": "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/castmetal.build/AppMain.swift.o",
+    "swiftmodule": "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/castmetal.build/AppMain~partial.swiftmodule",
+    "swift-dependencies": "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/castmetal.build/AppMain.swiftdeps",
+    "diagnostics": "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/castmetal.build/AppMain.dia"
+  },
   "/Users/adam/Documents/CAST/cast-metal/Sources/castmetal/CameraCapture.swift": {
     "dependencies": "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/castmetal.build/CameraCapture.d",
     "object": "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/castmetal.build/CameraCapture.swift.o",
     "swiftmodule": "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/castmetal.build/CameraCapture~partial.swiftmodule",
     "swift-dependencies": "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/castmetal.build/CameraCapture.swiftdeps",
     "diagnostics": "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/castmetal.build/CameraCapture.dia"
+  },
+  "/Users/adam/Documents/CAST/cast-metal/Sources/castmetal/PreviewWindow.swift": {
+    "dependencies": "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/castmetal.build/PreviewWindow.d",
+    "object": "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/castmetal.build/PreviewWindow.swift.o",
+    "swiftmodule": "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/castmetal.build/PreviewWindow~partial.swiftmodule",
+    "swift-dependencies": "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/castmetal.build/PreviewWindow.swiftdeps",
+    "diagnostics": "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/castmetal.build/PreviewWindow.dia"
+  },
+  "/Users/adam/Documents/CAST/cast-metal/Sources/castmetal/StillsMode.swift": {
+    "dependencies": "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/castmetal.build/StillsMode.d",
+    "object": "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/castmetal.build/StillsMode.swift.o",
+    "swiftmodule": "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/castmetal.build/StillsMode~partial.swiftmodule",
+    "swift-dependencies": "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/castmetal.build/StillsMode.swiftdeps",
+    "diagnostics": "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/castmetal.build/StillsMode.dia"
   },
   "/Users/adam/Documents/CAST/cast-metal/Sources/castmetal/TextureUploader.swift": {
     "dependencies": "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/castmetal.build/TextureUploader.d",
