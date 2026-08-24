@@ -1,0 +1,13 @@
+{
+  "": {
+    "dependencies": "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/release/cast_tests.build/cast_tests.d",
+    "object": "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/release/cast_tests.build/cast_tests.o",
+    "swift-dependencies": "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/release/cast_tests.build/master.swiftdeps"
+  },
+  "/Users/adam/Documents/CAST/cast-metal/Tests/cast-tests/main.swift": {
+    "object": "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/release/cast_tests.build/main.swift.o",
+    "swiftmodule": "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/release/cast_tests.build/main~partial.swiftmodule",
+    "swift-dependencies": "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/release/cast_tests.build/main.swiftdeps",
+    "diagnostics": "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/release/cast_tests.build/main.dia"
+  }
+}

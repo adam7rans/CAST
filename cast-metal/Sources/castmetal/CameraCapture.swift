@@ -75,6 +75,32 @@ public final class CameraCapture: NSObject, AVCaptureVideoDataOutputSampleBuffer
         return fallback
     }
 
+    /// Switch to a different camera (matched by localizedName) without tearing
+    /// down the session. Returns false if no camera matches.
+    @discardableResult
+    public func switchCamera(named name: String) -> Bool {
+        guard let target = Self.listCameras().first(where: { $0.localizedName == name }) else {
+            return false
+        }
+        queue.async { [weak self] in
+            guard let self else { return }
+            self.session.beginConfiguration()
+            if let input = self.session.inputs.first {
+                self.session.removeInput(input)
+            }
+            if let newInput = try? AVCaptureDeviceInput(device: target),
+               self.session.canAddInput(newInput) {
+                self.session.addInput(newInput)
+                self.device = target
+            } else if let old = try? AVCaptureDeviceInput(device: target) {
+                // restore nothing — session left without input; report via device nil
+                _ = old
+            }
+            self.session.commitConfiguration()
+        }
+        return true
+    }
+
     public func stop() {
         session.stopRunning()
     }

@@ -122,9 +122,12 @@ func runLive() -> Int32 {
         s.onParamsChanged = { p in params = p }
         ControlServer.sharedRouter = { [weak s] method, path, box in s?.route(method: method, path: path, to: box) }
         ControlServer.sharedHandler = { [weak s] data, box in s?.handleWebSocketMessage(data, from: box) }
-        // CAST presets live at ../presets relative to the package (repo layout).
-        let presetsDir = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
-            .appendingPathComponent("../presets").standardized
+        // CAST presets live at CAST/presets — i.e. ../presets relative to the
+        // cast-metal package root. From <pkg>/.build/(debug|release)/castmetal,
+        // two dirs up is the package root.
+        let exeDir = URL(fileURLWithPath: CommandLine.arguments[0]).deletingLastPathComponent()
+        let packageRoot = exeDir.appendingPathComponent("../..").standardized
+        let presetsDir = packageRoot.appendingPathComponent("../presets").standardized
         s.presetLoader = {
             (try? FileManager.default.contentsOfDirectory(atPath: presetsDir.path))?
                 .filter { $0.hasSuffix(".json") }
@@ -135,6 +138,12 @@ func runLive() -> Int32 {
             guard name.allSatisfy({ $0.isLetter || $0.isNumber || $0 == "-" || $0 == "_" }) else { return nil }
             let url = presetsDir.appendingPathComponent("\(name).json")
             return try? PresetBridge.load(fileURL: url, into: params)
+        }
+        s.cameraLister = {
+            CameraCapture.listCameras().map { $0.localizedName }
+        }
+        s.cameraSelector = { name in
+            capture.switchCamera(named: name)
         }
         s.start()
         server = s

@@ -1,0 +1,37 @@
+{
+  "": {
+    "dependencies": "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/release/CastMetalCore.build/CastMetalCore.d",
+    "object": "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/release/CastMetalCore.build/CastMetalCore.o",
+    "swift-dependencies": "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/release/CastMetalCore.build/master.swiftdeps"
+  },
+  "/Users/adam/Documents/CAST/cast-metal/Sources/CastMetalCore/ControlServer.swift": {
+    "object": "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/release/CastMetalCore.build/ControlServer.swift.o",
+    "swiftmodule": "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/release/CastMetalCore.build/ControlServer~partial.swiftmodule",
+    "swift-dependencies": "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/release/CastMetalCore.build/ControlServer.swiftdeps",
+    "diagnostics": "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/release/CastMetalCore.build/ControlServer.dia"
+  },
+  "/Users/adam/Documents/CAST/cast-metal/Sources/CastMetalCore/FrameRenderer.swift": {
+    "object": "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/release/CastMetalCore.build/FrameRenderer.swift.o",
+    "swiftmodule": "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/release/CastMetalCore.build/FrameRenderer~partial.swiftmodule",
+    "swift-dependencies": "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/release/CastMetalCore.build/FrameRenderer.swiftdeps",
+    "diagnostics": "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/release/CastMetalCore.build/FrameRenderer.dia"
+  },
+  "/Users/adam/Documents/CAST/cast-metal/Sources/CastMetalCore/PresetBridge.swift": {
+    "object": "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/release/CastMetalCore.build/PresetBridge.swift.o",
+    "swiftmodule": "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/release/CastMetalCore.build/PresetBridge~partial.swiftmodule",
+    "swift-dependencies": "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/release/CastMetalCore.build/PresetBridge.swiftdeps",
+    "diagnostics": "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/release/CastMetalCore.build/PresetBridge.dia"
+  },
+  "/Users/adam/Documents/CAST/cast-metal/Sources/CastMetalCore/ShaderCompiler.swift": {
+    "object": "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/release/CastMetalCore.build/ShaderCompiler.swift.o",
+    "swiftmodule": "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/release/CastMetalCore.build/ShaderCompiler~partial.swiftmodule",
+    "swift-dependencies": "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/release/CastMetalCore.build/ShaderCompiler.swiftdeps",
+    "diagnostics": "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/release/CastMetalCore.build/ShaderCompiler.dia"
+  },
+  "/Users/adam/Documents/CAST/cast-metal/Sources/CastMetalCore/ShaderParams.swift": {
+    "object": "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/release/CastMetalCore.build/ShaderParams.swift.o",
+    "swiftmodule": "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/release/CastMetalCore.build/ShaderParams~partial.swiftmodule",
+    "swift-dependencies": "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/release/CastMetalCore.build/ShaderParams.swiftdeps",
+    "diagnostics": "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/release/CastMetalCore.build/ShaderParams.dia"
+  }
+}

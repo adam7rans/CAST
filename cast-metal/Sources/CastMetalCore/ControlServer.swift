@@ -240,6 +240,10 @@ public final class ControlServer {
     /// App-side hooks: list preset names; load a preset by name into fresh params.
     public var presetLoader: (() -> [String])?
     public var presetApply: ((String) -> ShaderParams?)?
+    /// Camera names available on this machine.
+    public var cameraLister: (() -> [String])?
+    /// Switch the active camera by name. Returns false if unknown.
+    public var cameraSelector: ((String) -> Bool)?
 
     /// Replace the full params state (e.g. after loading a preset) and notify WS clients.
     public func install(_ p: ShaderParams) {
@@ -307,6 +311,26 @@ public final class ControlServer {
             }
         case ("OPTIONS", _):
             box.sendHTTP(status: "204 No Content", contentType: "text/plain", body: Data())
+        case ("GET", "/cameras"):
+            let names = cameraLister?() ?? []
+            let body = try? JSONSerialization.data(withJSONObject: ["cameras": names])
+            box.sendHTTP(status: "200 OK", contentType: "application/json", body: body ?? Data("[]".utf8))
+        case ("POST", "/cameras/select"):
+            if let sep = box.httpBuffer.range(of: Data("\r\n\r\n".utf8)) {
+                let body = box.httpBuffer.subdata(in: sep.upperBound..<box.httpBuffer.endIndex)
+                if let obj = try? JSONSerialization.jsonObject(with: body) as? [String: Any],
+                   let name = obj["name"] as? String,
+                   cameraSelector?(name) == true {
+                    box.sendHTTP(status: "200 OK", contentType: "application/json",
+                                 body: Data(#"{"ok":true}"#.utf8))
+                } else {
+                    box.sendHTTP(status: "400 Bad Request", contentType: "application/json",
+                                 body: Data(#"{"error":"unknown camera"}"#.utf8))
+                }
+                return
+            }
+            box.sendHTTP(status: "400 Bad Request", contentType: "application/json",
+                         body: Data(#"{"error":"no body"}"#.utf8))
         case ("GET", "/presets"):
             let names = presetLoader?() ?? []
             let body = try? JSONSerialization.data(withJSONObject: ["presets": names])

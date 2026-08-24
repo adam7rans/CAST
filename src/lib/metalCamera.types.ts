@@ -101,3 +101,8 @@ export interface MetalStats {
 
 export const METAL_WS_URL = 'ws://127.0.0.1:4313/ws';
 export const METAL_HTTP_BASE = 'http://127.0.0.1:4313';
+export const METAL_SUPERVISOR_BASE = '/api/metal';
+
+export interface MetalCameraInfo {
+  name: string;
+}

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   METAL_WS_URL,
   METAL_HTTP_BASE,
+  METAL_SUPERVISOR_BASE,
   type MetalParamPatch,
   type MetalShaderParams,
   type MetalStats,
@@ -10,11 +11,14 @@ import {
 export interface MetalCameraConnection {
   connected: boolean;
   connecting: boolean;
+  starting: boolean;
   params: MetalShaderParams | null;
   stats: MetalStats | null;
   sendPatch: (patch: MetalParamPatch) => void;
   loadPreset: (name: string) => Promise<boolean>;
   listPresets: () => Promise<string[]>;
+  listCameras: () => Promise<string[]>;
+  selectCamera: (name: string) => Promise<boolean>;
 }
 
 /**
@@ -24,14 +28,28 @@ export interface MetalCameraConnection {
 export function useMetalCameraSocket(): MetalCameraConnection {
   const [connected, setConnected] = useState(false);
   const [connecting, setConnecting] = useState(true);
+  const [starting, setStarting] = useState(false);
   const [params, setParams] = useState<MetalShaderParams | null>(null);
   const [stats, setStats] = useState<MetalStats | null>(null);
   const wsRef = useRef<WebSocket | null>(null);
   const retryRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const attemptRef = useRef(0);
+  const autoStartTriedRef = useRef(false);
 
   useEffect(() => {
     let disposed = false;
+
+    // Ask the CAST server to spawn castmetal if it isn't running.
+    // Only attempted once per panel mount; after that we just retry the socket.
+    async function autoStart() {
+      if (autoStartTriedRef.current) return;
+      autoStartTriedRef.current = true;
+      try {
+        await fetch(`${METAL_SUPERVISOR_BASE}/start`, { method: 'POST' });
+      } catch {
+        // server unreachable — keep retrying the socket anyway
+      }
+    }
 
     function connect() {
       if (disposed) return;
@@ -44,6 +62,7 @@ export function useMetalCameraSocket(): MetalCameraConnection {
           attemptRef.current = 0;
           setConnected(true);
           setConnecting(false);
+          setStarting(false);
           ws.send(JSON.stringify({ type: 'getParams' }));
         };
         ws.onmessage = (evt) => {
@@ -80,6 +99,7 @@ export function useMetalCameraSocket(): MetalCameraConnection {
     }
 
     connect();
+    void autoStart();
     return () => {
       disposed = true;
       if (retryRef.current) clearTimeout(retryRef.current);
@@ -120,5 +140,32 @@ export function useMetalCameraSocket(): MetalCameraConnection {
     }
   }, []);
 
-  return { connected, connecting, params, stats, sendPatch, loadPreset, listPresets };
+  const listCameras = useCallback(async (): Promise<string[]> => {
+    try {
+      const res = await fetch(`${METAL_HTTP_BASE}/cameras`);
+      if (!res.ok) return [];
+      const data = (await res.json()) as { cameras?: string[] };
+      return data.cameras ?? [];
+    } catch {
+      return [];
+    }
+  }, []);
+
+  const selectCamera = useCallback(async (name: string): Promise<boolean> => {
+    try {
+      const res = await fetch(`${METAL_HTTP_BASE}/cameras/select`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name }),
+      });
+      return res.ok;
+    } catch {
+      return false;
+    }
+  }, []);
+
+  return {
+    connected, connecting, starting, params, stats,
+    sendPatch, loadPreset, listPresets, listCameras, selectCamera,
+  };
 }

@@ -1,0 +1,43 @@
+{
+  "": {
+    "dependencies": "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/release/castmetal.build/castmetal.d",
+    "object": "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/release/castmetal.build/castmetal.o",
+    "swift-dependencies": "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/release/castmetal.build/master.swiftdeps"
+  },
+  "/Users/adam/Documents/CAST/cast-metal/Sources/castmetal/AppMain.swift": {
+    "object": "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/release/castmetal.build/AppMain.swift.o",
+    "swiftmodule": "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/release/castmetal.build/AppMain~partial.swiftmodule",
+    "swift-dependencies": "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/release/castmetal.build/AppMain.swiftdeps",
+    "diagnostics": "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/release/castmetal.build/AppMain.dia"
+  },
+  "/Users/adam/Documents/CAST/cast-metal/Sources/castmetal/CameraCapture.swift": {
+    "object": "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/release/castmetal.build/CameraCapture.swift.o",
+    "swiftmodule": "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/release/castmetal.build/CameraCapture~partial.swiftmodule",
+    "swift-dependencies": "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/release/castmetal.build/CameraCapture.swiftdeps",
+    "diagnostics": "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/release/castmetal.build/CameraCapture.dia"
+  },
+  "/Users/adam/Documents/CAST/cast-metal/Sources/castmetal/PreviewWindow.swift": {
+    "object": "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/release/castmetal.build/PreviewWindow.swift.o",
+    "swiftmodule": "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/release/castmetal.build/PreviewWindow~partial.swiftmodule",
+    "swift-dependencies": "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/release/castmetal.build/PreviewWindow.swiftdeps",
+    "diagnostics": "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/release/castmetal.build/PreviewWindow.dia"
+  },
+  "/Users/adam/Documents/CAST/cast-metal/Sources/castmetal/StillsMode.swift": {
+    "object": "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/release/castmetal.build/StillsMode.swift.o",
+    "swiftmodule": "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/release/castmetal.build/StillsMode~partial.swiftmodule",
+    "swift-dependencies": "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/release/castmetal.build/StillsMode.swiftdeps",
+    "diagnostics": "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/release/castmetal.build/StillsMode.dia"
+  },
+  "/Users/adam/Documents/CAST/cast-metal/Sources/castmetal/TextureUploader.swift": {
+    "object": "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/release/castmetal.build/TextureUploader.swift.o",
+    "swiftmodule": "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/release/castmetal.build/TextureUploader~partial.swiftmodule",
+    "swift-dependencies": "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/release/castmetal.build/TextureUploader.swiftdeps",
+    "diagnostics": "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/release/castmetal.build/TextureUploader.dia"
+  },
+  "/Users/adam/Documents/CAST/cast-metal/Sources/castmetal/main.swift": {
+    "object": "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/release/castmetal.build/main.swift.o",
+    "swiftmodule": "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/release/castmetal.build/main~partial.swiftmodule",
+    "swift-dependencies": "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/release/castmetal.build/main.swiftdeps",
+    "diagnostics": "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/release/castmetal.build/main.dia"
+  }
+}

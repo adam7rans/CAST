@@ -16,24 +16,30 @@ const DITHER_OPTIONS: { value: DitherType; label: string }[] = [
 ];
 
 export const MetalCameraPanel: React.FC = () => {
-  const { connected, connecting, params, stats, sendPatch, loadPreset, listPresets } =
-    useMetalCameraSocket();
+  const {
+    connected, connecting, starting, params, stats,
+    sendPatch, loadPreset, listPresets, listCameras, selectCamera,
+  } = useMetalCameraSocket();
   const [presets, setPresets] = useState<string[]>([]);
+  const [cameras, setCameras] = useState<string[]>([]);
 
   useEffect(() => {
-    if (connected) listPresets().then(setPresets).catch(() => setPresets([]));
-  }, [connected, listPresets]);
+    if (connected) {
+      listPresets().then(setPresets).catch(() => setPresets([]));
+      listCameras().then(setCameras).catch(() => setCameras([]));
+    }
+  }, [connected, listPresets, listCameras]);
 
   if (!connected) {
     return (
       <div style={{ padding: 10, fontSize: 11.5, color: 'var(--muted-foreground, #999)' }}>
-        {connecting ? 'Connecting to cast-metal…' : 'cast-metal not reachable.'}
-        {!connecting && (
+        {connecting || starting ? 'Starting cast-metal…' : 'cast-metal not reachable.'}
+        {!connecting && !starting && (
           <div style={{ marginTop: 6, color: 'var(--muted-foreground, #777)', lineHeight: 1.5 }}>
-            Start it with:
+            Make sure it's built:
             <br />
             <code style={{ background: '#1a1a1a', padding: '2px 5px', borderRadius: 4 }}>
-              cd ~/Documents/CAST/cast-metal &amp;&amp; swift run castmetal
+              cd ~/Documents/CAST/cast-metal &amp;&amp; swift build
             </code>
           </div>
         )}
@@ -72,6 +78,20 @@ export const MetalCameraPanel: React.FC = () => {
         {stats?.fps ? <span>{Math.round(stats.fps)} fps</span> : null}
         {stats?.camera ? <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{stats.camera}</span> : null}
       </div>
+
+      {/* Camera source */}
+      {cameras.length > 0 && (
+        <Section title="camera">
+          <Select
+            label="source"
+            value={stats?.camera ?? ''}
+            options={cameras.map((c) => ({ value: c, label: c }))}
+            onChange={async (v) => {
+              if (v) await selectCamera(String(v));
+            }}
+          />
+        </Section>
+      )}
 
       {/* Preset loader */}
       {presets.length > 0 && (

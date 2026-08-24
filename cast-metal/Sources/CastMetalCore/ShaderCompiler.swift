@@ -24,18 +24,30 @@ public final class ShaderCompiler {
         }
     }
 
-    /// Locate Shaders.msl in app bundle or alongside sources (dev mode).
+    /// Locate Shaders.msl in app bundle or relative to sources/binary (dev mode).
     public static func loadShaderSource() -> String? {
         if let url = Bundle.main.url(forResource: "Shaders", withExtension: "msl") {
             return try? String(contentsOf: url, encoding: .utf8)
         }
-        let candidates = [
+        var candidates = [
             "Resources/Shaders.msl",
             "../Resources/Shaders.msl",
             "../../Resources/Shaders.msl"
         ]
+        // Relative to the running executable: .build/debug/castmetal → package root
+        let exeDir = URL(fileURLWithPath: CommandLine.arguments[0]).deletingLastPathComponent()
+        let binRelatives = [
+            exeDir.appendingPathComponent("../../Resources/Shaders.msl"),
+            exeDir.appendingPathComponent("../../../Resources/Shaders.msl")
+        ]
+        for url in binRelatives { candidates.append(url.standardized.path) }
         for rel in candidates {
             let url = URL(fileURLWithPath: FileManager.default.currentDirectoryPath).appendingPathComponent(rel)
+            if FileManager.default.fileExists(atPath: url.path) {
+                return try? String(contentsOf: url, encoding: .utf8)
+            }
+        }
+        for url in binRelatives {
             if FileManager.default.fileExists(atPath: url.path) {
                 return try? String(contentsOf: url, encoding: .utf8)
             }

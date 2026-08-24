@@ -55,6 +55,14 @@ export interface Settings {
   captionMode?: 'line' | 'word';
   captionStyle?: any;
   captionShader?: any;
+  compositionMode?: 'video' | 'audio';
+  visualizer?: any;
+  captionStyleByGuide?: Record<string, any>;
+  captionShaderByGuide?: Record<string, any>;
+  captionClipEdits?: Record<string, any>;
+  microTimelines?: any[];
+  selectedClipId?: string | null;
+  customCuts?: any[];
   layers?: {
     background: boolean;
     video: boolean;
