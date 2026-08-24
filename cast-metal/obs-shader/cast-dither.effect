@@ -18,11 +18,11 @@ uniform float4 u_gradB<
 > = {0.40, 0.43, 0.68, 1.0};
 
 uniform float4 u_bgColor<
-    string label = "Background Color (keyed areas)";
+    string label = "Background Color keyed areas";
 > = {0.04, 0.04, 0.06, 1.0};
 
 uniform float u_keyTransparent<
-    string label = "Key Out Bright Areas (0/1)";
+    string label = "Key Out Bright Areas 0-1";
     string widget_type = "slider";
     float minimum = 0.0;
     float maximum = 1.0;
@@ -30,7 +30,7 @@ uniform float u_keyTransparent<
 > = 0.0;
 
 uniform float u_ditherType<
-    string label = "Dither Type (0=Bayer2 1=Bayer4 2=Bayer8 3=Random 4=BlueNoise)";
+    string label = "Dither Type 0=Bayer2 1=Bayer4 2=Bayer8 3=Random 4=BlueNoise";
     string widget_type = "slider";
     float minimum = 0.0;
     float maximum = 8.0;
@@ -190,7 +190,7 @@ uniform float u_positionRotation<
 > = 0.0;
 
 uniform float u_positionScale<
-    string label = "Position Scale (zoom)";
+    string label = "Position Scale zoom";
     string widget_type = "slider";
     float minimum = 0.2;
     float maximum = 3.0;
@@ -214,7 +214,7 @@ uniform float u_scale<
 > = 1.0;
 
 uniform float u_rezEnabled<
-    string label = "Rez Enabled (0/1)";
+    string label = "Rez Enabled 0-1";
     string widget_type = "slider";
     float minimum = 0.0;
     float maximum = 1.0;
@@ -254,7 +254,7 @@ uniform float u_rezJitter<
 > = 0.0;
 
 uniform float u_shaderEnabled<
-    string label = "Shader Enabled (0/1)";
+    string label = "Shader Enabled 0-1";
     string widget_type = "slider";
     float minimum = 0.0;
     float maximum = 1.0;
