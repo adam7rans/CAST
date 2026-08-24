@@ -17,6 +17,17 @@ uniform float4 u_gradB<
     string label = "Gradient Color B";
 > = {0.40, 0.43, 0.68, 1.0};
 
+uniform float4 u_bgColor<
+    string label = "Background Color (keyed areas)";
+> = {0.04, 0.04, 0.06, 1.0};
+
+uniform float u_keyTransparent<
+    string label = "Key Out Bright Areas (0/1)";
+    string widget_type = "slider";
+    float2 range = { 0.0, 1.0 };
+    float step = 1.0;
+> = 0.0;
+
 uniform int u_ditherType<
     string label = "Dither Type (0-8)";
 > = 1;
@@ -411,6 +422,15 @@ float4 mainImage(VertData v_in) : TARGET
     float pulse = sin(time * 2.0) * 0.1 + 0.9;
     alpha *= pulse;
 
-    // OBS sources composite over transparent; keyed-out pixels stay transparent
+    // Default: keyed areas get a solid backdrop (visible over any scene).
+    // Transparency is opt-in via "Key Out Bright Areas" = 1.
+    if (u_keyTransparent < 0.5) {
+        alpha = 1.0;
+        if (lum > u_alphaThreshold) {
+            tone = unpackColor(u_bgColor);
+        }
+        return float4(tone, 1.0);
+    }
+
     return float4(tone, alpha);
 }
