@@ -176,8 +176,7 @@ kernel void castVideo(
     const float2 vUv = float2(gid.x, gid.y) / float2(outTex.get_width(), outTex.get_height());
 
     if (debugMode == 1) {
-        float2 tc = float2(vUv.x, 1.0 - vUv.y);
-        float4 s = inTex.read(uint2(tc * res));
+        float4 s = inTex.read(uint2(vUv * res));
         outTex.write(float4(s.bgr, 1.0), gid);
         return;
     }
@@ -277,10 +276,11 @@ kernel void castVideo(
         sampleUv = mix(distortedUv, snappedUv, clamp(rezMix, 0.0, 1.0));
     }
 
-    // Sample source texture (flip y so GL-style uv works on Metal's top-left origin).
+    // Sample source texture. Both the camera buffer and the drawable use
+    // top-left origin, and vUv.y=0 is the top of the grid — so no flip needed
+    // (a 1-y flip here renders the image upside down).
     // bgra8Unorm storage: components arrive as (B,G,R,A) — swizzle back to RGB.
-    float2 texCoord = float2(sampleUv.x, 1.0 - sampleUv.y);
-    float4 rawSample = inTex.read(uint2(texCoord * res));
+    float4 rawSample = inTex.read(uint2(sampleUv * res));
     float4 texColor = float4(rawSample.bgr, rawSample.a);
 
     float2 coord = sampleUv * res * ditherScale;
