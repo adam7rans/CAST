@@ -26,6 +26,8 @@ export const SidebarHeader: React.FC<Pick<
         {p.mainTab === 'video' && p.audioMode ? 'Visualizer' : PANEL_NAME[p.mainTab]}
       </span>
     </div>
-    <ProjectStatusPanel project={p.activeProject} status={p.projectStatus} />
+    {p.mainTab !== 'metal' && (
+      <ProjectStatusPanel project={p.activeProject} status={p.projectStatus} />
+    )}
   </div>
 );
