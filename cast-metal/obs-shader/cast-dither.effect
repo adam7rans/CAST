@@ -398,7 +398,7 @@ float4 mainImage(VertData v_in) : TARGET
         sampleUv = mix(distortedUv, clamp(snapped / uv_size, 0.0, 1.0), 1.0);
     }
 
-    float4 texColor = image.Sample(imageSampler, sampleUv);
+    float4 texColor = image.Sample(textureSampler, sampleUv);
 
     // ---- bypass ----
     if (!shaderOn) {
