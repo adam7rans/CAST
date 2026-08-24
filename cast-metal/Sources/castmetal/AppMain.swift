@@ -106,6 +106,18 @@ func runLive() -> Int32 {
             guard let srcTex else { return }
             _ = cvTex // keep alive until enqueue completes (sync render)
 
+            // Keep the render target matched to the window's drawable size
+            // (Retina displays have 2x pixel density → drawable ≠ point size).
+            let view = viewRenderer.view ?? window.metalView
+            let ds = view.drawableSize
+            if target.width != Int(ds.width) || target.height != Int(ds.height) {
+                DispatchQueue.main.async {
+                    guard Int(view.drawableSize.width) > 0 else { return }
+                    target = makeTarget(width: max(1, Int(view.drawableSize.width)),
+                                        height: max(1, Int(view.drawableSize.height)))
+                }
+            }
+
             params.resolution = Vec2(x: Float(target.width), y: Float(target.height))
             let time = Float(CFAbsoluteTimeGetCurrent() - startTime)
             renderer.render(input: srcTex, output: target, params: params, time: time)
