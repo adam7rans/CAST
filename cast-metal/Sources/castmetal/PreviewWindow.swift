@@ -15,10 +15,12 @@ final class PreviewWindow: NSWindow, NSWindowDelegate {
         metalView.framebufferOnly = true
 
         super.init(contentRect: metalView.frame,
-                   styleMask: [.titled, .closable, .resizable, .miniaturizable],
+                   styleMask: [.resizable],
                    backing: .buffered, defer: false)
         contentView = metalView
+        // Borderless: OBS window capture sees pure video pixels, no chrome.
         title = "CAST Metal"
+        isMovableByWindowBackground = true
         isReleasedWhenClosed = false
         level = .floating
         delegate = self
