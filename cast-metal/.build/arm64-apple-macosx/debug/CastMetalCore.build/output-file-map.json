@@ -16,6 +16,13 @@
     "swift-dependencies": "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/CastMetalCore.build/FrameRenderer.swiftdeps",
     "diagnostics": "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/CastMetalCore.build/FrameRenderer.dia"
   },
+  "/Users/adam/Documents/CAST/cast-metal/Sources/CastMetalCore/PresetBridge.swift": {
+    "dependencies": "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/CastMetalCore.build/PresetBridge.d",
+    "object": "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/CastMetalCore.build/PresetBridge.swift.o",
+    "swiftmodule": "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/CastMetalCore.build/PresetBridge~partial.swiftmodule",
+    "swift-dependencies": "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/CastMetalCore.build/PresetBridge.swiftdeps",
+    "diagnostics": "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/CastMetalCore.build/PresetBridge.dia"
+  },
   "/Users/adam/Documents/CAST/cast-metal/Sources/CastMetalCore/ShaderCompiler.swift": {
     "dependencies": "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/CastMetalCore.build/ShaderCompiler.d",
     "object": "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/CastMetalCore.build/ShaderCompiler.swift.o",

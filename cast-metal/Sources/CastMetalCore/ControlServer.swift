@@ -237,6 +237,21 @@ public final class ControlServer {
     static var sharedRefs: [ObjectIdentifier: ConnectionBox] = [:]
     public static var sharedHandler: ((Data, ConnectionBox) -> Void)?
     public static var sharedRouter: ((String, String, ConnectionBox) -> Void)?
+    /// App-side hooks: list preset names; load a preset by name into fresh params.
+    public var presetLoader: (() -> [String])?
+    public var presetApply: ((String) -> ShaderParams?)?
+
+    /// Replace the full params state (e.g. after loading a preset) and notify WS clients.
+    public func install(_ p: ShaderParams) {
+        guard let encoded = try? JSONEncoder().encode(p),
+              let obj = try? JSONSerialization.jsonObject(with: encoded),
+              let pretty = try? JSONSerialization.data(withJSONObject: obj, options: [.prettyPrinted]) else { return }
+        lock.lock()
+        paramsData = pretty
+        lock.unlock()
+        broadcast(["type": "params", "params": obj])
+        DispatchQueue.main.async { [weak self] in self?.onParamsChanged?(p) }
+    }
 
     private func accept(_ conn: NWConnection) {
         let box = ConnectionBox(conn)
@@ -292,7 +307,27 @@ public final class ControlServer {
             }
         case ("OPTIONS", _):
             box.sendHTTP(status: "204 No Content", contentType: "text/plain", body: Data())
+        case ("GET", "/presets"):
+            let names = presetLoader?() ?? []
+            let body = try? JSONSerialization.data(withJSONObject: ["presets": names])
+            box.sendHTTP(status: "200 OK", contentType: "application/json", body: body ?? Data("[]".utf8))
         default:
+            // POST /presets/load {name} — load a CAST preset by filename
+            if method == "POST", path == "/presets/load",
+               let sep = box.httpBuffer.range(of: Data("\r\n\r\n".utf8)) {
+                let body = box.httpBuffer.subdata(in: sep.upperBound..<box.httpBuffer.endIndex)
+                if let obj = try? JSONSerialization.jsonObject(with: body) as? [String: Any],
+                   let name = obj["name"] as? String,
+                   let newParams = presetApply?(name) {
+                    install(newParams)
+                    let out = try? JSONSerialization.data(withJSONObject: ["type": "params", "loaded": name, "ok": true])
+                    box.sendHTTP(status: "200 OK", contentType: "application/json", body: out ?? Data())
+                } else {
+                    box.sendHTTP(status: "400 Bad Request", contentType: "application/json",
+                                 body: Data(#"{"error":"unknown preset"}"#.utf8))
+                }
+                return
+            }
             box.sendHTTP(status: "404 Not Found", contentType: "application/json",
                          body: Data(#"{"error":"not found"}"#.utf8))
         }

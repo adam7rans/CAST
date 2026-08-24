@@ -122,6 +122,20 @@ func runLive() -> Int32 {
         s.onParamsChanged = { p in params = p }
         ControlServer.sharedRouter = { [weak s] method, path, box in s?.route(method: method, path: path, to: box) }
         ControlServer.sharedHandler = { [weak s] data, box in s?.handleWebSocketMessage(data, from: box) }
+        // CAST presets live at ../presets relative to the package (repo layout).
+        let presetsDir = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
+            .appendingPathComponent("../presets").standardized
+        s.presetLoader = {
+            (try? FileManager.default.contentsOfDirectory(atPath: presetsDir.path))?
+                .filter { $0.hasSuffix(".json") }
+                .map { String($0.dropLast(5)) }
+                .sorted() ?? []
+        }
+        s.presetApply = { [params] name in
+            guard name.allSatisfy({ $0.isLetter || $0.isNumber || $0 == "-" || $0 == "_" }) else { return nil }
+            let url = presetsDir.appendingPathComponent("\(name).json")
+            return try? PresetBridge.load(fileURL: url, into: params)
+        }
         s.start()
         server = s
         print("cast-metal: control server on http://127.0.0.1:\(s.port)")

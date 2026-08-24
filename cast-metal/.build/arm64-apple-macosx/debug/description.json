@@ -32,6 +32,10 @@
         },
         {
           "kind" : "file",
+          "name" : "/Users/adam/Documents/CAST/cast-metal/Sources/CastMetalCore/PresetBridge.swift"
+        },
+        {
+          "kind" : "file",
           "name" : "/Users/adam/Documents/CAST/cast-metal/Sources/CastMetalCore/ShaderCompiler.swift"
         },
         {
@@ -53,6 +57,7 @@
       "objects" : [
         "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/CastMetalCore.build/ControlServer.swift.o",
         "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/CastMetalCore.build/FrameRenderer.swift.o",
+        "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/CastMetalCore.build/PresetBridge.swift.o",
         "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/CastMetalCore.build/ShaderCompiler.swift.o",
         "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/CastMetalCore.build/ShaderParams.swift.o"
       ],
@@ -111,6 +116,10 @@
         },
         {
           "kind" : "file",
+          "name" : "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/CastMetalCore.build/PresetBridge.swift.o"
+        },
+        {
+          "kind" : "file",
           "name" : "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/CastMetalCore.build/ShaderCompiler.swift.o"
         },
         {
@@ -126,6 +135,7 @@
       "sources" : [
         "/Users/adam/Documents/CAST/cast-metal/Sources/CastMetalCore/ControlServer.swift",
         "/Users/adam/Documents/CAST/cast-metal/Sources/CastMetalCore/FrameRenderer.swift",
+        "/Users/adam/Documents/CAST/cast-metal/Sources/CastMetalCore/PresetBridge.swift",
         "/Users/adam/Documents/CAST/cast-metal/Sources/CastMetalCore/ShaderCompiler.swift",
         "/Users/adam/Documents/CAST/cast-metal/Sources/CastMetalCore/ShaderParams.swift"
       ],
@@ -552,6 +562,7 @@
       "-c",
       "/Users/adam/Documents/CAST/cast-metal/Sources/CastMetalCore/ControlServer.swift",
       "/Users/adam/Documents/CAST/cast-metal/Sources/CastMetalCore/FrameRenderer.swift",
+      "/Users/adam/Documents/CAST/cast-metal/Sources/CastMetalCore/PresetBridge.swift",
       "/Users/adam/Documents/CAST/cast-metal/Sources/CastMetalCore/ShaderCompiler.swift",
       "/Users/adam/Documents/CAST/cast-metal/Sources/CastMetalCore/ShaderParams.swift",
       "-I",
@@ -868,6 +879,10 @@
         },
         {
           "kind" : "file",
+          "name" : "/Users/adam/Documents/CAST/cast-metal/Sources/CastMetalCore/PresetBridge.swift"
+        },
+        {
+          "kind" : "file",
           "name" : "/Users/adam/Documents/CAST/cast-metal/Sources/CastMetalCore/ShaderCompiler.swift"
         },
         {
@@ -905,6 +920,10 @@
         {
           "kind" : "file",
           "name" : "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/CastMetalCore.build/FrameRenderer.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/CastMetalCore.build/PresetBridge.swift.o"
         },
         {
           "kind" : "file",
@@ -952,6 +971,10 @@
         },
         {
           "kind" : "file",
+          "name" : "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/CastMetalCore.build/PresetBridge.swift.o"
+        },
+        {
+          "kind" : "file",
           "name" : "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/CastMetalCore.build/ShaderCompiler.swift.o"
         },
         {
@@ -993,6 +1016,10 @@
         {
           "kind" : "file",
           "name" : "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/CastMetalCore.build/FrameRenderer.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/CastMetalCore.build/PresetBridge.swift.o"
         },
         {
           "kind" : "file",
@@ -1113,6 +1140,10 @@
         {
           "kind" : "file",
           "name" : "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/CastMetalCore.build/FrameRenderer.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/CastMetalCore.build/PresetBridge.swift.o"
         },
         {
           "kind" : "file",
