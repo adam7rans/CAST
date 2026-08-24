@@ -72,6 +72,10 @@ func runLive() -> Int32 {
     var params = ShaderParams()
     let uploader = TextureUploader(device: device)
 
+    // Guards params/target/viewRenderer.latestTexture: they're written from
+    // the main thread (control server, resize) and read on the capture queue.
+    let stateLock = NSLock()
+
     func makeTarget(width: Int, height: Int) -> MTLTexture {
         let d = MTLTextureDescriptor.texture2DDescriptor(pixelFormat: .bgra8Unorm, width: width, height: height, mipmapped: false)
         d.usage = [.shaderWrite, .shaderRead]
@@ -108,13 +112,17 @@ func runLive() -> Int32 {
 
             // Keep the render target matched to the window's drawable size
             // (Retina displays have 2x pixel density → drawable ≠ point size).
+            stateLock.lock()
+            defer { stateLock.unlock() }
             let view = viewRenderer.view ?? window.metalView
             let ds = view.drawableSize
             if target.width != Int(ds.width) || target.height != Int(ds.height) {
                 DispatchQueue.main.async {
                     guard Int(view.drawableSize.width) > 0 else { return }
+                    stateLock.lock()
                     target = makeTarget(width: max(1, Int(view.drawableSize.width)),
                                         height: max(1, Int(view.drawableSize.height)))
+                    stateLock.unlock()
                 }
             }
 
@@ -131,7 +139,11 @@ func runLive() -> Int32 {
     var server: ControlServer?
     do {
         let s = try ControlServer(port: 4313, initialParams: params)
-        s.onParamsChanged = { p in params = p }
+        s.onParamsChanged = { p in
+            stateLock.lock()
+            params = p
+            stateLock.unlock()
+        }
         ControlServer.sharedRouter = { [weak s] method, path, box in s?.route(method: method, path: path, to: box) }
         ControlServer.sharedHandler = { [weak s] data, box in s?.handleWebSocketMessage(data, from: box) }
         // CAST presets live at CAST/presets — i.e. ../presets relative to the
@@ -149,7 +161,10 @@ func runLive() -> Int32 {
         s.presetApply = { [params] name in
             guard name.allSatisfy({ $0.isLetter || $0.isNumber || $0 == "-" || $0 == "_" }) else { return nil }
             let url = presetsDir.appendingPathComponent("\(name).json")
-            return try? PresetBridge.load(fileURL: url, into: params)
+            let loaded = try? PresetBridge.load(fileURL: url, into: params)
+            stateLock.lock()
+            defer { stateLock.unlock() }
+            return loaded
         }
         s.cameraLister = {
             CameraCapture.listCameras().map { $0.localizedName }
