@@ -2,6 +2,20 @@
   "": {
     "swift-dependencies": "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/CastMetalCore.build/master.swiftdeps"
   },
+  "/Users/adam/Documents/CAST/cast-metal/Sources/CastMetalCore/FrameRenderer.swift": {
+    "dependencies": "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/CastMetalCore.build/FrameRenderer.d",
+    "object": "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/CastMetalCore.build/FrameRenderer.swift.o",
+    "swiftmodule": "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/CastMetalCore.build/FrameRenderer~partial.swiftmodule",
+    "swift-dependencies": "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/CastMetalCore.build/FrameRenderer.swiftdeps",
+    "diagnostics": "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/CastMetalCore.build/FrameRenderer.dia"
+  },
+  "/Users/adam/Documents/CAST/cast-metal/Sources/CastMetalCore/ShaderCompiler.swift": {
+    "dependencies": "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/CastMetalCore.build/ShaderCompiler.d",
+    "object": "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/CastMetalCore.build/ShaderCompiler.swift.o",
+    "swiftmodule": "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/CastMetalCore.build/ShaderCompiler~partial.swiftmodule",
+    "swift-dependencies": "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/CastMetalCore.build/ShaderCompiler.swiftdeps",
+    "diagnostics": "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/CastMetalCore.build/ShaderCompiler.dia"
+  },
   "/Users/adam/Documents/CAST/cast-metal/Sources/CastMetalCore/ShaderParams.swift": {
     "dependencies": "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/CastMetalCore.build/ShaderParams.d",
     "object": "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/CastMetalCore.build/ShaderParams.swift.o",

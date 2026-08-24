@@ -29,6 +29,20 @@ let package = Package(
             name: "cast-tests",
             dependencies: ["CastMetalCore"],
             path: "Tests/cast-tests"
+        ),
+        .executableTarget(
+            name: "cast-stills",
+            dependencies: ["CastMetalCore"],
+            path: "Tests/cast-stills",
+            linkerSettings: [
+                .linkedFramework("AppKit"),
+                .linkedFramework("CoreGraphics")
+            ]
+        ),
+        .executableTarget(
+            name: "cast-pixcheck",
+            dependencies: ["CastMetalCore"],
+            path: "Tests/cast-pixcheck"
         )
     ]
 )

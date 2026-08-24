@@ -24,6 +24,14 @@
       "inputs" : [
         {
           "kind" : "file",
+          "name" : "/Users/adam/Documents/CAST/cast-metal/Sources/CastMetalCore/FrameRenderer.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/adam/Documents/CAST/cast-metal/Sources/CastMetalCore/ShaderCompiler.swift"
+        },
+        {
+          "kind" : "file",
           "name" : "/Users/adam/Documents/CAST/cast-metal/Sources/CastMetalCore/ShaderParams.swift"
         },
         {
@@ -39,6 +47,8 @@
       "moduleName" : "CastMetalCore",
       "moduleOutputPath" : "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/Modules/CastMetalCore.swiftmodule",
       "objects" : [
+        "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/CastMetalCore.build/FrameRenderer.swift.o",
+        "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/CastMetalCore.build/ShaderCompiler.swift.o",
         "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/CastMetalCore.build/ShaderParams.swift.o"
       ],
       "otherArguments" : [
@@ -88,6 +98,14 @@
       "outputs" : [
         {
           "kind" : "file",
+          "name" : "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/CastMetalCore.build/FrameRenderer.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/CastMetalCore.build/ShaderCompiler.swift.o"
+        },
+        {
+          "kind" : "file",
           "name" : "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/CastMetalCore.build/ShaderParams.swift.o"
         },
         {
@@ -97,9 +115,189 @@
       ],
       "prepareForIndexing" : false,
       "sources" : [
+        "/Users/adam/Documents/CAST/cast-metal/Sources/CastMetalCore/FrameRenderer.swift",
+        "/Users/adam/Documents/CAST/cast-metal/Sources/CastMetalCore/ShaderCompiler.swift",
         "/Users/adam/Documents/CAST/cast-metal/Sources/CastMetalCore/ShaderParams.swift"
       ],
       "tempsPath" : "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/CastMetalCore.build",
+      "wholeModuleOptimization" : false
+    },
+    "C.cast-pixcheck-arm64-apple-macosx26.0-debug.module" : {
+      "executable" : "/Library/Developer/CommandLineTools/usr/bin/swiftc",
+      "fileList" : "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/cast_pixcheck.build/sources",
+      "importPath" : "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/Modules",
+      "inputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Users/adam/Documents/CAST/cast-metal/Tests/cast-pixcheck/main.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/swift-version--1AB21518FC5DEDBE.txt"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/Modules/CastMetalCore.swiftmodule"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/cast_pixcheck.build/sources"
+        }
+      ],
+      "isLibrary" : false,
+      "moduleName" : "cast_pixcheck",
+      "moduleOutputPath" : "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/Modules/cast_pixcheck.swiftmodule",
+      "objects" : [
+        "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/cast_pixcheck.build/main.swift.o"
+      ],
+      "otherArguments" : [
+        "-target",
+        "arm64-apple-macosx13.0",
+        "-incremental",
+        "-enable-batch-mode",
+        "-serialize-diagnostics",
+        "-index-store-path",
+        "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/index/store",
+        "-Onone",
+        "-enable-testing",
+        "-j8",
+        "-DSWIFT_PACKAGE",
+        "-DDEBUG",
+        "-DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE",
+        "-module-cache-path",
+        "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/ModuleCache",
+        "-parseable-output",
+        "-Xfrontend",
+        "-entry-point-function-name",
+        "-Xfrontend",
+        "cast_pixcheck_main",
+        "-swift-version",
+        "5",
+        "-I",
+        "/Library/Developer/CommandLineTools/Library/Developer/Frameworks",
+        "-L",
+        "/Library/Developer/CommandLineTools/Library/Developer/Frameworks",
+        "-plugin-path",
+        "/Library/Developer/CommandLineTools/usr/lib/swift/host/plugins/testing",
+        "-sdk",
+        "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk",
+        "-g",
+        "-Xcc",
+        "-isysroot",
+        "-Xcc",
+        "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk",
+        "-Xcc",
+        "-fPIC",
+        "-Xcc",
+        "-g",
+        "-package-name",
+        "cast_metal"
+      ],
+      "outputFileMapPath" : "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/cast_pixcheck.build/output-file-map.json",
+      "outputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/cast_pixcheck.build/main.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/Modules/cast_pixcheck.swiftmodule"
+        }
+      ],
+      "prepareForIndexing" : false,
+      "sources" : [
+        "/Users/adam/Documents/CAST/cast-metal/Tests/cast-pixcheck/main.swift"
+      ],
+      "tempsPath" : "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/cast_pixcheck.build",
+      "wholeModuleOptimization" : false
+    },
+    "C.cast-stills-arm64-apple-macosx26.0-debug.module" : {
+      "executable" : "/Library/Developer/CommandLineTools/usr/bin/swiftc",
+      "fileList" : "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/cast_stills.build/sources",
+      "importPath" : "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/Modules",
+      "inputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Users/adam/Documents/CAST/cast-metal/Tests/cast-stills/main.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/swift-version--1AB21518FC5DEDBE.txt"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/Modules/CastMetalCore.swiftmodule"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/cast_stills.build/sources"
+        }
+      ],
+      "isLibrary" : false,
+      "moduleName" : "cast_stills",
+      "moduleOutputPath" : "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/Modules/cast_stills.swiftmodule",
+      "objects" : [
+        "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/cast_stills.build/main.swift.o"
+      ],
+      "otherArguments" : [
+        "-target",
+        "arm64-apple-macosx13.0",
+        "-incremental",
+        "-enable-batch-mode",
+        "-serialize-diagnostics",
+        "-index-store-path",
+        "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/index/store",
+        "-Onone",
+        "-enable-testing",
+        "-j8",
+        "-DSWIFT_PACKAGE",
+        "-DDEBUG",
+        "-DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE",
+        "-module-cache-path",
+        "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/ModuleCache",
+        "-parseable-output",
+        "-Xfrontend",
+        "-entry-point-function-name",
+        "-Xfrontend",
+        "cast_stills_main",
+        "-swift-version",
+        "5",
+        "-I",
+        "/Library/Developer/CommandLineTools/Library/Developer/Frameworks",
+        "-L",
+        "/Library/Developer/CommandLineTools/Library/Developer/Frameworks",
+        "-plugin-path",
+        "/Library/Developer/CommandLineTools/usr/lib/swift/host/plugins/testing",
+        "-sdk",
+        "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk",
+        "-g",
+        "-Xcc",
+        "-isysroot",
+        "-Xcc",
+        "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk",
+        "-Xcc",
+        "-fPIC",
+        "-Xcc",
+        "-g",
+        "-package-name",
+        "cast_metal"
+      ],
+      "outputFileMapPath" : "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/cast_stills.build/output-file-map.json",
+      "outputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/cast_stills.build/main.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/Modules/cast_stills.swiftmodule"
+        }
+      ],
+      "prepareForIndexing" : false,
+      "sources" : [
+        "/Users/adam/Documents/CAST/cast-metal/Tests/cast-stills/main.swift"
+      ],
+      "tempsPath" : "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/cast_stills.build",
       "wholeModuleOptimization" : false
     },
     "C.cast-tests-arm64-apple-macosx26.0-debug.module" : {
@@ -312,6 +510,8 @@
       "-package-name",
       "cast_metal",
       "-c",
+      "/Users/adam/Documents/CAST/cast-metal/Sources/CastMetalCore/FrameRenderer.swift",
+      "/Users/adam/Documents/CAST/cast-metal/Sources/CastMetalCore/ShaderCompiler.swift",
       "/Users/adam/Documents/CAST/cast-metal/Sources/CastMetalCore/ShaderParams.swift",
       "-I",
       "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/Modules",
@@ -335,6 +535,114 @@
       "-emit-objc-header",
       "-emit-objc-header-path",
       "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/CastMetalCore.build/include/CastMetalCore-Swift.h",
+      "-swift-version",
+      "5",
+      "-I",
+      "/Library/Developer/CommandLineTools/Library/Developer/Frameworks",
+      "-L",
+      "/Library/Developer/CommandLineTools/Library/Developer/Frameworks",
+      "-plugin-path",
+      "/Library/Developer/CommandLineTools/usr/lib/swift/host/plugins/testing",
+      "-sdk",
+      "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk",
+      "-g",
+      "-Xcc",
+      "-isysroot",
+      "-Xcc",
+      "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk",
+      "-Xcc",
+      "-fPIC",
+      "-Xcc",
+      "-g",
+      "-package-name",
+      "cast_metal",
+      "-driver-use-frontend-path",
+      "/Library/Developer/CommandLineTools/usr/bin/swiftc"
+    ],
+    "cast_pixcheck" : [
+      "/Library/Developer/CommandLineTools/usr/bin/swiftc",
+      "-module-name",
+      "cast_pixcheck",
+      "-package-name",
+      "cast_metal",
+      "-c",
+      "/Users/adam/Documents/CAST/cast-metal/Tests/cast-pixcheck/main.swift",
+      "-I",
+      "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/Modules",
+      "-target",
+      "arm64-apple-macosx13.0",
+      "-incremental",
+      "-enable-batch-mode",
+      "-serialize-diagnostics",
+      "-index-store-path",
+      "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/index/store",
+      "-Onone",
+      "-enable-testing",
+      "-j8",
+      "-DSWIFT_PACKAGE",
+      "-DDEBUG",
+      "-DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE",
+      "-module-cache-path",
+      "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/ModuleCache",
+      "-parseable-output",
+      "-Xfrontend",
+      "-entry-point-function-name",
+      "-Xfrontend",
+      "cast_pixcheck_main",
+      "-swift-version",
+      "5",
+      "-I",
+      "/Library/Developer/CommandLineTools/Library/Developer/Frameworks",
+      "-L",
+      "/Library/Developer/CommandLineTools/Library/Developer/Frameworks",
+      "-plugin-path",
+      "/Library/Developer/CommandLineTools/usr/lib/swift/host/plugins/testing",
+      "-sdk",
+      "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk",
+      "-g",
+      "-Xcc",
+      "-isysroot",
+      "-Xcc",
+      "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk",
+      "-Xcc",
+      "-fPIC",
+      "-Xcc",
+      "-g",
+      "-package-name",
+      "cast_metal",
+      "-driver-use-frontend-path",
+      "/Library/Developer/CommandLineTools/usr/bin/swiftc"
+    ],
+    "cast_stills" : [
+      "/Library/Developer/CommandLineTools/usr/bin/swiftc",
+      "-module-name",
+      "cast_stills",
+      "-package-name",
+      "cast_metal",
+      "-c",
+      "/Users/adam/Documents/CAST/cast-metal/Tests/cast-stills/main.swift",
+      "-I",
+      "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/Modules",
+      "-target",
+      "arm64-apple-macosx13.0",
+      "-incremental",
+      "-enable-batch-mode",
+      "-serialize-diagnostics",
+      "-index-store-path",
+      "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/index/store",
+      "-Onone",
+      "-enable-testing",
+      "-j8",
+      "-DSWIFT_PACKAGE",
+      "-DDEBUG",
+      "-DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE",
+      "-module-cache-path",
+      "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/ModuleCache",
+      "-parseable-output",
+      "-Xfrontend",
+      "-entry-point-function-name",
+      "-Xfrontend",
+      "cast_stills_main",
       "-swift-version",
       "5",
       "-I",
@@ -474,6 +782,12 @@
     "CastMetalCore" : [
 
     ],
+    "cast_pixcheck" : [
+      "CastMetalCore"
+    ],
+    "cast_stills" : [
+      "CastMetalCore"
+    ],
     "cast_tests" : [
       "CastMetalCore"
     ],
@@ -502,10 +816,120 @@
         },
         {
           "kind" : "file",
+          "name" : "/Users/adam/Documents/CAST/cast-metal/Sources/CastMetalCore/FrameRenderer.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/adam/Documents/CAST/cast-metal/Sources/CastMetalCore/ShaderCompiler.swift"
+        },
+        {
+          "kind" : "file",
           "name" : "/Users/adam/Documents/CAST/cast-metal/Sources/CastMetalCore/ShaderParams.swift"
         }
       ],
       "outputFilePath" : "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/CastMetalCore.build/sources"
+    },
+    "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/cast-metal__REPL.product/Objects.LinkFileList" : {
+      "alwaysOutOfDate" : false,
+      "inputs" : [
+        {
+          "kind" : "virtual",
+          "name" : "<link-file-list>"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/CastMetalCore.build/FrameRenderer.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/CastMetalCore.build/ShaderCompiler.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/CastMetalCore.build/ShaderParams.swift.o"
+        }
+      ],
+      "outputFilePath" : "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/cast-metal__REPL.product/Objects.LinkFileList"
+    },
+    "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/cast-pixcheck-entitlement.plist" : {
+      "alwaysOutOfDate" : false,
+      "inputs" : [
+        {
+          "kind" : "virtual",
+          "name" : "<entitlement-plist>"
+        },
+        {
+          "kind" : "virtual",
+          "name" : "<com.apple.security.get-task-allow>"
+        }
+      ],
+      "outputFilePath" : "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/cast-pixcheck-entitlement.plist"
+    },
+    "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/cast-pixcheck.product/Objects.LinkFileList" : {
+      "alwaysOutOfDate" : false,
+      "inputs" : [
+        {
+          "kind" : "virtual",
+          "name" : "<link-file-list>"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/CastMetalCore.build/FrameRenderer.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/CastMetalCore.build/ShaderCompiler.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/CastMetalCore.build/ShaderParams.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/cast_pixcheck.build/main.swift.o"
+        }
+      ],
+      "outputFilePath" : "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/cast-pixcheck.product/Objects.LinkFileList"
+    },
+    "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/cast-stills-entitlement.plist" : {
+      "alwaysOutOfDate" : false,
+      "inputs" : [
+        {
+          "kind" : "virtual",
+          "name" : "<entitlement-plist>"
+        },
+        {
+          "kind" : "virtual",
+          "name" : "<com.apple.security.get-task-allow>"
+        }
+      ],
+      "outputFilePath" : "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/cast-stills-entitlement.plist"
+    },
+    "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/cast-stills.product/Objects.LinkFileList" : {
+      "alwaysOutOfDate" : false,
+      "inputs" : [
+        {
+          "kind" : "virtual",
+          "name" : "<link-file-list>"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/CastMetalCore.build/FrameRenderer.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/CastMetalCore.build/ShaderCompiler.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/CastMetalCore.build/ShaderParams.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/cast_stills.build/main.swift.o"
+        }
+      ],
+      "outputFilePath" : "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/cast-stills.product/Objects.LinkFileList"
     },
     "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/cast-tests-entitlement.plist" : {
       "alwaysOutOfDate" : false,
@@ -530,6 +954,14 @@
         },
         {
           "kind" : "file",
+          "name" : "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/CastMetalCore.build/FrameRenderer.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/CastMetalCore.build/ShaderCompiler.swift.o"
+        },
+        {
+          "kind" : "file",
           "name" : "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/CastMetalCore.build/ShaderParams.swift.o"
         },
         {
@@ -538,6 +970,34 @@
         }
       ],
       "outputFilePath" : "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/cast-tests.product/Objects.LinkFileList"
+    },
+    "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/cast_pixcheck.build/sources" : {
+      "alwaysOutOfDate" : false,
+      "inputs" : [
+        {
+          "kind" : "virtual",
+          "name" : "<sources-file-list>"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/adam/Documents/CAST/cast-metal/Tests/cast-pixcheck/main.swift"
+        }
+      ],
+      "outputFilePath" : "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/cast_pixcheck.build/sources"
+    },
+    "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/cast_stills.build/sources" : {
+      "alwaysOutOfDate" : false,
+      "inputs" : [
+        {
+          "kind" : "virtual",
+          "name" : "<sources-file-list>"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/adam/Documents/CAST/cast-metal/Tests/cast-stills/main.swift"
+        }
+      ],
+      "outputFilePath" : "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/cast_stills.build/sources"
     },
     "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/cast_tests.build/sources" : {
       "alwaysOutOfDate" : false,
@@ -595,6 +1055,14 @@
         {
           "kind" : "virtual",
           "name" : "<link-file-list>"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/CastMetalCore.build/FrameRenderer.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/CastMetalCore.build/ShaderCompiler.swift.o"
         },
         {
           "kind" : "file",

@@ -1,0 +1,423 @@
+// CAST dither/distort shader — Metal Shading Language port of
+// src/shaders/videoShader.ts (dancingVideoFragmentShader).
+// Rendered as a full-screen compute kernel: one thread per output pixel.
+//
+// UNIFORM PASSING DESIGN: parameters arrive as a flat array of float4
+// (constant float4*). This avoids every MSL struct-alignment/padding quirk
+// (packed_float3 sizes, struct alignment propagation, etc.) — CPU and GPU
+// share one documented slot map. See FrameRenderer.encode() for the writer.
+#include <metal_stdlib>
+using namespace metal;
+
+#define MAX_GRADIENT_STOPS 6
+
+// ---- Slot map (index into the float4 uniform array) ----
+//  0: resolution.x, resolution.y, time, -
+//  1: gradientEnabled, gradientType, gradientBlendMode, shaderEnabled
+//  2: rezEnabled, ditherEnabled, ditherGradient, ditherType
+//  3: gradientOpacity, gradientAngle, gradientScale, gradientOffsetX
+//  4: gradientOffsetY, rezCellWidth, rezCellHeight, rezColorLevels
+//  5: rezMix, rezJitter, ditherScale, contrast
+//  6: brightness, blackPoint, whitePoint, gamma
+//  7: shadows, midtones, highlights, saturation
+//  8: exposure, clarity, errorDiffusion, threshold
+//  9: alphaThreshold, distortionFrequency, distortionAmplitude, distortionSpeed
+// 10: distortionAngle, positionX, positionY, positionRotation
+// 11: positionScale, rotation, scale, uvScale.x
+// 12: uvScale.y, ditherGradientAngle, ditherGradientScale, ditherGradientOffsetX
+// 13: ditherColor.rgb, -
+// 14: ditherGradientColorA.rgb, -
+// 15: ditherGradientColorB.rgb, -
+// 16+i (0..5): gradient stop i: color.rgb, opacity
+// 22+i (0..5): gradient stop i position in x
+// 28: ditherGradientOffsetY in x
+
+#define U(i) u[i]
+
+// Dither type constants (must match DitherType in ShaderParams.swift)
+constant int BAYER_2X2 = 0;
+constant int BAYER_4X4 = 1;
+constant int BAYER_8X8 = 2;
+constant int RANDOM = 3;
+constant int BLUE_NOISE = 4;
+constant int PATTERN = 5;
+constant int THRESHOLD = 6;
+constant int FLOYD_STEINBERG = 7;
+constant int ATKINSON = 8;
+constant int DIFFUSION_2D = 15;
+
+// 4x4 Bayer matrix
+float getBayer4x4(float2 coord) {
+    int2 pos = (int2)fmod(coord, 4.0);
+    const float m[16] = {
+        0.0,  8.0,  2.0, 10.0,
+        12.0, 4.0, 14.0,  6.0,
+        3.0, 11.0,  1.0,  9.0,
+        15.0, 7.0, 13.0,  5.0
+    };
+    return m[pos.y * 4 + pos.x] / 16.0;
+}
+
+// 2x2 Bayer matrix
+float getBayer2x2(float2 coord) {
+    int2 pos = (int2)fmod(coord, 2.0);
+    const float m[4] = { 0.0, 2.0, 3.0, 1.0 };
+    return m[pos.y * 2 + pos.x] / 4.0;
+}
+
+// 8x8 Bayer matrix
+float getBayer8x8(float2 coord) {
+    int2 pos = (int2)fmod(coord, 8.0);
+    const float m[64] = {
+        0.0, 32.0, 8.0, 40.0, 2.0, 34.0, 10.0, 42.0,
+        48.0, 16.0, 56.0, 24.0, 50.0, 18.0, 58.0, 26.0,
+        12.0, 44.0, 4.0, 36.0, 14.0, 46.0, 6.0, 38.0,
+        60.0, 28.0, 52.0, 20.0, 62.0, 30.0, 54.0, 22.0,
+        3.0, 35.0, 11.0, 43.0, 1.0, 33.0, 9.0, 41.0,
+        51.0, 19.0, 59.0, 27.0, 49.0, 17.0, 57.0, 25.0,
+        15.0, 47.0, 7.0, 39.0, 13.0, 45.0, 5.0, 37.0,
+        63.0, 31.0, 55.0, 23.0, 61.0, 29.0, 53.0, 21.0
+    };
+    return m[pos.y * 8 + pos.x] / 64.0;
+}
+
+// Random dithering
+float random(float2 coord) {
+    return fract(sin(dot(coord, float2(12.9898, 78.233))) * 43758.5453);
+}
+
+float2 random2(float2 coord) {
+    return float2(
+        random(coord + float2(13.1, 91.7)),
+        random(coord + float2(71.7, 29.3)));
+}
+
+// Blue noise approximation
+float getBlueNoise(float2 coord) {
+    float2 p = fract(coord * 0.3183099 + 0.71);
+    p *= 17.0;
+    return fract(p.x * p.y * (p.x + p.y));
+}
+
+// Pattern dithering (halftone-like)
+float getPatternValue(float2 coord) {
+    float2 center = fract(coord / 4.0) - 0.5;
+    float radius = length(center);
+    return smoothstep(0.2, 0.4, radius);
+}
+
+float getLuminance(float3 color) {
+    return dot(color, float3(0.299, 0.587, 0.114));
+}
+
+float3 applyLevels(float3 color, float blackPoint, float whitePoint) {
+    float range = max(whitePoint - blackPoint, 0.0001);
+    return clamp((color - float3(blackPoint)) / range, 0.0, 1.0);
+}
+
+float adjustTone(float value, float shadows, float midtones, float highlights) {
+    float shadowInfluence = 1.0 - smoothstep(0.0, 0.6, value);
+    float highlightInfluence = smoothstep(0.4, 1.0, value);
+    float midtoneInfluence = 1.0 - abs(value - 0.5) * 2.0;
+    value += shadowInfluence * shadows;
+    value += midtoneInfluence * midtones;
+    value += highlightInfluence * highlights;
+    return clamp(value, 0.0, 1.0);
+}
+
+// Error diffusion approximations (same as GLSL versions)
+float getFloydSteinbergDither(float2 coord, float luminance) {
+    float2 noise = fract(coord * 0.5453 + luminance * 0.3183);
+    float dither = (noise.x + noise.y) * 0.5;
+    return step(dither * 0.9375, luminance);
+}
+
+float getAtkinsonDither(float2 coord, float luminance) {
+    float2 noise = fract(coord * 0.7531 + luminance * 0.4142);
+    float dither = (noise.x * noise.y) * 0.8;
+    return step(dither * 0.75, luminance);
+}
+
+float getDitherValue(float2 coord, int ditherType, constant float4* u) {
+    if (ditherType == BAYER_2X2)   return getBayer2x2(coord);
+    if (ditherType == BAYER_4X4)   return getBayer4x4(coord);
+    if (ditherType == BAYER_8X8)   return getBayer8x8(coord);
+    if (ditherType == RANDOM)      return random(coord);
+    if (ditherType == BLUE_NOISE)  return getBlueNoise(coord);
+    if (ditherType == PATTERN)     return getPatternValue(coord);
+    if (ditherType == THRESHOLD)   return U(8).w;
+    return getBayer4x4(coord); // Default
+}
+
+float getErrorDiffusionDither(float2 coord, int ditherType, float luminance) {
+    if (ditherType == FLOYD_STEINBERG) return getFloydSteinbergDither(coord, luminance);
+    if (ditherType == ATKINSON)        return getAtkinsonDither(coord, luminance);
+    return step(0.5, luminance); // Default binary threshold
+}
+
+// Explicit rotation helper replaces GLSL mat2 construction.
+// rot(a) applied to v is equivalent to mat2(cos, -sin, sin, cos) * v in GLSL.
+float2 rot2(float2 v, float a) {
+    float c = cos(a), s = sin(a);
+    return float2(c * v.x - s * v.y, s * v.x + c * v.y);
+}
+
+kernel void castVideo(
+    texture2d<float, access::read> inTex [[texture(0)]],
+    texture2d<float, access::write> outTex [[texture(1)]],
+    constant float4* u [[buffer(0)]],
+    constant int& debugMode [[buffer(1)]],
+    uint2 gid [[thread_position_in_grid]])
+{
+    // debugMode: 0 normal, 1 raw sample
+    if (gid.x >= outTex.get_width() || gid.y >= outTex.get_height()) { return; }
+    const float2 res = float2(inTex.get_width(), inTex.get_height());
+    // vUv with y flipped: Metal texture origin top-left, GL bottom-left.
+    const float2 vUv = float2(gid.x, gid.y) / float2(outTex.get_width(), outTex.get_height());
+
+    if (debugMode == 1) {
+        float2 tc = float2(vUv.x, 1.0 - vUv.y);
+        float4 s = inTex.read(uint2(tc * res));
+        outTex.write(float4(s.bgr, 1.0), gid);
+        return;
+    }
+
+    // ---- Unpack scalars (see slot map above) ----
+    const float time          = U(0).z;
+    const bool  gradientEnabled = U(1).x > 0.5;
+    const int   gradientType    = (int)U(1).y;
+    const int   gradientBlendMode = (int)U(1).z;
+    const bool  shaderEnabled   = U(1).w > 0.5;
+    const bool  rezEnabled      = U(2).x > 0.5;
+    const bool  ditherEnabled   = U(2).y > 0.5;
+    const bool  ditherGradient  = U(2).z > 0.5;
+    const int   ditherType      = (int)U(2).w;
+    const float gradientOpacity = U(3).x;
+    const float gradientAngle   = U(3).y;
+    const float gradientScale   = U(3).z;
+    const float gradientOffsetX = U(3).w;
+    const float gradientOffsetY = U(4).x;
+    const float rezCellWidth    = U(4).y;
+    const float rezCellHeight   = U(4).z;
+    const float rezColorLevels  = U(4).w;
+    const float rezMix          = U(5).x;
+    const float rezJitter       = U(5).y;
+    const float ditherScale     = U(5).z;
+    const float contrast        = U(5).w;
+    const float brightness      = U(6).x;
+    const float blackPoint      = U(6).y;
+    const float whitePoint      = U(6).z;
+    const float gamma           = U(6).w;
+    const float shadows         = U(7).x;
+    const float midtones        = U(7).y;
+    const float highlights      = U(7).z;
+    const float saturation      = U(7).w;
+    const float exposure        = U(8).x;
+    const float clarity         = U(8).y;
+    const float threshold       = U(8).w;
+    const float alphaThreshold  = U(9).x;
+    const float distortionFrequency = U(9).y;
+    const float distortionAmplitude = U(9).z;
+    const float distortionSpeed     = U(9).w;
+    const float distortionAngle     = U(10).x;
+    const float positionX       = U(10).y;
+    const float positionY       = U(10).z;
+    const float positionRotation = U(10).w;
+    const float positionScale   = U(11).x;
+    const float rotation        = U(11).y;
+    const float scale           = U(11).z;
+    const float2 uvScale        = float2(U(11).w, U(12).x);
+    const float3 ditherColor        = U(13).rgb;
+    const float3 ditherGradientColorA = U(14).rgb;
+    const float3 ditherGradientColorB = U(15).rgb;
+
+    // ---- UV pipeline (identical math to GLSL main()) ----
+    float2 distortedUv = vUv;
+
+    float2 centeredUv = distortedUv - 0.5;
+    centeredUv -= float2(positionX, positionY);
+
+    centeredUv = rot2(centeredUv, positionRotation);
+
+    centeredUv *= positionScale;
+
+    centeredUv = rot2(centeredUv, rotation);
+    centeredUv *= scale;
+    centeredUv *= uvScale;
+
+    distortedUv = centeredUv + 0.5;
+
+    // Sine wave distortion when dithering enabled
+    if (ditherEnabled) {
+        float2 waveDirection = float2(cos(distortionAngle), sin(distortionAngle));
+        float wavePattern = dot(vUv - 0.5, waveDirection);
+        float wave = sin(wavePattern * distortionFrequency + time * distortionSpeed) * distortionAmplitude;
+
+        float edgeFade = smoothstep(0.0, 0.05, vUv.x) * (1.0 - smoothstep(0.95, 1.0, vUv.x)) *
+                         smoothstep(0.0, 0.05, vUv.y) * (1.0 - smoothstep(0.95, 1.0, vUv.y));
+        wave *= edgeFade;
+
+        float2 perpDirection = float2(-waveDirection.y, waveDirection.x);
+        distortedUv += perpDirection * wave;
+    }
+
+    distortedUv = clamp(distortedUv, 0.0, 1.0);
+
+    float2 sampleUv = distortedUv;
+    if (rezEnabled) {
+        float2 cellSize = float2(max(1.0, rezCellWidth), max(1.0, rezCellHeight));
+        float2 pixelCoord = distortedUv * res;
+        float2 cellIndex = floor(pixelCoord / cellSize);
+        float2 snappedPx = (cellIndex + 0.5) * cellSize;
+        if (rezJitter > 0.0) {
+            float2 jitter = (random2(cellIndex) - 0.5) * cellSize * rezJitter;
+            snappedPx += jitter;
+        }
+        float2 snappedUv = clamp(snappedPx / res, 0.0, 1.0);
+        sampleUv = mix(distortedUv, snappedUv, clamp(rezMix, 0.0, 1.0));
+    }
+
+    // Sample source texture (flip y so GL-style uv works on Metal's top-left origin).
+    // bgra8Unorm storage: components arrive as (B,G,R,A) — swizzle back to RGB.
+    float2 texCoord = float2(sampleUv.x, 1.0 - sampleUv.y);
+    float4 rawSample = inTex.read(uint2(texCoord * res));
+    float4 texColor = float4(rawSample.bgr, rawSample.a);
+
+    float2 coord = sampleUv * res * ditherScale;
+
+    // ---- Pre-shader gradient overlay ----
+    if (gradientEnabled) {
+        float gt;
+        if (gradientType == 0) {
+            float2 gDir = float2(cos(gradientAngle), sin(gradientAngle));
+            float2 gCenter = float2(0.5 + gradientOffsetX, 0.5 + gradientOffsetY);
+            gt = dot(vUv - gCenter, gDir) * gradientScale + 0.5;
+        } else {
+            float2 gCenter = float2(0.5 + gradientOffsetX, 0.5 + gradientOffsetY);
+            float2 radialDelta = vUv - gCenter;
+            radialDelta.x *= res.x / max(res.y, 0.0001);
+            gt = length(radialDelta) * gradientScale;
+        }
+        gt = clamp(gt, 0.0, 1.0);
+
+        // Multi-stop interpolation over slots 16..21 / 22..27.
+        // Unused trailing stops are filled by repeating the last real stop.
+        int segIdx = MAX_GRADIENT_STOPS - 1;
+        for (int i = 0; i < MAX_GRADIENT_STOPS; i++) {
+            if (U(22 + i).x >= gt) { segIdx = i; break; }
+        }
+        float3 gColor;
+        float pcAlpha;
+        if (segIdx == 0) {
+            gColor = U(16).rgb;
+            pcAlpha = U(16).w;
+        } else {
+            float4 s0 = U(16 + segIdx - 1);
+            float4 s1 = U(16 + segIdx);
+            float p0 = U(22 + segIdx - 1).x;
+            float p1 = max(U(22 + segIdx).x, p0 + 0.0001);
+            float localT = clamp((gt - p0) / (p1 - p0), 0.0, 1.0);
+            gColor = mix(s0.rgb, s1.rgb, localT);
+            pcAlpha = mix(s0.w, s1.w, localT);
+        }
+
+        float3 blended;
+        float3 baseColor = texColor.rgb;
+        if (gradientBlendMode == 0) {
+            texColor.rgb = mix(baseColor, gColor, pcAlpha * gradientOpacity);
+        } else {
+            if (gradientBlendMode == 1) {
+                blended = baseColor * gColor;
+            } else if (gradientBlendMode == 2) {
+                blended = 1.0 - (1.0 - baseColor) * (1.0 - gColor);
+            } else {
+                blended = mix(
+                    2.0 * baseColor * gColor,
+                    1.0 - 2.0 * (1.0 - baseColor) * (1.0 - gColor),
+                    step(0.5, baseColor));
+            }
+            blended = mix(blended, gColor, pcAlpha);
+            texColor.rgb = mix(baseColor, blended, gradientOpacity);
+        }
+    }
+
+    // ---- Shader bypass ----
+    if (!shaderEnabled) {
+        outTex.write(float4(texColor.rgb, 1.0), gid);
+        return;
+    }
+
+    // ---- Tonal adjustments ----
+    float3 toneColor = pow(texColor.rgb, float3(2.2));
+    toneColor *= pow(2.0, exposure);
+    toneColor = applyLevels(toneColor, blackPoint, whitePoint);
+    toneColor.r = adjustTone(toneColor.r, shadows, midtones, highlights);
+    toneColor.g = adjustTone(toneColor.g, shadows, midtones, highlights);
+    toneColor.b = adjustTone(toneColor.b, shadows, midtones, highlights);
+    toneColor = pow(toneColor, float3(1.0 / max(gamma, 0.001)));
+    toneColor = clamp(toneColor, 0.0, 1.0);
+
+    if (clarity != 0.0) {
+        float lum = dot(toneColor, float3(0.299, 0.587, 0.114));
+        float clarityMask = 4.0 * lum * (1.0 - lum);
+        toneColor = mix(toneColor, float3(lum), -clarity * clarityMask);
+    }
+
+    toneColor = pow(toneColor, float3(1.0 / 2.2));
+    toneColor = (toneColor - 0.5) * float3(contrast) + 0.5;
+    toneColor += float3(brightness - 1.0);
+    toneColor = clamp(toneColor, 0.0, 1.0);
+
+    if (saturation != 1.0) {
+        float gray = dot(toneColor, float3(0.299, 0.587, 0.114));
+        toneColor = mix(float3(gray), toneColor, saturation);
+    }
+
+    if (rezEnabled) {
+        float rezLevels = max(2.0, rezColorLevels);
+        toneColor = floor(toneColor * (rezLevels - 1.0) + 0.5) / (rezLevels - 1.0);
+    }
+
+    // ---- Early exit when dithering disabled ----
+    if (!ditherEnabled) {
+        outTex.write(float4(toneColor, 1.0), gid);
+        return;
+    }
+
+    float luminance = getLuminance(toneColor);
+    float alpha = 1.0;
+
+    if (luminance > alphaThreshold) {
+        alpha = 0.0;
+    } else {
+        float ditherThreshold;
+        if (ditherType >= FLOYD_STEINBERG && ditherType <= DIFFUSION_2D) {
+            ditherThreshold = getErrorDiffusionDither(coord, ditherType, luminance);
+        } else {
+            ditherThreshold = getDitherValue(coord, ditherType, u);
+        }
+        float ditheredValue = step(ditherThreshold, luminance);
+        if (ditheredValue > 0.5) {
+            alpha = 1.0;
+            if (!ditherGradient) {
+                toneColor = ditherColor;
+            } else {
+                // dither-gradient controls: slot 12 y=angle z=scale x-offset; slot 28 x=y-offset
+                float dgAngle = U(12).y;
+                float dgScale = U(12).z;
+                float2 gradCenter = float2(0.5 + U(12).w, 0.5 + U(28).x);
+                float2 gradDir = float2(cos(dgAngle), sin(dgAngle));
+                float t = dot(vUv - gradCenter, gradDir) * dgScale + 0.5;
+                t = clamp(t, 0.0, 1.0);
+                toneColor = mix(ditherGradientColorA, ditherGradientColorB, t);
+            }
+        } else {
+            alpha = 0.0;
+        }
+    }
+
+    float pulse = sin(time * 2.0) * 0.1 + 0.9;
+    alpha *= pulse;
+
+    outTex.write(float4(toneColor, alpha), gid);
+}

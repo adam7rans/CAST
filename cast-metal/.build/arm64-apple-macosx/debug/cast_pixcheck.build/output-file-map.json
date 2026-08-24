@@ -1,0 +1,12 @@
+{
+  "": {
+    "swift-dependencies": "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/cast_pixcheck.build/master.swiftdeps"
+  },
+  "/Users/adam/Documents/CAST/cast-metal/Tests/cast-pixcheck/main.swift": {
+    "dependencies": "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/cast_pixcheck.build/main.d",
+    "object": "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/cast_pixcheck.build/main.swift.o",
+    "swiftmodule": "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/cast_pixcheck.build/main~partial.swiftmodule",
+    "swift-dependencies": "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/cast_pixcheck.build/main.swiftdeps",
+    "diagnostics": "/Users/adam/Documents/CAST/cast-metal/.build/arm64-apple-macosx/debug/cast_pixcheck.build/main.dia"
+  }
+}
