@@ -1,6 +1,6 @@
 import { DEFAULT_LIMITER } from '../lib/AudioSource';
 import { DEFAULT_MUSIC_PARAMS } from '../lib/MusicPlayer';
-import { DEFAULT_AUDIO_REACTIVITY, DEFAULT_BACKGROUND, DEFAULT_CAPTION_SHADER, DEFAULT_CAPTION_STYLE, DEFAULT_DITHER, DEFAULT_EXPORT, DEFAULT_VIDEO, normalizeCaptionShaderParams, normalizeVideoShaderParams } from '../lib/types';
+import { DEFAULT_AUDIO_REACTIVITY, DEFAULT_AUDIO_VISUALIZER, DEFAULT_BACKGROUND, DEFAULT_CAPTION_SHADER, DEFAULT_CAPTION_STYLE, DEFAULT_DITHER, DEFAULT_EXPORT, DEFAULT_VIDEO, normalizeCaptionShaderParams, normalizeVideoShaderParams } from '../lib/types';
 import { seedGuideMap, type GuideKey } from '../lib/constants';
 import type { CaptionShaderParams, CaptionStyle } from '../lib/types';
 import type { ProjectData } from '../lib/projectApi';
@@ -70,6 +70,8 @@ export function resetProjectState(setters: ProjectHandlerSetters) {
   setters.setCurrentPresetId(null);
   setters.setPlaying(false);
   setters.setAudioReactivity(DEFAULT_AUDIO_REACTIVITY);
+  setters.setVisualizer(DEFAULT_AUDIO_VISUALIZER);
+  setters.setCompositionMode('video');
   setters.setMusicInfo(null);
   setters.setMusic(DEFAULT_MUSIC_PARAMS);
   setters.setMusicLibrary([]);
@@ -102,6 +104,8 @@ export function applyProjectVisualState(proj: ProjectData, setters: ProjectHandl
   if (proj.backgroundDither) setters.setBgDither(proj.backgroundDither);
   if (proj.video) setters.setVid(normalizeVideoShaderParams(proj.video));
   setters.setAudioReactivity(proj.audioReactivity ? { ...DEFAULT_AUDIO_REACTIVITY, ...proj.audioReactivity } : DEFAULT_AUDIO_REACTIVITY);
+  setters.setVisualizer(proj.visualizer ? { ...DEFAULT_AUDIO_VISUALIZER, ...proj.visualizer } : DEFAULT_AUDIO_VISUALIZER);
+  setters.setCompositionMode(proj.compositionMode === 'audio' ? 'audio' : 'video');
   setters.setMusic(proj.music ? { ...DEFAULT_MUSIC_PARAMS, ...proj.music, sidechain: { ...DEFAULT_MUSIC_PARAMS.sidechain, ...(proj.music.sidechain ?? {}) } } : DEFAULT_MUSIC_PARAMS);
   setters.setLimiter(proj.limiter ? { ...DEFAULT_LIMITER, ...proj.limiter } : DEFAULT_LIMITER);
   if (proj.captionMode) setters.setCaptionMode(proj.captionMode);

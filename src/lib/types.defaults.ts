@@ -1,4 +1,4 @@
-import type { AudioReactivityParams, BackgroundParams, CaptionShaderParams, CaptionStyle, DitherParams, ExportParams, VideoShaderParams } from './types.models';
+import type { AudioReactivityParams, AudioVisualizerParams, BackgroundParams, CaptionShaderParams, CaptionStyle, DitherParams, ExportParams, VideoShaderParams } from './types.models';
 import { createDefaultVideoGradientStops, normalizeVideoGradientStops, withGradientStops } from './types.videoGradient';
 
 function clampGradientScale(value: number): number {
@@ -98,6 +98,17 @@ export const DEFAULT_VIDEO_DITHER: Partial<VideoShaderParams> = {
 export const MICRO_TIMELINE_COLORS = ['#1f6feb', '#30d158', '#eb6f1f', '#ff453a', '#bf5af2', '#ffd60a', '#64d2ff'];
 export const DEFAULT_EXPORT: ExportParams = { width: 1920, height: 1080, fps: 30, duration: 10, filenamePrefix: 'dither', exportMode: 'master', invertFinalOutput: false, startSecond: 0, endSecond: 10, outroEnabled: false };
 export const DEFAULT_AUDIO_REACTIVITY: AudioReactivityParams = { enabled: true, attack: 0.6, release: 0.12, gain: 1, modSpeed: 0.6, modBrightness: 0.6 };
+export const DEFAULT_AUDIO_VISUALIZER: AudioVisualizerParams = {
+  enabled: true,
+  style: 'spectrum',
+  placement: 'bottom',
+  sensitivity: 1.35,
+  height: 24,
+  thickness: 3,
+  opacity: 0.9,
+  colorLow: '#5754ff',
+  colorHigh: '#64d2ff',
+};
 export const DEFAULT_CAPTION_SHADER: CaptionShaderParams = {
   enabled: false, waveType: 'sine', frequency: 8, speed: 2, amplitude: 0.01, angleDeg: 0, pulseWidth: 0.5,
   animation: {

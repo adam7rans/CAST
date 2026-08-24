@@ -1,6 +1,6 @@
 import React from 'react';
 import type { CaptionMode, TranscriptData } from '../lib/transcript';
-import type { CaptionStyle, CaptionShaderParams, ExportParams, VideoShaderParams } from '../lib/types';
+import type { AudioVisualizerParams, CaptionStyle, CaptionShaderParams, CompositionMode, ExportParams, VideoShaderParams } from '../lib/types';
 import { resolveExportRange, guideRectInVideoFrame } from '../lib/layoutUtils';
 import { CAPTION_REFERENCE_WIDTH } from '../lib/captionCanvas';
 import type { GUIDES } from '../lib/constants';
@@ -13,6 +13,7 @@ interface Props {
   previewWrapRef: React.Ref<HTMLDivElement>;
   bgCanvasRef: React.Ref<HTMLCanvasElement>;
   videoCanvasRef: React.Ref<HTMLCanvasElement>;
+  visualizerCanvasRef: React.Ref<HTMLCanvasElement>;
   frameStyle: React.CSSProperties;
   bgLayerOn: boolean;
   bgOffMode: 'grid' | 'color';
@@ -22,6 +23,8 @@ interface Props {
   setVid: React.Dispatch<React.SetStateAction<VideoShaderParams>>;
   captionsLayerOn: boolean;
   audioMode: boolean;
+  compositionMode: CompositionMode;
+  visualizer: AudioVisualizerParams;
   activeGuide: string | null;
   cropToGuide: boolean;
   availableGuides: readonly { key: string; w: number; h: number; label: string }[];
@@ -42,8 +45,9 @@ interface Props {
 }
 
 export const PreviewArea: React.FC<Props> = ({
-  previewWrapRef, bgCanvasRef, videoCanvasRef, frameStyle,
+  previewWrapRef, bgCanvasRef, videoCanvasRef, visualizerCanvasRef, frameStyle,
   bgLayerOn, bgOffMode, bgOffColor, videoLayerOn, captionsLayerOn, audioMode,
+  compositionMode, visualizer,
   vid, setVid,
   activeGuide, cropToGuide, availableGuides, previewFrame,
   videoInfo, audioInfo, transcript,
@@ -77,6 +81,10 @@ export const PreviewArea: React.FC<Props> = ({
       <canvas
         ref={videoCanvasRef}
         style={{ ...frameStyle, display: videoLayerOn && !audioMode ? 'block' : 'none' }}
+      />
+      <canvas
+        ref={visualizerCanvasRef}
+        style={{ ...frameStyle, display: compositionMode === 'audio' && visualizer.enabled ? 'block' : 'none', pointerEvents: 'none' }}
       />
 
       {/* captions overlay */}

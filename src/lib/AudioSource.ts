@@ -235,6 +235,22 @@ export class AudioSource {
     return this.smoothed;
   }
 
+  /** Copy logarithmically-spaced FFT bins for visualizers (bass → treble). */
+  getSpectrum(size = 64): Float32Array {
+    const out = new Float32Array(size);
+    if (!this.analyser) return out;
+    this.analyser.getByteFrequencyData(this.freqData);
+    const maxBin = this.freqData.length - 1;
+    for (let i = 0; i < size; i += 1) {
+      const start = Math.floor(Math.pow(i / size, 2) * maxBin);
+      const end = Math.max(start + 1, Math.floor(Math.pow((i + 1) / size, 2) * maxBin));
+      let peak = 0;
+      for (let bin = start; bin <= Math.min(maxBin, end); bin += 1) peak = Math.max(peak, this.freqData[bin]);
+      out[i] = peak / 255;
+    }
+    return out;
+  }
+
   /** Fetch + decode + pre-compute filtered envelopes for deterministic export. */
   async preloadEnvelope(): Promise<void> {
     if (this.envelope) return;

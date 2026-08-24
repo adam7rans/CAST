@@ -2,6 +2,7 @@ import { CaptionShaderRenderer } from '../lib/CaptionShaderRenderer';
 import type { AudioSource } from '../lib/AudioSource';
 import { BackgroundRenderer } from '../lib/BackgroundRenderer';
 import { VideoRenderer } from '../lib/VideoRenderer';
+import { AudioVisualizerRenderer } from '../lib/AudioVisualizerRenderer';
 import { GUIDES } from '../lib/constants';
 import { resolveExportRange } from '../lib/layoutUtils';
 import { buildExportBaseName } from '../lib/exporter';
@@ -35,7 +36,7 @@ export function createExportComposition(
     signal: AbortSignal,
   ) => {
     const { activeProjectIdRef, bgRendererRef, videoRendererRef, videoElRef, audioElRef, audioSourceRef, activeExportParamsRef, exportingRef, startRef, jumpCutGapListRef } = refs;
-    const { bg, bgDither, vid, bgLayerOn, bgOffMode, bgOffColor, videoLayerOn, captionsLayerOn, musicLayerOn, jumpCutsEnabled, audioReactivity, music, limiter, mediaVolume, outroVolume, musicTimelineClips, captionMode, captionStyle, captionShader, transcript, videoInfo, audioInfo, cropToGuide, activeGuide, availableGuides, previewFrame } = state;
+    const { bg, bgDither, vid, bgLayerOn, bgOffMode, bgOffColor, videoLayerOn, captionsLayerOn, musicLayerOn, jumpCutsEnabled, audioReactivity, visualizer, compositionMode, music, limiter, mediaVolume, outroVolume, musicTimelineClips, captionMode, captionStyle, captionShader, transcript, videoInfo, audioInfo, cropToGuide, activeGuide, availableGuides, previewFrame } = state;
     const { setPlaying, setProjectStatus, addToast, updateToast, fitPreviewBack } = callbacks;
 
     const projectId = activeProjectIdRef.current;
@@ -44,7 +45,8 @@ export function createExportComposition(
     // Audio-only projects can't turn the video layer off in the UI, so treat the
     // video layer as off whenever no video is actually loaded.
     const effectiveVideoLayerOn = videoLayerOn && !!video;
-    if (!bgLayerOn && !effectiveVideoLayerOn && !captionsLayerOn) throw new Error('Turn on at least one layer before exporting.');
+    const visualizerLayerOn = compositionMode === 'audio' && visualizer.enabled;
+    if (!bgLayerOn && !effectiveVideoLayerOn && !captionsLayerOn && !visualizerLayerOn) throw new Error('Turn on at least one layer before exporting.');
     const audio = audioSourceRef.current;
     const params = activeExportParamsRef.current;
     const exportMode = params.exportMode ?? 'master';
@@ -52,9 +54,14 @@ export function createExportComposition(
     const range = resolveExportRange(params, sourceDuration);
     const exportBaseName = buildExportBaseName(params.filenamePrefix, range.start, range.end);
 
-    // Pre-compute deterministic per-frame audio bands when audio is loaded.
-    if (audio && audioReactivity.enabled) {
-      try { await audio.preloadEnvelope(); } catch (e) { console.warn('Audio envelope preload failed', e); }
+    // Visualizers require deterministic analysis; optional background
+    // reactivity can still degrade gracefully if analysis is unavailable.
+    if (visualizerLayerOn) {
+      if (!audio) throw new Error('Audio visualizer export requires a loaded audio source.');
+      try { await audio.preloadEnvelope(); }
+      catch (error) { throw new Error(`Could not analyze audio for visualizer export: ${error instanceof Error ? error.message : String(error)}`); }
+    } else if (audio && audioReactivity.enabled) {
+      try { await audio.preloadEnvelope(); } catch (error) { console.warn('Audio envelope preload failed', error); }
     }
 
     const activeGuideObj = (cropToGuide ? GUIDES.find((g) => g.key === activeGuide) : null) ?? null;
@@ -87,6 +94,7 @@ export function createExportComposition(
       ? new VideoRenderer(document.createElement('canvas'), vid)
       : null;
     videoRenderer?.setVideo(video);
+    const visualizerRenderer = compositionMode === 'audio' && visualizer.enabled ? new AudioVisualizerRenderer() : null;
 
     const capRenderer = (captionsLayerOn && captionShader.enabled) ? new CaptionShaderRenderer(document.createElement('canvas')) : null;
     const capOffscreen = capRenderer ? document.createElement('canvas') : null;
@@ -161,6 +169,7 @@ export function createExportComposition(
           invertCtx,
           bgRenderer,
           videoRenderer,
+          visualizerRenderer,
           capRenderer,
           capOffscreen,
         },

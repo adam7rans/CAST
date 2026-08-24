@@ -9,6 +9,7 @@ import type { ProjectTaskStatus, MainTab, BgSubTab, VideoSubTab, VideoShaderSubT
 import type {
   BackgroundParams, DitherParams, VideoShaderParams, ExportParams,
   CaptionStyle, AudioReactivityParams, CaptionShaderParams, MicroTimeline, MusicTimelineClip,
+  AudioVisualizerParams, CompositionMode,
 } from '../lib/types';
 import type { CustomCut } from '../lib/fillerDetector';
 import type { LimiterParams } from '../lib/AudioSource';
@@ -84,6 +85,8 @@ export interface AutoSaveSettings {
   bgDither: DitherParams;
   vid: VideoShaderParams;
   audioReactivity: AudioReactivityParams;
+  visualizer: AudioVisualizerParams;
+  compositionMode: CompositionMode;
   music: MusicParams;
   musicLibraryDurations: Record<string, number>;
   musicTimelineClips: MusicTimelineClip[];
@@ -139,7 +142,7 @@ export interface AutoSaveSettings {
 /** Build the settings payload to persist. */
 function buildSavePayload(settings: AutoSaveSettings) {
   const {
-    bg, bgDither, vid, audioReactivity, music, musicLibraryDurations, musicTimelineClips, limiter,
+    bg, bgDither, vid, audioReactivity, visualizer, compositionMode, music, musicLibraryDurations, musicTimelineClips, limiter,
     captionMode, captionStyle, captionShader, captionStyleByGuide, captionShaderByGuide,
     bgLayerOn, bgOffMode, bgOffColor, videoLayerOn, captionsLayerOn, musicLayerOn,
     activeGuide, cropToGuide, bgExport, vidExport,
@@ -150,7 +153,7 @@ function buildSavePayload(settings: AutoSaveSettings) {
   } = settings;
   return {
     background: bg, backgroundDither: bgDither, video: vid,
-    audioReactivity, music, musicLibraryDurations, musicTimelineClips, limiter,
+    audioReactivity, visualizer, compositionMode, music, musicLibraryDurations, musicTimelineClips, limiter,
     captionMode, captionStyle, captionShader, captionStyleByGuide, captionShaderByGuide,
     layers: { background: bgLayerOn, video: videoLayerOn, captions: captionsLayerOn, music: musicLayerOn, bgOffMode, bgOffColor },
     activeGuide, cropToGuide, exportBackground: bgExport, exportVideo: vidExport,
@@ -177,7 +180,7 @@ export function useAutoSave(activeProjectId: string | null, settings: AutoSaveSe
   // Keep a ref to the latest payload so the beforeunload handler can flush it.
   const pendingPayloadRef = useRef<{ projectId: string; payload: Record<string, any> } | null>(null);
   const {
-    bg, bgDither, vid, audioReactivity, music, musicLibraryDurations, musicTimelineClips, limiter,
+    bg, bgDither, vid, audioReactivity, visualizer, compositionMode, music, musicLibraryDurations, musicTimelineClips, limiter,
     captionMode, captionStyle, captionShader, captionStyleByGuide, captionShaderByGuide,
     bgLayerOn, bgOffMode, bgOffColor, videoLayerOn, captionsLayerOn, musicLayerOn,
     activeGuide, cropToGuide, bgExport, vidExport,
@@ -227,7 +230,7 @@ export function useAutoSave(activeProjectId: string | null, settings: AutoSaveSe
     return () => {
       if (saveTimerRef.current) { clearTimeout(saveTimerRef.current); saveTimerRef.current = null; }
     };
-  }, [activeProjectId, bg, bgDither, vid, audioReactivity, music, musicLibraryDurations, musicTimelineClips, limiter, captionMode, captionStyle, captionShader, captionStyleByGuide, captionShaderByGuide, bgLayerOn, bgOffMode, bgOffColor, videoLayerOn, captionsLayerOn, musicLayerOn, activeGuide, cropToGuide, bgExport, vidExport, microTimelines, selectedClipId, captionClipEdits, customCuts, jumpCutGapOverrides, jumpCutGapDisabled, jumpCutsEnabled, jumpCutGapMs, jumpCutPaddingMs, customCutPaddingMs, showSilenceGaps, showFillerCuts, showManualCuts, mainTab, bgSubTab, videoSubTab, videoShaderSubTab, audioSubTab, captionsSubTab, editorSubTab, editorMode, selectedFullSegmentId, showAudioTracks, muted, mediaVolume, outroVolume, currentPresetId, projectHasVideo, projectHasAudio, videoInfoLoaded, audioInfoLoaded]);
+  }, [activeProjectId, bg, bgDither, vid, audioReactivity, visualizer, compositionMode, music, musicLibraryDurations, musicTimelineClips, limiter, captionMode, captionStyle, captionShader, captionStyleByGuide, captionShaderByGuide, bgLayerOn, bgOffMode, bgOffColor, videoLayerOn, captionsLayerOn, musicLayerOn, activeGuide, cropToGuide, bgExport, vidExport, microTimelines, selectedClipId, captionClipEdits, customCuts, jumpCutGapOverrides, jumpCutGapDisabled, jumpCutsEnabled, jumpCutGapMs, jumpCutPaddingMs, customCutPaddingMs, showSilenceGaps, showFillerCuts, showManualCuts, mainTab, bgSubTab, videoSubTab, videoShaderSubTab, audioSubTab, captionsSubTab, editorSubTab, editorMode, selectedFullSegmentId, showAudioTracks, muted, mediaVolume, outroVolume, currentPresetId, projectHasVideo, projectHasAudio, videoInfoLoaded, audioInfoLoaded]);
 }
 
 /**

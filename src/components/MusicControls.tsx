@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Section, Slider, Toggle } from './Controls';
+import { FilledTrack, Section, Slider, Toggle } from './Controls';
+import { C } from '../lib/designTokens';
 import { TabBar } from './Tabs';
 import { BandMeter } from './ReactivityControls';
 import { AUDIO_EXTENSIONS, type FxSubTab } from '../lib/constants';
@@ -44,15 +45,16 @@ const VolumeRow: React.FC<{
           )}
         </svg>
       </button>
-      <input
-        type="range"
-        min={0}
-        max={1}
-        step={0.01}
-        value={volume}
-        onChange={(e) => onVolumeChange(parseFloat(e.target.value))}
-        style={{ flex: 1 }}
-      />
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <FilledTrack
+          value={Number.isFinite(volume) ? volume : 0}
+          min={0}
+          max={1}
+          step={0.01}
+          readOnly={false}
+          onChange={onVolumeChange}
+        />
+      </div>
       <input
         type="number"
         step={0.01}
@@ -60,7 +62,11 @@ const VolumeRow: React.FC<{
         max={1}
         value={Number.isFinite(volume) ? Number(volume.toFixed(2)) : 0}
         onChange={(e) => onVolumeChange(parseFloat(e.target.value))}
-        style={{ width: 50, background: '#0a0a0a', color: '#ddd', border: '1px solid #333', padding: '2px 4px' }}
+        style={{
+          width: 50, padding: '3px 2px', textAlign: 'center', background: C.field, color: C.text,
+          border: `1px solid ${C.line2}`, borderRadius: 4, fontFamily: 'inherit', fontSize: 11,
+          fontVariantNumeric: 'tabular-nums',
+        }}
       />
     </div>
   );

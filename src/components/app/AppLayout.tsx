@@ -2,6 +2,7 @@ import type React from 'react';
 import { PreviewArea } from '../PreviewArea';
 import { SidebarPanel } from '../panels/SidebarPanel';
 import { PreviewTimeline } from '../timeline/PreviewTimeline';
+import { TopBar } from '../TopBar';
 
 interface Props {
   previewAreaProps: React.ComponentProps<typeof PreviewArea>;
@@ -9,12 +10,19 @@ interface Props {
   sidebarProps: React.ComponentProps<typeof SidebarPanel>;
 }
 
+/* "Tabs" layout: full-width top bar → (preview | 400px right panel) →
+   full-width bottom timeline. */
 export const AppLayout: React.FC<Props> = ({ previewAreaProps, timelineProps, sidebarProps }) => (
-  <div style={{ display: 'grid', gridTemplateColumns: '1fr 460px', height: '100vh', minHeight: 0, overflow: 'hidden', gap: 0 }}>
-    <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0, minHeight: 0, height: '100vh' }}>
-      <PreviewArea {...previewAreaProps} />
-      <PreviewTimeline {...timelineProps} />
+  <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', minHeight: 0, overflow: 'hidden' }}>
+    <TopBar {...sidebarProps} />
+    <div style={{ display: 'flex', flex: 1, minHeight: 0 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minWidth: 0, minHeight: 0 }}>
+        <PreviewArea {...previewAreaProps} />
+      </div>
+      <div style={{ width: 400, flexShrink: 0, minHeight: 0 }}>
+        <SidebarPanel {...sidebarProps} />
+      </div>
     </div>
-    <SidebarPanel {...sidebarProps} />
+    <PreviewTimeline {...timelineProps} />
   </div>
 );

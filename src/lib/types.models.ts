@@ -127,6 +127,22 @@ export interface AudioReactivityParams {
   modBrightness: number;
 }
 
+export type CompositionMode = 'video' | 'audio';
+export type AudioVisualizerStyle = 'spectrum' | 'mel';
+export type AudioVisualizerPlacement = 'bottom' | 'top' | 'frame';
+
+export interface AudioVisualizerParams {
+  enabled: boolean;
+  style: AudioVisualizerStyle;
+  placement: AudioVisualizerPlacement;
+  sensitivity: number;
+  height: number;
+  thickness: number;
+  opacity: number;
+  colorLow: string;
+  colorHigh: string;
+}
+
 export interface ExportParams {
   width: number;
   height: number;

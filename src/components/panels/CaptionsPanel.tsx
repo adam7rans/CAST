@@ -43,6 +43,7 @@ interface Props {
   captionShader: CaptionShaderParams;
   setCaptionShader: React.Dispatch<React.SetStateAction<CaptionShaderParams>>;
   playheadSecond: number;
+  onPropagateCaptions: () => void;
   onPickTranscript: React.ChangeEventHandler<HTMLInputElement>;
   onEditorUpdate: (data: TranscriptData) => void;
   onSearchMatchNavigate: (startMs: number, endMs: number) => void;
@@ -55,6 +56,7 @@ export const CaptionsPanel: React.FC<Props> = ({
   captionStyle, setCaptionStyle,
   captionShader, setCaptionShader,
   playheadSecond,
+  onPropagateCaptions,
   onPickTranscript, onEditorUpdate, onSearchMatchNavigate,
 }) => {
   const liveShader = resolveCaptionShaderParams(captionShader, playheadSecond);
@@ -199,6 +201,23 @@ export const CaptionsPanel: React.FC<Props> = ({
           onReset={() => setCaptionShader((current) => ({ ...current, ...DEFAULT_CAPTION_SHADER_ANIMATION }))}
         />
       </>
+    )}
+
+    {captionsSubTab !== 'editor' && (
+      <div style={{ padding: '8px 12px' }}>
+        <button
+          onClick={onPropagateCaptions}
+          style={{
+            width: '100%', padding: '6px 0', background: '#1a1a1a',
+            border: '1px solid #2a2a2a', borderRadius: 4, color: '#aaa',
+            cursor: 'pointer', fontSize: 11, fontFamily: 'inherit',
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.background = '#252525'; e.currentTarget.style.color = '#ddd'; }}
+          onMouseLeave={(e) => { e.currentTarget.style.background = '#1a1a1a'; e.currentTarget.style.color = '#aaa'; }}
+        >
+          Propagate to all crops
+        </button>
+      </div>
     )}
     </>
   );

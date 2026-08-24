@@ -3,15 +3,18 @@ import type { CaptionShaderRenderer } from '../lib/CaptionShaderRenderer';
 import type { AudioSource } from '../lib/AudioSource';
 import type { BackgroundRenderer } from '../lib/BackgroundRenderer';
 import type { VideoRenderer } from '../lib/VideoRenderer';
+import type { AudioVisualizerRenderer } from '../lib/AudioVisualizerRenderer';
 import type {
   ExportParams,
   CaptionStyle,
   CaptionShaderParams,
   AudioReactivityParams,
+  AudioVisualizerParams,
   BackgroundParams,
   DitherParams,
   VideoShaderParams,
   MusicTimelineClip,
+  CompositionMode,
 } from '../lib/types';
 import type { CaptionMode, TranscriptData } from '../lib/transcript';
 import type { ProjectTaskStatus } from '../lib/constants';
@@ -45,6 +48,8 @@ export interface ExporterState {
   musicLayerOn: boolean;
   jumpCutsEnabled: boolean;
   audioReactivity: AudioReactivityParams;
+  visualizer: AudioVisualizerParams;
+  compositionMode: CompositionMode;
   music: MusicParams;
   limiter: LimiterParams;
   mediaVolume: number;
@@ -117,6 +122,7 @@ export interface ExportRenderResources {
   invertCtx: CanvasRenderingContext2D | null;
   bgRenderer: BackgroundRenderer | null;
   videoRenderer: VideoRenderer | null;
+  visualizerRenderer: AudioVisualizerRenderer | null;
   capRenderer: CaptionShaderRenderer | null;
   capOffscreen: HTMLCanvasElement | null;
 }

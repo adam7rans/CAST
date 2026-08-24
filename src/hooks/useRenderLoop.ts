@@ -2,17 +2,20 @@ import type React from 'react';
 import { useEffect } from 'react';
 import { BackgroundRenderer } from '../lib/BackgroundRenderer';
 import { VideoRenderer } from '../lib/VideoRenderer';
+import { AudioVisualizerRenderer } from '../lib/AudioVisualizerRenderer';
 import type { AudioSource, AudioBands } from '../lib/AudioSource';
 import { advanceSidechainDuckGain, computeSidechainTargetDuckGain, type MusicPlayer, type MusicParams } from '../lib/MusicPlayer';
-import type { BackgroundParams, DitherParams, VideoShaderParams, ExportParams, AudioReactivityParams } from '../lib/types';
+import type { AudioVisualizerParams, BackgroundParams, CompositionMode, DitherParams, VideoShaderParams, ExportParams, AudioReactivityParams } from '../lib/types';
 import { resolveExportRange } from '../lib/layoutUtils';
 
 export interface RenderLoopRefs {
   previewWrapRef: React.MutableRefObject<HTMLDivElement | null>;
   bgCanvasRef: React.MutableRefObject<HTMLCanvasElement | null>;
   videoCanvasRef: React.MutableRefObject<HTMLCanvasElement | null>;
+  visualizerCanvasRef: React.MutableRefObject<HTMLCanvasElement | null>;
   bgRendererRef: React.MutableRefObject<BackgroundRenderer | null>;
   videoRendererRef: React.MutableRefObject<VideoRenderer | null>;
+  visualizerRendererRef: React.MutableRefObject<AudioVisualizerRenderer | null>;
   audioSourceRef: React.MutableRefObject<AudioSource | null>;
   musicPlayerRef: React.MutableRefObject<MusicPlayer | null>;
   videoBlobUrlRef: React.MutableRefObject<string | null>;
@@ -27,6 +30,8 @@ export interface RenderLoopRefs {
   bgLayerOnRef: React.MutableRefObject<boolean>;
   videoLayerOnRef: React.MutableRefObject<boolean>;
   audioReactivityRef: React.MutableRefObject<AudioReactivityParams>;
+  visualizerRef: React.MutableRefObject<AudioVisualizerParams>;
+  compositionModeRef: React.MutableRefObject<CompositionMode>;
   musicRef: React.MutableRefObject<MusicParams>;
   playheadRef: React.MutableRefObject<number>;
   activeExportParamsRef: React.MutableRefObject<ExportParams>;
@@ -46,18 +51,19 @@ export function useRenderLoop(
 ) {
   useEffect(() => {
     const {
-      previewWrapRef, bgCanvasRef, videoCanvasRef,
-      bgRendererRef, videoRendererRef,
+      previewWrapRef, bgCanvasRef, videoCanvasRef, visualizerCanvasRef,
+      bgRendererRef, videoRendererRef, visualizerRendererRef,
       audioSourceRef, musicPlayerRef,
       videoBlobUrlRef, audioBlobUrlRef,
       rafRef, startRef, exportingRef,
       lastBandsRef, speechRmsRef, musicDuckGainRef, limiterReductionRef,
-      bgLayerOnRef, videoLayerOnRef, audioReactivityRef, musicRef,
+      bgLayerOnRef, videoLayerOnRef, audioReactivityRef, visualizerRef, compositionModeRef, musicRef,
       playheadRef, activeExportParamsRef, timelineDurationRef,
     } = refs;
 
     bgRendererRef.current = new BackgroundRenderer(bgCanvasRef.current!, bg, bgDither);
     videoRendererRef.current = new VideoRenderer(videoCanvasRef.current!, vid);
+    visualizerRendererRef.current = new AudioVisualizerRenderer();
 
     const fit = () => {
       const el = previewWrapRef.current;
@@ -70,6 +76,7 @@ export function useRenderLoop(
     const ro = new ResizeObserver(fit);
     ro.observe(previewWrapRef.current!);
     let lastDuckMs = performance.now();
+    let visualizerAudio: AudioSource | null = null;
 
     const loop = () => {
       if (!exportingRef.current) {
@@ -85,6 +92,23 @@ export function useRenderLoop(
           : { rms: 0, low: 0, mid: 0, high: 0 };
         lastBandsRef.current = bands;
         const g = ar.gain;
+
+        const visualizerCanvas = visualizerCanvasRef.current;
+        if (visualizerCanvas && visualizerRendererRef.current && compositionModeRef.current === 'audio') {
+          if (audio !== visualizerAudio) {
+            visualizerRendererRef.current.reset();
+            visualizerAudio = audio;
+          }
+          const width = Math.max(1, Math.round(visualizerCanvas.clientWidth));
+          const height = Math.max(1, Math.round(visualizerCanvas.clientHeight));
+          if (visualizerCanvas.width !== width || visualizerCanvas.height !== height) {
+            visualizerCanvas.width = width;
+            visualizerCanvas.height = height;
+            visualizerRendererRef.current.reset();
+          }
+          const ctx = visualizerCanvas.getContext('2d');
+          if (ctx) visualizerRendererRef.current.render(ctx, width, height, audio?.getSpectrum(64) ?? new Float32Array(64), visualizerRef.current, true, playheadRef.current);
+        }
 
         const voiceIntensity = Math.min(1, Math.max(
           bands.rms * 4,
@@ -139,6 +163,7 @@ export function useRenderLoop(
       audioSourceRef.current?.dispose();
       bgRendererRef.current?.dispose();
       videoRendererRef.current?.dispose();
+      visualizerRendererRef.current = null;
       bgRendererRef.current = null;
       videoRendererRef.current = null;
       audioSourceRef.current = null;

@@ -6,6 +6,7 @@ import type { MusicPlayer } from '../lib/MusicPlayer';
 import type {
   BackgroundParams, DitherParams, VideoShaderParams,
   ExportParams, AudioReactivityParams, MicroTimeline,
+  AudioVisualizerParams, CompositionMode,
 } from '../lib/types';
 import type { MusicParams } from '../lib/MusicPlayer';
 
@@ -19,6 +20,8 @@ interface SyncRefs {
   bgLayerOnRef: React.MutableRefObject<boolean>;
   videoLayerOnRef: React.MutableRefObject<boolean>;
   audioReactivityRef: React.MutableRefObject<AudioReactivityParams>;
+  visualizerRef: React.MutableRefObject<AudioVisualizerParams>;
+  compositionModeRef: React.MutableRefObject<CompositionMode>;
   musicRef: React.MutableRefObject<MusicParams>;
   playingRef: React.MutableRefObject<boolean>;
   playheadRef: React.MutableRefObject<number>;
@@ -32,6 +35,8 @@ interface SyncValues {
   bgLayerOn: boolean;
   videoLayerOn: boolean;
   audioReactivity: AudioReactivityParams;
+  visualizer: AudioVisualizerParams;
+  compositionMode: CompositionMode;
   music: MusicParams;
   playing: boolean;
   playheadSecond: number;
@@ -45,6 +50,8 @@ export function useRefSync(refs: SyncRefs, values: SyncValues) {
   useSyncRef(refs.bgLayerOnRef, values.bgLayerOn);
   useSyncRef(refs.videoLayerOnRef, values.videoLayerOn);
   useSyncRef(refs.audioReactivityRef, values.audioReactivity);
+  useSyncRef(refs.visualizerRef, values.visualizer);
+  useSyncRef(refs.compositionModeRef, values.compositionMode);
   useSyncRef(refs.musicRef, values.music);
   useSyncRef(refs.playingRef, values.playing);
   useSyncRef(refs.playheadRef, values.playheadSecond);

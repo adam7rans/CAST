@@ -1,4 +1,5 @@
 import type { AudioBands } from '../lib/AudioSource';
+import { spectrumFromBands } from '../lib/AudioVisualizerRenderer';
 import { canvasToPngBlob, frameNumber, seekVideoTo } from '../lib/exporter';
 import { drawCaptionsToCanvas, CAPTION_REFERENCE_WIDTH } from '../lib/captionCanvas';
 import { finishProjectExport, uploadExportFrame } from '../lib/projectApi';
@@ -39,6 +40,8 @@ export async function renderExportFrames({
     videoLayerOn,
     captionsLayerOn,
     audioReactivity,
+    visualizer,
+    compositionMode,
     captionMode,
     captionStyle,
     captionShader,
@@ -54,6 +57,7 @@ export async function renderExportFrames({
     invertCtx,
     bgRenderer,
     videoRenderer,
+    visualizerRenderer,
     capRenderer,
     capOffscreen,
   } = resources;
@@ -65,6 +69,13 @@ export async function renderExportFrames({
       throw error;
     }
   };
+
+  if (compositionMode === 'audio' && visualizerRenderer && visualizer.style === 'mel' && audio) {
+    const firstSourceTime = timing.outToSrc(0).src;
+    visualizerRenderer.seedHistory(Array.from({ length: 41 }, (_, index) => (
+      spectrumFromBands(audio.getDeterministicBands(Math.max(0, firstSourceTime - (index + 1) / params.fps)))
+    )));
+  }
 
   for (let i = 0; i < timing.total; i += 1) {
     throwIfAborted();
@@ -121,6 +132,10 @@ export async function renderExportFrames({
           videoRendererRef.current.renderFrame(tVideo, tVideo);
         }
       }
+    }
+
+    if (compositionMode === 'audio' && visualizerRenderer && visualizer.enabled) {
+      visualizerRenderer.render(ctx, width, height, spectrumFromBands(audio?.getDeterministicBands(tSrc) ?? bands), visualizer, false);
     }
 
     if (captionsLayerOn && transcript) {

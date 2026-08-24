@@ -9,6 +9,8 @@ import { ExportPanel } from '../ExportPanel';
 import { ImportPresetPanel } from '../ImportPresetPanel';
 import { BackgroundPanel } from './BackgroundPanel';
 import { VideoPanel } from './VideoPanel';
+import { MetalCameraPanel } from './MetalCameraPanel';
+import { VisualizerPanel } from './VisualizerPanel';
 import { CaptionsPanel } from './CaptionsPanel';
 import { EditorPanel } from './EditorPanel';
 
@@ -32,7 +34,7 @@ export const SidebarContent: React.FC<SidebarPanelProps> = (p) => (
     )}
 
     {p.mainTab === 'video' && (
-      <VideoPanel
+      p.compositionMode === 'audio' ? <VisualizerPanel value={p.visualizer} onChange={p.setVisualizer} /> : <VideoPanel
         vid={p.vid}
         setVid={p.setVid}
         videoSubTab={p.videoSubTab}
@@ -51,6 +53,8 @@ export const SidebarContent: React.FC<SidebarPanelProps> = (p) => (
       />
     )}
 
+    {p.mainTab === 'metal' && <MetalCameraPanel />}
+
     {p.mainTab === 'captions' && (
       <CaptionsPanel
         captionsSubTab={p.captionsSubTab}
@@ -64,6 +68,7 @@ export const SidebarContent: React.FC<SidebarPanelProps> = (p) => (
         captionShader={p.captionShader}
         setCaptionShader={p.setCaptionShader}
         playheadSecond={p.playheadSecond}
+        onPropagateCaptions={p.onPropagateCaptions}
         onPickTranscript={p.onPickTranscript}
         onEditorUpdate={p.onEditorUpdate}
         onSearchMatchNavigate={p.onSearchMatchNavigate}

@@ -8,9 +8,11 @@ import type {
   ExportParams,
   CaptionStyle,
   AudioReactivityParams,
+  AudioVisualizerParams,
   CaptionShaderParams,
   MusicAsset,
   MusicTimelineClip,
+  CompositionMode,
 } from '../../lib/types';
 import type { CaptionMode, TranscriptData } from '../../lib/transcript';
 import type { CustomCut } from '../../lib/fillerDetector';
@@ -38,6 +40,8 @@ export interface SidebarPanelProps {
   videoInfo: { name: string; duration: number; w: number; h: number } | null;
   audioInfo: { name: string; duration: number } | null;
   audioMode: boolean;
+  compositionMode: CompositionMode;
+  setCompositionMode: React.Dispatch<React.SetStateAction<CompositionMode>>;
   playheadSecond: number;
   mediaDuration: number;
   playing: boolean;
@@ -127,6 +131,7 @@ export interface SidebarPanelProps {
   setCaptionStyle: React.Dispatch<React.SetStateAction<CaptionStyle>>;
   captionShader: CaptionShaderParams;
   setCaptionShader: React.Dispatch<React.SetStateAction<CaptionShaderParams>>;
+  onPropagateCaptions: () => void;
   onPickTranscript: React.ChangeEventHandler<HTMLInputElement>;
   onEditorUpdate: (data: TranscriptData) => void;
   onSearchMatchNavigate: (startMs: number, endMs: number) => void;
@@ -134,6 +139,8 @@ export interface SidebarPanelProps {
   setAudioSubTab: React.Dispatch<React.SetStateAction<AudioSubTab>>;
   audioReactivity: AudioReactivityParams;
   setAudioReactivity: React.Dispatch<React.SetStateAction<AudioReactivityParams>>;
+  visualizer: AudioVisualizerParams;
+  setVisualizer: React.Dispatch<React.SetStateAction<AudioVisualizerParams>>;
   lastBandsRef: React.MutableRefObject<AudioBands>;
   music: MusicParams;
   setMusic: React.Dispatch<React.SetStateAction<MusicParams>>;

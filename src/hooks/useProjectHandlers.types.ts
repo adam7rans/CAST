@@ -3,6 +3,7 @@ import type { AudioSource, LimiterParams } from '../lib/AudioSource';
 import type { MusicPlayer, MusicParams } from '../lib/MusicPlayer';
 import type {
   AudioReactivityParams,
+  AudioVisualizerParams,
   BackgroundParams,
   CaptionShaderParams,
   CaptionStyle,
@@ -11,6 +12,7 @@ import type {
   MicroTimeline,
   MusicAsset,
   MusicTimelineClip,
+  CompositionMode,
   VideoShaderParams,
 } from '../lib/types';
 import type { CaptionMode, ClipCaptionEdits, TranscriptData } from '../lib/transcript';
@@ -71,6 +73,8 @@ export interface ProjectHandlerSetters {
   setCurrentPresetId: React.Dispatch<React.SetStateAction<string | null>>;
   setPlaying: React.Dispatch<React.SetStateAction<boolean>>;
   setAudioReactivity: React.Dispatch<React.SetStateAction<AudioReactivityParams>>;
+  setVisualizer: React.Dispatch<React.SetStateAction<AudioVisualizerParams>>;
+  setCompositionMode: React.Dispatch<React.SetStateAction<CompositionMode>>;
   setMusicInfo: React.Dispatch<React.SetStateAction<{ name: string } | null>>;
   setMusic: React.Dispatch<React.SetStateAction<MusicParams>>;
   setMusicLibrary: React.Dispatch<React.SetStateAction<MusicAsset[]>>;

@@ -4,12 +4,14 @@ import { ClipTrackOverlay } from './ClipTrackOverlay';
 import { MusicTrackOverlay } from './MusicTrackOverlay';
 import { SkipGapOverlay } from './SkipGapOverlay';
 import { TimelineControls } from './TimelineControls';
+import { TimelineTransport } from './TimelineTransport';
 import { usePreviewTimelineState } from './usePreviewTimelineState';
 
 export type { PreviewTimelineProps };
 
 export const PreviewTimeline: React.FC<PreviewTimelineProps> = ({
   duration, playhead, onPlayheadChange,
+  playing, onTogglePlay, playbackRate, onSetPlaybackRate, muted, onToggleMuted,
   outroEnabled, onToggleOutro,
   microTimelines, timelineItemLabel = 'clip', clipEditingEnabled = true, musicTimelineClips = [], musicClipLabels = {}, musicDuration, musicPlayhead, selectedMusicClipId = null, showAudioTracks = false, musicMuted = false, onToggleMusicMuted, selectedId, pendingClipStart,
   onSelectClip, onSelectMusicClip, onMusicPlayheadChange, onClipRangeChange, onMoveMusicClip, onAdjustMusicClipFade,
@@ -33,6 +35,21 @@ export const PreviewTimeline: React.FC<PreviewTimelineProps> = ({
       padding: '6px 10px 8px', background: '#0a0a0a',
       borderTop: '1px solid #1f1f1f', flexShrink: 0,
     }}>
+      <TimelineTransport
+        playing={playing}
+        onTogglePlay={onTogglePlay}
+        playhead={playhead}
+        viewStart={timeline.viewStart}
+        viewEnd={timeline.viewEnd}
+        viewSpan={timeline.viewSpan}
+        playbackRate={playbackRate}
+        onSetPlaybackRate={onSetPlaybackRate}
+        muted={muted}
+        onToggleMuted={onToggleMuted}
+        showAudioTracks={showAudioTracks}
+        onToggleAudioTracks={onToggleAudioTracks}
+      />
+
       <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, color: '#888' }}>
         <span>view {fmt(timeline.viewStart)} – {fmt(timeline.viewEnd)} ({fmt(timeline.viewSpan)})</span>
         <span style={{ color: '#ddd' }}>
@@ -133,13 +150,13 @@ export const PreviewTimeline: React.FC<PreviewTimelineProps> = ({
           />
         )}
 
-        {/* playhead */}
+        {/* playhead — rendered above all clip/gap layers so it's never obscured */}
         {timeline.playheadVisible && (
           <div style={{
             position: 'absolute', left: `calc(${timeline.visPlay}% - 1px)`,
             top: -20, bottom: -3, width: 2,
             background: '#fff', boxShadow: '0 0 4px rgba(255,255,255,0.7)',
-            pointerEvents: 'none', zIndex: 5,
+            pointerEvents: 'none', zIndex: 30,
           }} />
         )}
       </div>

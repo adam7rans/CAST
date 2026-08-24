@@ -164,6 +164,8 @@ export function useProjectMediaControls({ refs, state, setters, toasts }: Args) 
       musicLayerOn: state.musicLayerOn,
       jumpCutsEnabled: state.jumpCutsEnabled,
       audioReactivity: state.audioReactivity,
+      visualizer: state.visualizer,
+      compositionMode: state.compositionMode,
       music: state.music,
       limiter: state.limiter,
       mediaVolume: state.mediaVolume,

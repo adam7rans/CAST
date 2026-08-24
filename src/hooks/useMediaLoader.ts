@@ -77,8 +77,7 @@ export function createLoadAudioFile(refs: MediaLoaderRefs, setters: MediaLoaderS
       audio.currentTime = 0;
     });
 
-    setters.setMainTab('audio');
-    setters.setAudioSubTab('reactivity');
+    setters.setMainTab('video');
     const uploadId = setters.addToast('Importing audio into project folder…', 'progress', true);
     uploadAudio(projectId, file, (pct) => {
       setters.setProjectStatus({ kind: 'progress', message: 'Importing audio into project folder', progress: pct, detail: `Folder: projects/${projectId}` });
@@ -166,8 +165,7 @@ export function createImportNativeMedia(refs: MediaLoaderRefs, setters: MediaLoa
     try {
       const result = await importNativeMedia(projectId);
       if (result.mediaType === 'audio') {
-        setters.setMainTab('audio');
-        setters.setAudioSubTab('reactivity');
+        setters.setMainTab('video');
         loadManagedAudioSource(refs, setters, projectId, result.originalName);
       } else {
         loadManagedVideoSource(refs, setters, projectId, result.originalName);

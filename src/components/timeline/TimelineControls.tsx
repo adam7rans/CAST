@@ -1,6 +1,12 @@
 import React, { useState } from 'react';
 import type { MicroTimeline } from '../../lib/types';
 import { btn, btnPrimary, btnDanger, fmt } from './timelineUtils';
+import { Icon } from '../ui/Icon';
+
+/** Button style with a leading icon (inline-flex so the icon+label align). */
+const iconBtn = (base: React.CSSProperties): React.CSSProperties => ({
+  ...base, display: 'inline-flex', alignItems: 'center', gap: 5,
+});
 
 interface Props {
   microTimelines: MicroTimeline[];
@@ -145,7 +151,7 @@ export const TimelineControls: React.FC<Props> = ({
         <button style={btn} onClick={onResetView} title="Show the full duration">Reset</button>
         <button
           style={{
-            ...btn,
+            ...iconBtn(btn),
             background: followPlayhead ? '#1f6feb33' : '#1a1a1a',
             borderColor: followPlayhead ? '#1f6feb' : '#2a2a2a',
             color: followPlayhead ? '#fff' : '#aaa',
@@ -153,30 +159,15 @@ export const TimelineControls: React.FC<Props> = ({
           onClick={onToggleFollow}
           title={followPlayhead ? 'Following playhead — click to stop' : 'Auto-scroll the timeline to follow the playhead when zoomed in'}
         >
-          {followPlayhead ? '⏵ Following' : '⏵ Follow'}
+          <Icon name="follow" size={12} />{followPlayhead ? 'Following' : 'Follow'}
         </button>
-
-        {onToggleAudioTracks && (
-          <button
-            style={{
-              ...btn,
-              background: showAudioTracks ? '#8b5cf633' : '#1a1a1a',
-              borderColor: showAudioTracks ? '#8b5cf6' : '#2a2a2a',
-              color: showAudioTracks ? '#fff' : '#aaa',
-            }}
-            onClick={onToggleAudioTracks}
-            title={showAudioTracks ? 'Hide audio tracks' : 'Show audio tracks'}
-          >
-            {showAudioTracks ? 'Hide Audio' : 'Show Audio'}
-          </button>
-        )}
 
         {skipGapsEnabled && selectedGapKey && onToggleGapDisabled && (() => {
           const isDisabled = !!skipGapDisabled[selectedGapKey];
           return (
             <button
               style={{
-                ...btn,
+                ...iconBtn(btn),
                 borderColor: isDisabled ? '#9aa' : '#ff453a',
                 color: isDisabled ? '#ddd' : '#ff453a',
                 background: isDisabled ? '#9aa1' : '#ff453a22',
@@ -184,7 +175,7 @@ export const TimelineControls: React.FC<Props> = ({
               onClick={() => onToggleGapDisabled(selectedGapKey)}
               title={isDisabled ? 'Restore this silence block (will be skipped again)' : 'Delete this silence block (no longer skipped)'}
             >
-              {isDisabled ? '↺ Restore silence' : '✕ Delete silence'}
+              <Icon name={isDisabled ? 'reset' : 'close'} size={12} />{isDisabled ? 'Restore silence' : 'Delete silence'}
             </button>
           );
         })()}
@@ -202,7 +193,7 @@ export const TimelineControls: React.FC<Props> = ({
         {onToggleOutro && (
           <button
             style={{
-              ...btn,
+              ...iconBtn(btn),
               marginLeft: 'auto',
               background: outroEnabled ? '#eb6f1f44' : '#1a1a1a',
               borderColor: outroEnabled ? '#eb6f1f' : '#2a2a2a',
@@ -211,7 +202,7 @@ export const TimelineControls: React.FC<Props> = ({
             onClick={onToggleOutro}
             title="Add a 5-second frozen-frame extension at the end of the video"
           >
-            {outroEnabled ? '✓ Outro (5s)' : '+ Outro'}
+            <Icon name={outroEnabled ? 'check' : 'plus'} size={12} />{outroEnabled ? 'Outro (5s)' : 'Outro'}
           </button>
         )}
       </div>

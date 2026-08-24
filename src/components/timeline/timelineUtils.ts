@@ -30,6 +30,13 @@ export interface PreviewTimelineProps {
   duration: number;
   playhead: number;
   onPlayheadChange: (playhead: number) => void;
+  /** Transport row (Row 1). Optional — the row still renders timecode + View without them. */
+  playing?: boolean;
+  onTogglePlay?: () => void;
+  playbackRate?: number;
+  onSetPlaybackRate?: (rate: number) => void;
+  muted?: boolean;
+  onToggleMuted?: () => void;
   outroEnabled?: boolean;
   onToggleOutro?: () => void;
   microTimelines: MicroTimeline[];
