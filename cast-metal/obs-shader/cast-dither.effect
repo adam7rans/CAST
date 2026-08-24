@@ -1,43 +1,37 @@
-// CAST dither/distort shader — obs-shaderfilter edition.
-// Ported from CAST's src/shaders/videoShader.ts (WebGL) via cast-metal (Metal).
-//
-// Uniforms: all params are exposed as float sliders named "u_<name>" so the
-// CAST panel can drive them live over OBS's WebSocket (SetInputSettings).
-// Colors arrive as packed floats; use unpack() helpers below.
-
-uniform float4 u_ditherColor<
+// CAST dither shader for obs-shaderfilter
+uniform float4 dither_color<
     string label = "Dither Color";
 > = {1.0, 1.0, 1.0, 1.0};
 
-uniform float4 u_gradA<
+uniform float4 grad_a<
     string label = "Gradient Color A";
 > = {0.34, 0.33, 1.0, 1.0};
 
-uniform float4 u_gradB<
+uniform float4 grad_b<
     string label = "Gradient Color B";
 > = {0.40, 0.43, 0.68, 1.0};
 
-uniform float4 u_bgColor<
-    string label = "Background Color keyed areas";
+uniform float4 bg_color<
+    string label = "Background Color";
 > = {0.04, 0.04, 0.06, 1.0};
 
-uniform float u_keyTransparent<
-    string label = "Key Out Bright Areas 0-1";
+uniform float key_transparent<
+    string label = "Key Out Bright Areas 0 or 1";
     string widget_type = "slider";
     float minimum = 0.0;
     float maximum = 1.0;
     float step = 1.0;
 > = 0.0;
 
-uniform float u_ditherType<
-    string label = "Dither Type 0=Bayer2 1=Bayer4 2=Bayer8 3=Random 4=BlueNoise";
+uniform float dither_type<
+    string label = "Dither Type 0 to 8";
     string widget_type = "slider";
     float minimum = 0.0;
     float maximum = 8.0;
     float step = 1.0;
 > = 1.0;
 
-uniform float u_alphaThreshold<
+uniform float alpha_threshold<
     string label = "Alpha Threshold";
     string widget_type = "slider";
     float minimum = 0.0;
@@ -45,7 +39,7 @@ uniform float u_alphaThreshold<
     float step = 0.01;
 > = 0.5;
 
-uniform float u_contrast<
+uniform float contrast_amt<
     string label = "Contrast";
     string widget_type = "slider";
     float minimum = 0.0;
@@ -53,7 +47,7 @@ uniform float u_contrast<
     float step = 0.01;
 > = 1.5;
 
-uniform float u_brightness<
+uniform float brightness_amt<
     string label = "Brightness";
     string widget_type = "slider";
     float minimum = 0.0;
@@ -61,23 +55,23 @@ uniform float u_brightness<
     float step = 0.01;
 > = 1.0;
 
-uniform float u_blackPoint<
+uniform float black_point<
     string label = "Black Point";
     string widget_type = "slider";
     float minimum = 0.0;
     float maximum = 1.0;
-    float step = 0.005;
+    float step = 0.01;
 > = 0.0;
 
-uniform float u_whitePoint<
+uniform float white_point<
     string label = "White Point";
     string widget_type = "slider";
     float minimum = 0.0;
     float maximum = 1.0;
-    float step = 0.005;
+    float step = 0.01;
 > = 1.0;
 
-uniform float u_gammaVal<
+uniform float gamma_amt<
     string label = "Gamma";
     string widget_type = "slider";
     float minimum = 0.1;
@@ -85,7 +79,7 @@ uniform float u_gammaVal<
     float step = 0.01;
 > = 1.0;
 
-uniform float u_saturation<
+uniform float saturation_amt<
     string label = "Saturation";
     string widget_type = "slider";
     float minimum = 0.0;
@@ -93,7 +87,7 @@ uniform float u_saturation<
     float step = 0.01;
 > = 1.0;
 
-uniform float u_exposure<
+uniform float exposure_amt<
     string label = "Exposure";
     string widget_type = "slider";
     float minimum = -3.0;
@@ -101,15 +95,7 @@ uniform float u_exposure<
     float step = 0.01;
 > = 0.0;
 
-uniform float u_clarity<
-    string label = "Clarity";
-    string widget_type = "slider";
-    float minimum = -1.0;
-    float maximum = 1.0;
-    float step = 0.01;
-> = 0.0;
-
-uniform float u_shadows<
+uniform float shadows_amt<
     string label = "Shadows";
     string widget_type = "slider";
     float minimum = -1.0;
@@ -117,7 +103,7 @@ uniform float u_shadows<
     float step = 0.01;
 > = 0.0;
 
-uniform float u_midtones<
+uniform float midtones_amt<
     string label = "Midtones";
     string widget_type = "slider";
     float minimum = -1.0;
@@ -125,7 +111,7 @@ uniform float u_midtones<
     float step = 0.01;
 > = 0.0;
 
-uniform float u_highlights<
+uniform float highlights_amt<
     string label = "Highlights";
     string widget_type = "slider";
     float minimum = -1.0;
@@ -133,7 +119,7 @@ uniform float u_highlights<
     float step = 0.01;
 > = 0.0;
 
-uniform float u_distortionFrequency<
+uniform float distortion_frequency<
     string label = "Distortion Frequency";
     string widget_type = "slider";
     float minimum = 0.0;
@@ -141,7 +127,7 @@ uniform float u_distortionFrequency<
     float step = 0.5;
 > = 20.0;
 
-uniform float u_distortionAmplitude<
+uniform float distortion_amplitude<
     string label = "Distortion Amplitude";
     string widget_type = "slider";
     float minimum = 0.0;
@@ -149,7 +135,7 @@ uniform float u_distortionAmplitude<
     float step = 0.001;
 > = 0.02;
 
-uniform float u_distortionSpeed<
+uniform float distortion_speed<
     string label = "Distortion Speed";
     string widget_type = "slider";
     float minimum = 0.0;
@@ -157,7 +143,7 @@ uniform float u_distortionSpeed<
     float step = 0.05;
 > = 2.0;
 
-uniform float u_distortionAngle<
+uniform float distortion_angle<
     string label = "Distortion Angle";
     string widget_type = "slider";
     float minimum = 0.0;
@@ -165,7 +151,7 @@ uniform float u_distortionAngle<
     float step = 0.01;
 > = 0.0;
 
-uniform float u_positionX<
+uniform float position_x<
     string label = "Position X";
     string widget_type = "slider";
     float minimum = -0.5;
@@ -173,7 +159,7 @@ uniform float u_positionX<
     float step = 0.005;
 > = 0.0;
 
-uniform float u_positionY<
+uniform float position_y<
     string label = "Position Y";
     string widget_type = "slider";
     float minimum = -0.5;
@@ -181,296 +167,104 @@ uniform float u_positionY<
     float step = 0.005;
 > = 0.0;
 
-uniform float u_positionRotation<
-    string label = "Position Rotation";
-    string widget_type = "slider";
-    float minimum = -3.14;
-    float maximum = 3.14;
-    float step = 0.01;
-> = 0.0;
-
-uniform float u_positionScale<
-    string label = "Position Scale zoom";
+uniform float zoom_amt<
+    string label = "Zoom";
     string widget_type = "slider";
     float minimum = 0.2;
     float maximum = 3.0;
     float step = 0.01;
 > = 1.0;
 
-uniform float u_rotation<
-    string label = "Dist Rotation";
-    string widget_type = "slider";
-    float minimum = -3.14;
-    float maximum = 3.14;
-    float step = 0.01;
-> = 0.0;
-
-uniform float u_scale<
-    string label = "Dist Scale";
-    string widget_type = "slider";
-    float minimum = 0.2;
-    float maximum = 3.0;
-    float step = 0.01;
-> = 1.0;
-
-uniform float u_rezEnabled<
-    string label = "Rez Enabled 0-1";
-    string widget_type = "slider";
-    float minimum = 0.0;
-    float maximum = 1.0;
-    float step = 1.0;
-> = 0.0;
-
-uniform float u_rezCellWidth<
-    string label = "Rez Cell W";
-    string widget_type = "slider";
-    float minimum = 1.0;
-    float maximum = 64.0;
-    float step = 1.0;
-> = 8.0;
-
-uniform float u_rezCellHeight<
-    string label = "Rez Cell H";
-    string widget_type = "slider";
-    float minimum = 1.0;
-    float maximum = 64.0;
-    float step = 1.0;
-> = 8.0;
-
-uniform float u_rezColorLevels<
-    string label = "Rez Levels";
-    string widget_type = "slider";
-    float minimum = 2.0;
-    float maximum = 32.0;
-    float step = 1.0;
-> = 24.0;
-
-uniform float u_rezJitter<
-    string label = "Rez Jitter";
-    string widget_type = "slider";
-    float minimum = 0.0;
-    float maximum = 1.0;
-    float step = 0.01;
-> = 0.0;
-
-uniform float u_shaderEnabled<
-    string label = "Shader Enabled 0-1";
-    string widget_type = "slider";
-    float minimum = 0.0;
-    float maximum = 1.0;
-    float step = 1.0;
-> = 1.0;
-
-uniform float u_timeScale<
-    string label = "Time Scale";
-    string widget_type = "slider";
-    float minimum = 0.0;
-    float maximum = 4.0;
-    float step = 0.05;
-> = 1.0;
-
-float3 unpackColor(float4 c) { return c.rgb; }
-
-float getBayer4x4(float2 coord) {
-    int2 pos = (int2)fmod(coord, 4.0);
-    const float m[16] = {
-        0.0,  8.0,  2.0, 10.0,
-        12.0, 4.0, 14.0,  6.0,
-        3.0, 11.0,  1.0,  9.0,
-        15.0, 7.0, 13.0,  5.0
-    };
-    return m[pos.y * 4 + pos.x] / 16.0;
-}
-
-float getBayer2x2(float2 coord) {
-    int2 pos = (int2)fmod(coord, 2.0);
-    const float m[4] = { 0.0, 2.0, 3.0, 1.0 };
-    return m[pos.y * 2 + pos.x] / 4.0;
-}
-
-float getBayer8x8(float2 coord) {
-    int2 pos = (int2)fmod(coord, 8.0);
-    const float m[64] = {
-        0.0, 32.0, 8.0, 40.0, 2.0, 34.0, 10.0, 42.0,
-        48.0, 16.0, 56.0, 24.0, 50.0, 18.0, 58.0, 26.0,
-        12.0, 44.0, 4.0, 36.0, 14.0, 46.0, 6.0, 38.0,
-        60.0, 28.0, 52.0, 20.0, 62.0, 30.0, 54.0, 22.0,
-        3.0, 35.0, 11.0, 43.0, 1.0, 33.0, 9.0, 41.0,
-        51.0, 19.0, 59.0, 27.0, 49.0, 17.0, 57.0, 25.0,
-        15.0, 47.0, 7.0, 39.0, 13.0, 45.0, 5.0, 37.0,
-        63.0, 31.0, 55.0, 23.0, 61.0, 29.0, 53.0, 21.0
-    };
-    return m[pos.y * 8 + pos.x] / 64.0;
-}
-
-float rand(float2 co) {
+float rand(float2 co)
+{
     return frac(sin(dot(co, float2(12.9898, 78.233))) * 43758.5453);
 }
 
-float2 rand2(float2 co) {
-    return float2(rand(co + float2(13.1, 91.7)), rand(co + float2(71.7, 29.3)));
+float bayer4(float2 coord)
+{
+    int2 pos = (int2)fmod(coord, 4.0);
+    float m[16] = {
+        0.0, 8.0, 2.0, 10.0,
+        12.0, 4.0, 14.0, 6.0,
+        3.0, 11.0, 1.0, 9.0,
+        15.0, 7.0, 13.0, 5.0
+    };
+    int i = pos.y * 4 + pos.x;
+    return m[i] / 16.0;
 }
 
-float getBlueNoise(float2 coord) {
-    float2 p = frac(coord * 0.3183099 + 0.71);
-    p *= 17.0;
+float getDither(float2 coord, float t)
+{
+    if (t < 0.5) {
+        int2 pos = (int2)fmod(coord, 2.0);
+        float m[4] = {0.0, 2.0, 3.0, 1.0};
+        return m[pos.y * 2 + pos.x] / 4.0;
+    }
+    if (t < 1.5) return bayer4(coord);
+    if (t < 2.5) {
+        int2 pos = (int2)fmod(coord, 8.0);
+        float m[64] = {
+            0.0, 32.0, 8.0, 40.0, 2.0, 34.0, 10.0, 42.0,
+            48.0, 16.0, 56.0, 24.0, 50.0, 18.0, 58.0, 26.0,
+            12.0, 44.0, 4.0, 36.0, 14.0, 46.0, 6.0, 38.0,
+            60.0, 28.0, 52.0, 20.0, 62.0, 30.0, 54.0, 22.0,
+            3.0, 35.0, 11.0, 43.0, 1.0, 33.0, 9.0, 41.0,
+            51.0, 19.0, 59.0, 27.0, 49.0, 17.0, 57.0, 25.0,
+            15.0, 47.0, 7.0, 39.0, 13.0, 45.0, 5.0, 37.0,
+            63.0, 31.0, 55.0, 23.0, 61.0, 29.0, 53.0, 21.0
+        };
+        return m[pos.y * 8 + pos.x] / 64.0;
+    }
+    if (t < 3.5) return rand(coord);
+    float2 p = frac(coord * 0.3183099 + 0.71) * 17.0;
     return frac(p.x * p.y * (p.x + p.y));
-}
-
-float getPatternValue(float2 coord) {
-    float2 center = frac(coord / 4.0) - 0.5;
-    return smoothstep(0.2, 0.4, length(center));
-}
-
-float luminance(float3 c) { return dot(c, float3(0.299, 0.587, 0.114)); }
-
-float3 applyLevels(float3 color, float bp, float wp) {
-    float range = max(wp - bp, 0.0001);
-    return clamp((color - float3(bp)) / range, 0.0, 1.0);
-}
-
-float adjustTone(float v, float sh, float mi, float hi) {
-    float sInf = 1.0 - smoothstep(0.0, 0.6, v);
-    float hInf = smoothstep(0.4, 1.0, v);
-    float mInf = 1.0 - abs(v - 0.5) * 2.0;
-    return clamp(v + sInf * sh + mInf * mi + hInf * hi, 0.0, 1.0);
-}
-
-float floydSteinberg(float2 coord, float lum) {
-    float2 noise = frac(coord * 0.5453 + lum * 0.3183);
-    return step((noise.x + noise.y) * 0.5 * 0.9375, lum);
-}
-
-float atkinson(float2 coord, float lum) {
-    float2 noise = frac(coord * 0.7531 + lum * 0.4142);
-    return step(noise.x * noise.y * 0.8 * 0.75, lum);
-}
-
-float getDitherValue(float2 coord, int t) {
-    if (t == 0) return getBayer2x2(coord);
-    if (t == 1) return getBayer4x4(coord);
-    if (t == 2) return getBayer8x8(coord);
-    if (t == 3) return rand(coord);
-    if (t == 4) return getBlueNoise(coord);
-    if (t == 5) return getPatternValue(coord);
-    return 0.5;
-}
-
-float2 rot2(float2 v, float a) {
-    float c = cos(a), s = sin(a);
-    return float2(c * v.x - s * v.y, s * v.x + c * v.y);
 }
 
 float4 mainImage(VertData v_in) : TARGET
 {
-    float time = elapsed_time * clamp(u_timeScale, 0.0, 4.0);
-    // Defensive clamps: OBS persists raw slider values; if ranges ever change,
-    // stale saved values must not black out the whole image.
-    const float alphaThreshold = clamp(u_alphaThreshold, 0.0, 1.0);
-    const float keyTransparent = step(0.5, u_keyTransparent);
-    const float contrast = clamp(u_contrast, 0.0, 10.0);
-    const bool shaderOn = u_shaderEnabled > 0.5;
-    const bool rezOn = u_rezEnabled > 0.5;
+    float time = elapsed_time;
     float2 vUv = v_in.uv;
 
-    // ---- UV pipeline ----
-    float2 distortedUv = vUv;
-    float2 centeredUv = distortedUv - 0.5;
-    centeredUv -= float2(u_positionX, u_positionY);
-    centeredUv = rot2(centeredUv, u_positionRotation);
-    centeredUv *= u_positionScale;
-    centeredUv = rot2(centeredUv, u_rotation);
-    centeredUv *= u_scale;
-    distortedUv = centeredUv + 0.5;
-
     // sine wave distortion
-    float2 waveDir = float2(cos(u_distortionAngle), sin(u_distortionAngle));
+    float2 waveDir = float2(cos(distortion_angle), sin(distortion_angle));
     float wavePat = dot(vUv - 0.5, waveDir);
-    float wave = sin(wavePat * u_distortionFrequency + time * u_distortionSpeed) * u_distortionAmplitude;
+    float wave = sin(wavePat * distortion_frequency + time * distortion_speed) * distortion_amplitude;
     float edgeFade = smoothstep(0.0, 0.05, vUv.x) * (1.0 - smoothstep(0.95, 1.0, vUv.x)) *
                      smoothstep(0.0, 0.05, vUv.y) * (1.0 - smoothstep(0.95, 1.0, vUv.y));
-    distortedUv += float2(-waveDir.y, waveDir.x) * (wave * edgeFade);
-    distortedUv = clamp(distortedUv, 0.0, 1.0);
+    float2 distortedUv = vUv + float2(-waveDir.y, waveDir.x) * (wave * edgeFade);
 
-    // rez pixelation
-    float2 sampleUv = distortedUv;
-    if (rezOn) {
-        float2 cellSize = float2(max(1.0, u_rezCellWidth), max(1.0, u_rezCellHeight));
-        float2 px = distortedUv * uv_size;
-        float2 cellIdx = floor(px / cellSize);
-        float2 snapped = (cellIdx + 0.5) * cellSize;
-        sampleUv = mix(distortedUv, clamp(snapped / uv_size, 0.0, 1.0), 1.0);
-    }
+    // zoom and offset
+    float2 centered = (distortedUv - 0.5) / zoom_amt + 0.5 - float2(position_x, position_y);
+    distortedUv = clamp(centered, 0.0, 1.0);
 
-    float4 texColor = image.Sample(textureSampler, sampleUv);
+    float4 tex = image.Sample(textureSampler, distortedUv);
 
-    // ---- bypass ----
-    if (!shaderOn) {
-        return float4(texColor.rgb, 1.0);
-    }
+    // tone
+    float3 tone = pow(saturate(tex.rgb), float3(2.2, 2.2, 2.2));
+    tone *= exp2(exposure_amt);
+    float range = max(white_point - black_point, 0.0001);
+    tone = saturate((tone - black_point) / range);
+    tone = pow(tone, float3(1.0 / max(gamma_amt, 0.001)));
+    tone = pow(tone, float3(1.0 / 2.2, 1.0 / 2.2, 1.0 / 2.2));
+    tone = (tone - 0.5) * contrast_amt + 0.5 + (brightness_amt - 1.0);
+    tone = saturate(tone);
+    float gray = dot(tone, float3(0.299, 0.587, 0.114));
+    tone = lerp(float3(gray, gray, gray), tone, saturation_amt);
 
-    // ---- tone ----
-    float3 tone = pow(texColor.rgb, float3(2.2));
-    tone *= pow(2.0, u_exposure);
-    tone = applyLevels(tone, u_blackPoint, u_whitePoint);
-    tone.r = adjustTone(tone.r, u_shadows, u_midtones, u_highlights);
-    tone.g = adjustTone(tone.g, u_shadows, u_midtones, u_highlights);
-    tone.b = adjustTone(tone.b, u_shadows, u_midtones, u_highlights);
-    tone = pow(tone, float3(1.0 / max(u_gammaVal, 0.001)));
-    tone = clamp(tone, 0.0, 1.0);
+    // dither
+    float lum = dot(tone, float3(0.299, 0.587, 0.114));
+    float coord_scale = 480.0;
+    float thresh = getDither(vUv * uv_size / 2.0, dither_type);
+    float keep = step(thresh, lum);
 
-    if (abs(u_clarity) > 0.001) {
-        float l = dot(tone, float3(0.299, 0.587, 0.114));
-        tone = mix(tone, float3(l), -u_clarity * (4.0 * l * (1.0 - l)));
-    }
-    tone = pow(tone, float3(1.0 / 2.2));
-    tone = (tone - 0.5) * float3(u_contrast) + 0.5;
-    tone += float3(u_brightness - 1.0);
-    tone = clamp(tone, 0.0, 1.0);
-
-    if (abs(u_saturation - 1.0) > 0.001) {
-        float g = dot(tone, float3(0.299, 0.587, 0.114));
-        tone = mix(float3(g), tone, u_saturation);
-    }
-
-    if (rezOn) {
-        float lv = max(2.0, u_rezColorLevels);
-        tone = floor(tone * (lv - 1.0) + 0.5) / (lv - 1.0);
-    }
-
-    // ---- dither + keying ----
-    float2 coord = sampleUv * uv_size;
-    float lum = luminance(tone);
-    float alpha = 1.0;
-
-    if (lum > alphaThreshold) {
-        alpha = 0.0;
+    float3 outColor;
+    if (lum > alpha_threshold) {
+        outColor = bg_color.rgb;
+    } else if (keep > 0.5) {
+        outColor = lerp(grad_a.rgb, grad_b.rgb, vUv.y);
     } else {
-        float thresh;
-        if (u_ditherType == 7) thresh = floydSteinberg(coord, lum);
-        else if (u_ditherType == 8) thresh = atkinson(coord, lum);
-        else thresh = getDitherValue(coord, (int)u_ditherType);
-        float keep = step(thresh, lum);
-        if (keep > 0.5) {
-            // gradient fill between A and B across the frame
-            float t = clamp(dot(vUv - 0.5, normalize(float2(cos(0.0), sin(0.0)))) + 0.5, 0.0, 1.0);
-            tone = mix(unpackColor(u_gradA), unpackColor(u_gradB), t);
-        } else {
-            alpha = 0.0;
-        }
+        outColor = bg_color.rgb;
     }
 
-    float pulse = sin(time * 2.0) * 0.1 + 0.9;
-    alpha *= pulse;
-
-    // Default: keyed areas get a solid backdrop (visible over any scene).
-    // Transparency is opt-in via "Key Out Bright Areas" = 1.
-    if (keyTransparent < 0.5) {
-        if (lum > alphaThreshold) {
-            tone = unpackColor(u_bgColor);
-        }
-        return float4(tone, 1.0);
-    }
-
-    return float4(tone, alpha);
+    return float4(outColor, 1.0);
 }
