@@ -21,114 +21,6 @@ uniform float dither_type<
     float step = 1.0;
 > = 2.0;
 
-uniform float dither_scale<
-    string label = "Dither Scale";
-    string widget_type = "slider";
-    float minimum = 0.1;
-    float maximum = 8.0;
-    float step = 0.05;
-> = 1.0;
-
-uniform float threshold_amt<
-    string label = "Fixed Threshold";
-    string widget_type = "slider";
-    float minimum = 0.0;
-    float maximum = 1.0;
-    float step = 0.01;
-> = 0.5;
-
-uniform float dither_gradient<
-    string label = "Gradient Dots 0 or 1";
-    string widget_type = "slider";
-    float minimum = 0.0;
-    float maximum = 1.0;
-    float step = 1.0;
-> = 1.0;
-
-uniform float4 dot_color<
-    string label = "Flat Dot Color";
-> = {1.0, 1.0, 1.0, 1.0};
-
-uniform float dither_grad_angle<
-    string label = "Dot Gradient Angle";
-    string widget_type = "slider";
-    float minimum = 0.0;
-    float maximum = 6.28;
-    float step = 0.01;
-> = 0.0;
-
-uniform float dither_grad_scale<
-    string label = "Dot Gradient Scale";
-    string widget_type = "slider";
-    float minimum = 0.1;
-    float maximum = 4.0;
-    float step = 0.01;
-> = 1.0;
-
-uniform float dither_grad_offset_x<
-    string label = "Dot Gradient Offset X";
-    string widget_type = "slider";
-    float minimum = -1.0;
-    float maximum = 1.0;
-    float step = 0.01;
-> = 0.0;
-
-uniform float dither_grad_offset_y<
-    string label = "Dot Gradient Offset Y";
-    string widget_type = "slider";
-    float minimum = -1.0;
-    float maximum = 1.0;
-    float step = 0.01;
-> = 0.0;
-
-uniform float error_diffusion<
-    string label = "Error Diffusion Mix";
-    string widget_type = "slider";
-    float minimum = 0.0;
-    float maximum = 1.0;
-    float step = 0.01;
-> = 1.0;
-
-uniform float rez_enabled<
-    string label = "Rez Enabled 0 or 1";
-    string widget_type = "slider";
-    float minimum = 0.0;
-    float maximum = 1.0;
-    float step = 1.0;
-> = 0.0;
-
-uniform float rez_cell_w<
-    string label = "Rez Cell Width";
-    string widget_type = "slider";
-    float minimum = 1.0;
-    float maximum = 64.0;
-    float step = 1.0;
-> = 8.0;
-
-uniform float rez_cell_h<
-    string label = "Rez Cell Height";
-    string widget_type = "slider";
-    float minimum = 1.0;
-    float maximum = 64.0;
-    float step = 1.0;
-> = 8.0;
-
-uniform float rez_mix<
-    string label = "Rez Mix";
-    string widget_type = "slider";
-    float minimum = 0.0;
-    float maximum = 1.0;
-    float step = 0.01;
-> = 1.0;
-
-uniform float rez_jitter<
-    string label = "Rez Jitter";
-    string widget_type = "slider";
-    float minimum = 0.0;
-    float maximum = 1.0;
-    float step = 0.01;
-> = 0.0;
-
 uniform float alpha_threshold<
     string label = "Alpha Threshold";
     string widget_type = "slider";
@@ -330,7 +222,7 @@ float halftone(float2 coord)
     return smoothstep(0.2, 0.4, length(center));
 }
 
-float getDither(float2 coord, float t, float lum)
+float getDither(float2 coord, float t)
 {
     if (t < 0.5) return hash_noise(coord);
     if (t < 1.5) return bayer2(coord);
@@ -338,19 +230,7 @@ float getDither(float2 coord, float t, float lum)
     if (t < 3.5) return bayer8(coord);
     if (t < 4.5) return blue_noise(coord);
     if (t < 5.5) return halftone(coord);
-    if (t < 6.5) {
-        // Floyd-Steinberg approximation
-        float2 noise = fract(coord * 0.5453 + lum * 0.3183);
-        float base = step((noise.x + noise.y) * 0.5 * 0.9375, lum);
-        return mix(step(0.5, lum), base, error_diffusion);
-    }
-    if (t < 7.5) {
-        // Atkinson approximation
-        float2 noise = fract(coord * 0.7531 + lum * 0.4142);
-        float base = step(noise.x * noise.y * 0.8 * 0.75, lum);
-        return mix(step(0.5, lum), base, error_diffusion);
-    }
-    return threshold_amt;
+    return bayer4(coord);
 }
 
 float adjustTone(float v, float sh, float mi, float hi)
@@ -382,20 +262,6 @@ float4 mainImage(VertData v_in) : TARGET
                      smoothstep(0.0, 0.05, vUv.y) * (1.0 - smoothstep(0.95, 1.0, vUv.y));
     distortedUv = clamp(distortedUv + float2(-waveDir.y, waveDir.x) * (wave * edgeFade), 0.0, 1.0);
 
-    // ---- rez pixelation ----
-    if (rez_enabled > 0.5) {
-        float2 cellSize = float2(max(1.0, rez_cell_w), max(1.0, rez_cell_h));
-        float2 px = distortedUv * uv_size;
-        float2 cellIdx = floor(px / cellSize);
-        float2 snappedPx = (cellIdx + 0.5) * cellSize;
-        if (rez_jitter > 0.001) {
-            float2 jit = (float2(hash_noise(cellIdx), hash_noise(cellIdx + 13.7)) - 0.5)
-                         * cellSize * rez_jitter;
-            snappedPx += jit;
-        }
-        distortedUv = mix(distortedUv, clamp(snappedPx / uv_size, 0.0, 1.0), rez_mix);
-    }
-
     float4 tex = image.Sample(textureSampler, distortedUv);
 
     // ---- tone pipeline ----
@@ -421,19 +287,12 @@ float4 mainImage(VertData v_in) : TARGET
 
     // ---- dither + keying ----
     float lum = dot(tone, float3(0.299, 0.587, 0.114));
-    float thresh = getDither(vUv * uv_size / (2.0 / max(dither_scale, 0.1)), dither_type, lum);
+    float thresh = getDither(vUv * uv_size / 2.0, dither_type);
     float keep = step(thresh, lum);
 
-    // dot fill: flat color or spatial gradient (angle/scale/offset)
-    float3 dotColor;
-    if (dither_gradient < 0.5) {
-        dotColor = dot_color.rgb;
-    } else {
-        float2 gDir = float2(cos(dither_grad_angle), sin(dither_grad_angle));
-        float2 gCenter = float2(0.5 + dither_grad_offset_x, 0.5 + dither_grad_offset_y);
-        float gt = clamp(dot(vUv - gCenter, gDir) * dither_grad_scale + 0.5, 0.0, 1.0);
-        dotColor = mix(grad_a.rgb, grad_b.rgb, gt);
-    }
+    // gradient fill across the frame along the diagonal
+    float gradT = clamp((vUv.x + vUv.y) * 0.5, 0.0, 1.0);
+    float3 dotColor = mix(grad_a.rgb, grad_b.rgb, gradT);
 
     float3 outColor;
     if (lum > alpha_threshold) {
