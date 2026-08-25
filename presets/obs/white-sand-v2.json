@@ -1,0 +1,38 @@
+{
+  "id": "white-sand-v2",
+  "name": "white sand v2",
+  "obsShaderParams": {
+    "contrast_amt": 1.21,
+    "brightness_amt": 1.06,
+    "black_point": 0.065,
+    "white_point": 1,
+    "gamma_amt": 1,
+    "saturation_amt": 1,
+    "exposure_amt": -0.05,
+    "shadows_amt": 0,
+    "midtones_amt": -0.31,
+    "highlights_amt": -0.19,
+    "clarity_amt": 0,
+    "distortion_frequency": 123,
+    "distortion_amplitude": 0.001,
+    "distortion_speed": 1.65,
+    "distortion_angle": 2.81,
+    "position_x": 0,
+    "position_y": 0.025,
+    "position_rotation": 0,
+    "dither_type": 2,
+    "alpha_threshold": 0.79,
+    "grad_a": {
+      "r": 0.576,
+      "g": 0.667,
+      "b": 0.882,
+      "a": 1.0
+    },
+    "grad_b": {
+      "r": 0.0,
+      "g": 0.0,
+      "b": 0.0,
+      "a": 1.0
+    }
+  }
+}

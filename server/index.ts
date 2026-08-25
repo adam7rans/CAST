@@ -7,6 +7,7 @@ import { mediaRoutes } from './routes/media.js';
 import { exportRoutes } from './routes/exports.js';
 import { presetRoutes } from './routes/presets.js';
 import { metalRoutes } from './routes/metal.js';
+import { obsPresetRoutes } from './routes/obsPresets.js';
 import { APP_HOST, APP_NAME, APP_PORT, DIST_DIR } from './helpers.js';
 
 const app = express();
@@ -19,6 +20,7 @@ app.use('/api/projects', mediaRoutes);
 app.use('/api/projects', exportRoutes);
 app.use('/api/presets', presetRoutes);
 app.use('/api/metal', metalRoutes);
+app.use('/api/obs-presets', obsPresetRoutes);
 
 const serveStaticApp = process.env.CAST_SERVE_STATIC === '1' || process.env.CAST_SERVE_STATIC === 'true';
 if (serveStaticApp && fs.existsSync(DIST_DIR)) {

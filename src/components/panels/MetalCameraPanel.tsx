@@ -10,7 +10,14 @@ const DITHER_OPTIONS = [
   { value: 3, label: '3 — Bayer 8×8' },
   { value: 4, label: '4 — Blue noise' },
   { value: 5, label: '5 — Halftone' },
+  { value: 6, label: '6 — Floyd-Steinberg' },
+  { value: 7, label: '7 — Atkinson' },
 ];
+
+interface ObsPreset {
+  id: string;
+  name: string;
+}
 
 const num = (v: unknown, dflt: number) => (typeof v === 'number' ? v : dflt);
 const bool = (v: unknown, dflt: boolean) => (typeof v === 'boolean' ? v : dflt);
@@ -24,11 +31,33 @@ export const MetalCameraPanel: React.FC = () => {
     useObsShaderSocket();
 
   const [local, setLocal] = useState<ObsSettings | null>(null);
+  const [presets, setPresets] = useState<ObsPreset[]>([]);
 
   // adopt remote settings when they first arrive; after that we drive
   useEffect(() => {
     if (settings && !local) setLocal(settings);
   }, [settings, local]);
+
+  useEffect(() => {
+    if (!connected) return;
+    fetch('/api/obs-presets')
+      .then((r) => r.json())
+      .then((d) => setPresets(d.presets ?? []))
+      .catch(() => setPresets([]));
+  }, [connected]);
+
+  const loadPreset = async (id: string) => {
+    try {
+      const res = await fetch(`/api/obs-presets/${id}`);
+      if (!res.ok) return;
+      const data = await res.json();
+      const params = data.obsShaderParams as ObsSettings | undefined;
+      if (params && Object.keys(params).length > 0) {
+        setLocal((prev) => ({ ...(prev ?? {}), ...params }));
+        setParams(params);
+      }
+    } catch { /* network hiccup — ignore */ }
+  };
 
   if (!connected || !local) {
     return (
@@ -72,6 +101,19 @@ export const MetalCameraPanel: React.FC = () => {
         </span>
       </div>
 
+      {/* presets */}
+      {presets.length > 0 && (
+        <Section title="preset">
+          <Select
+            label="load"
+            value=""
+            options={[{ value: '', label: '— pick a preset —' },
+              ...presets.map((p) => ({ value: p.id, label: p.name }))]}
+            onChange={(v) => { if (v) void loadPreset(String(v)); }}
+          />
+        </Section>
+      )}
+
       {/* dither */}
       <Section title="dither">
         <Select
@@ -80,8 +122,42 @@ export const MetalCameraPanel: React.FC = () => {
           options={DITHER_OPTIONS}
           onChange={(v) => set({ dither_type: Number(v) })}
         />
+        <Slider label="dither scale" value={num(s.dither_scale, 1)} min={0.1} max={8} step={0.05}
+          onChange={(v) => set({ dither_scale: v })} />
         <Slider label="alpha threshold" value={num(s.alpha_threshold, 0.5)} min={0} max={1} step={0.01}
           onChange={(v) => set({ alpha_threshold: v })} />
+        <Slider label="fixed threshold" value={num(s.threshold_amt, 0.5)} min={0} max={1} step={0.01}
+          onChange={(v) => set({ threshold_amt: v })} />
+        <Slider label="error diffusion" value={num(s.error_diffusion, 1)} min={0} max={1} step={0.01}
+          onChange={(v) => set({ error_diffusion: v })} />
+        <Toggle label="gradient dots" value={bool(s.dither_gradient, true)}
+          onChange={(v) => set({ dither_gradient: v ? 1 : 0 })} />
+      </Section>
+
+      {/* dot gradient */}
+      <Section title="dot gradient">
+        <Slider label="angle" value={num(s.dither_grad_angle, 0)} min={0} max={6.28} step={0.01}
+          onChange={(v) => set({ dither_grad_angle: v })} />
+        <Slider label="scale" value={num(s.dither_grad_scale, 1)} min={0.1} max={4} step={0.01}
+          onChange={(v) => set({ dither_grad_scale: v })} />
+        <Slider label="offset x" value={num(s.dither_grad_offset_x, 0)} min={-1} max={1} step={0.01}
+          onChange={(v) => set({ dither_grad_offset_x: v })} />
+        <Slider label="offset y" value={num(s.dither_grad_offset_y, 0)} min={-1} max={1} step={0.01}
+          onChange={(v) => set({ dither_grad_offset_y: v })} />
+      </Section>
+
+      {/* rez */}
+      <Section title="rez">
+        <Toggle label="enabled" value={num(s.rez_enabled, 0) > 0.5}
+          onChange={(v) => set({ rez_enabled: v ? 1 : 0 })} />
+        <Slider label="cell width" value={num(s.rez_cell_w, 8)} min={1} max={64} step={1}
+          onChange={(v) => set({ rez_cell_w: v })} />
+        <Slider label="cell height" value={num(s.rez_cell_h, 8)} min={1} max={64} step={1}
+          onChange={(v) => set({ rez_cell_h: v })} />
+        <Slider label="mix" value={num(s.rez_mix, 1)} min={0} max={1} step={0.01}
+          onChange={(v) => set({ rez_mix: v })} />
+        <Slider label="jitter" value={num(s.rez_jitter, 0)} min={0} max={1} step={0.01}
+          onChange={(v) => set({ rez_jitter: v })} />
       </Section>
 
       {/* distortion */}
