@@ -31,6 +31,8 @@ export function useObsShaderSocket(): ObsShaderConnection {
   const disposedRef = useRef(false);
   const reqIdRef = useRef(0);
   const pendingRef = useRef<((d: any) => void) | null>(null);
+  const pendingPatchRef = useRef<ObsSettings | null>(null);
+  const flushTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const call = useCallback((requestType: string, requestData?: object): Promise<any> => {
     const ws = wsRef.current;
@@ -119,12 +121,22 @@ export function useObsShaderSocket(): ObsShaderConnection {
 
   const setParams = useCallback((patch: ObsSettings) => {
     setSettings((prev) => ({ ...(prev ?? {}), ...patch }));
-    void call('SetSourceFilterSettings', {
-      sourceName: SOURCE_NAME,
-      filterName: FILTER_NAME,
-      filterSettings: patch,
-      overlay: true,
-    });
+    // Debounce: coalesce rapid slider writes into one OBS call (~150ms).
+    // obs-shaderfilter can segfault if settings are rewritten while libobs
+    // tears down data structures; rapid-fire writes raise that risk.
+    pendingPatchRef.current = { ...(pendingPatchRef.current ?? {}), ...patch };
+    if (flushTimerRef.current) clearTimeout(flushTimerRef.current);
+    flushTimerRef.current = setTimeout(() => {
+      const payload = pendingPatchRef.current;
+      pendingPatchRef.current = null;
+      if (!payload || Object.keys(payload).length === 0) return;
+      void call('SetSourceFilterSettings', {
+        sourceName: SOURCE_NAME,
+        filterName: FILTER_NAME,
+        filterSettings: payload,
+        overlay: true,
+      });
+    }, 150);
   }, [call]);
 
   const startVirtualCam = useCallback(() => {
