@@ -25,7 +25,7 @@ function run(cmd, args, options = {}) {
 }
 
 function shellQuote(value) {
-  return `'${String(value).replace(/'/g, `'\"'\"'`)}'`;
+  return `'${String(value).replace(/'/g, `'\\\"'\\\"'`)}'`;
 }
 
 function renderMasterPng() {
@@ -69,7 +69,6 @@ function buildIcon() {
 }
 
 function buildRunnerScript() {
-  const runnerPath = path.join(appBundle, 'Contents', 'Resources', 'cast-launcher.sh');
   const launchLog = '$HOME/Library/Logs/CAST/launcher.log';
   const buildLog = '$HOME/Library/Logs/CAST/build.log';
   const script = `#!/bin/zsh
@@ -80,27 +79,37 @@ PORT="\${CAST_PORT:-4312}"
 APP_URL="http://\${HOST}:\${PORT}/"
 mkdir -p "$HOME/Library/Logs/CAST"
 
-is_up() {
-  curl --silent --fail "$APP_URL" >/dev/null 2>&1
+# Healthy means the root URL actually serves the app page — a stale server can
+# still listen on the port while answering every request with an error (e.g.
+# after macOS revokes its folder access), which must not be reused.
+healthy() {
+  curl --silent --fail --max-time 2 "$APP_URL" 2>/dev/null | grep -qi '<html'
 }
 
 if [ ! -f "$REPO_DIR/dist/index.html" ]; then
   /bin/zsh -lc "cd ${shellQuote(repoRoot)} && npm run build" >>${buildLog} 2>&1
 fi
 
-if ! is_up; then
-  nohup /bin/zsh -lc "cd ${shellQuote(repoRoot)} && CAST_HOST=\\"$HOST\\" CAST_PORT=\\"$PORT\\" npm run start:app" >>${launchLog} 2>&1 &
+if ! healthy; then
+  # Replace whatever is squatting on the port before starting fresh.
+  lsof -nP -tiTCP:"$PORT" -sTCP:LISTEN 2>/dev/null | xargs kill 2>/dev/null || true
+  sleep 1
+  nohup /bin/zsh -lc "cd ${shellQuote(repoRoot)} && CAST_HOST=$HOST CAST_PORT=$PORT npm run start:app" >>${launchLog} 2>&1 &
   for _ in {1..80}; do
-    if is_up; then
+    if healthy; then
       break
     fi
     sleep 0.25
   done
 fi
 
-open "$APP_URL"
+if healthy; then
+  open "$APP_URL"
+else
+  osascript -e 'display notification "CAST server failed to start - see ~/Library/Logs/CAST/launcher.log" with title "CAST"' >/dev/null 2>&1 || open "$APP_URL"
+fi
 `;
-  fs.writeFileSync(runnerPath, script, { mode: 0o755 });
+  fs.writeFileSync(path.join(buildDir, 'cast-launcher.sh'), script, { mode: 0o755 });
 }
 
 function buildAppletBundle() {
@@ -117,10 +126,11 @@ end run
 ensureDir(buildDir);
 rmrf(appBundle);
 buildIcon();
+buildRunnerScript();
 buildAppletBundle();
 ensureDir(path.join(appBundle, 'Contents', 'Resources'));
 rmrf(path.join(appBundle, 'Contents', 'Resources', 'Assets.car'));
-buildRunnerScript();
+fs.copyFileSync(path.join(buildDir, 'cast-launcher.sh'), path.join(appBundle, 'Contents', 'Resources', 'cast-launcher.sh'));
 fs.copyFileSync(iconPath, path.join(appBundle, 'Contents', 'Resources', 'applet.icns'));
 fs.copyFileSync(iconPath, path.join(appBundle, 'Contents', 'Resources', `${appName}.icns`));
 
