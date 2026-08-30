@@ -34,26 +34,33 @@ export function emit(id: string, event: TranscribeEvent) {
 export function slugify(name: string): string {
   return name.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'project';
 }
+// Split off the extension case-INSENSITIVELY. `path.basename(name, ext)` only strips
+// when the case matches, so an iPhone "IMG.MOV" kept its ".MOV" and then got a ".mov"
+// appended → "IMG.MOV.mov". Slicing by the real extension length avoids that.
+function splitExt(name: string): { base: string; ext: string } {
+  const raw = path.basename(name);
+  const rawExt = path.extname(raw);
+  return { base: raw.slice(0, raw.length - rawExt.length), ext: rawExt.toLowerCase() };
+}
+function sanitizeBase(base: string, fallback: string): string {
+  return base.trim().replace(/[^a-zA-Z0-9._-]+/g, '-').replace(/^-|-$/g, '') || fallback;
+}
 export function safeFilename(name: string): string {
-  const ext = path.extname(name).toLowerCase();
-  const base = path.basename(name, ext).trim().replace(/[^a-zA-Z0-9._-]+/g, '-').replace(/^-|-$/g, '') || 'video';
-  return `${base}${ext || '.mp4'}`;
+  const { base, ext } = splitExt(name);
+  return `${sanitizeBase(base, 'video')}${ext || '.mp4'}`;
 }
 export function safeAudioFilename(name: string): string {
-  const ext = path.extname(name).toLowerCase();
-  const base = path.basename(name, ext).trim().replace(/[^a-zA-Z0-9._-]+/g, '-').replace(/^-|-$/g, '') || 'audio';
-  return `${base}${ext || '.mp3'}`;
+  const { base, ext } = splitExt(name);
+  return `${sanitizeBase(base, 'audio')}${ext || '.mp3'}`;
 }
 export function safeMusicFilename(name: string): string {
-  const ext = path.extname(name).toLowerCase();
-  const base = path.basename(name, ext).trim().replace(/[^a-zA-Z0-9._-]+/g, '-').replace(/^-|-$/g, '') || 'music';
+  const { base, ext } = splitExt(name);
   // Prefix with `music-` so it never collides with the speech audio file.
-  return `music-${base}${ext || '.mp3'}`;
+  return `music-${sanitizeBase(base, 'music')}${ext || '.mp3'}`;
 }
 export function safePngFilename(name: string): string {
-  const ext = path.extname(name).toLowerCase();
-  const base = path.basename(name, ext).trim().replace(/[^a-zA-Z0-9._-]+/g, '-').replace(/^-|-$/g, '') || 'frame';
-  return `${base}.png`;
+  const { base } = splitExt(name);
+  return `${sanitizeBase(base, 'frame')}.png`;
 }
 export function uniqueSlug(base: string): string {
   let s = base, n = 1;

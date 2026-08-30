@@ -3,6 +3,7 @@ import { MusicPlayer } from '../lib/MusicPlayer';
 import { DEFAULT_AUDIO_REACTIVITY } from '../lib/types';
 import { parseTranscript } from '../lib/transcript';
 import { snapToExportResolution } from '../lib/layoutUtils';
+import { describeMediaError } from '../lib/mediaError';
 import { createProject, getAudioUrl, getMusicUrl, getProject, getTranscript, getVideoUrl, listProjects } from '../lib/projectApi';
 import type { GuideKey } from '../lib/constants';
 import type { ProjectHandlerRefs, ProjectHandlerSetters } from './useProjectHandlers.types';
@@ -101,6 +102,21 @@ export function createHandleSelectProject(refs: ProjectHandlerRefs, setters: Pro
           refs.audioSourceRef.current = new AudioSource({ element: video, url });
           video.currentTime = 0;
         });
+        video.addEventListener('error', () => {
+          const msg = describeMediaError(video, project.videoFile || 'video', url);
+          console.error('[project] video load failed:', msg, video.error);
+          setters.setProjectStatus({ kind: 'error', message: 'Video failed to load', detail: msg });
+          setters.addToast(msg, 'error');
+        });
+      } else if (project.videoFile || project.mediaType === 'video') {
+        // A video is recorded in project.json but the file isn't on disk (hasVideo is
+        // derived from the file existing). Say exactly what's missing and where.
+        const msg = `Video file "${project.videoFile ?? '(unknown name)'}" is recorded for this ` +
+          `project but was not found in projects/${id}/. It may have been moved, renamed, or the ` +
+          `import didn't finish copying it.`;
+        console.error('[project]', msg);
+        setters.setProjectStatus({ kind: 'error', message: 'Video file missing', detail: msg });
+        setters.addToast(msg, 'error');
       }
 
       if (project.hasAudio && !project.hasVideo) {
@@ -122,6 +138,18 @@ export function createHandleSelectProject(refs: ProjectHandlerRefs, setters: Pro
           refs.audioSourceRef.current = new AudioSource({ element: audio, url });
           audio.currentTime = 0;
         });
+        audio.addEventListener('error', () => {
+          const msg = describeMediaError(audio, project.audioFile || 'audio', url);
+          console.error('[project] audio load failed:', msg, audio.error);
+          setters.setProjectStatus({ kind: 'error', message: 'Audio failed to load', detail: msg });
+          setters.addToast(msg, 'error');
+        });
+      } else if (!project.hasVideo && (project.audioFile || project.mediaType === 'audio')) {
+        const msg = `Audio file "${project.audioFile ?? '(unknown name)'}" is recorded for this ` +
+          `project but was not found in projects/${id}/.`;
+        console.error('[project]', msg);
+        setters.setProjectStatus({ kind: 'error', message: 'Audio file missing', detail: msg });
+        setters.addToast(msg, 'error');
       }
 
       if (project.hasMusic && !(Array.isArray((project as any).musicFiles) && (project as any).musicFiles.length > 0)) {

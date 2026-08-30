@@ -44,12 +44,17 @@ mediaRoutes.get('/:id/video', (req, res) => {
   const id = req.params.id as string;
   const proj = readProject(id);
   if (!proj?.videoFile) {
-    res.status(404).json({ error: 'No video' });
+    res.status(404).json({ error: `Project "${id}" has no video file recorded (project.json is missing videoFile).` });
     return;
   }
   const vp = path.join(projectDir(id), proj.videoFile);
   if (!fs.existsSync(vp)) {
-    res.status(404).json({ error: 'File not found' });
+    res.status(404).json({
+      error: `Video file "${proj.videoFile}" not found in project folder.`,
+      videoFile: proj.videoFile,
+      originalVideoName: proj.originalVideoName ?? null,
+      expectedPath: vp,
+    });
     return;
   }
 
