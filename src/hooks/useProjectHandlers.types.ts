@@ -86,6 +86,7 @@ export interface ProjectHandlerSetters {
   setMicroTimelines: React.Dispatch<React.SetStateAction<MicroTimeline[]>>;
   setSelectedClipId: React.Dispatch<React.SetStateAction<string | null>>;
   setSelectedFullSegmentId: React.Dispatch<React.SetStateAction<string | null>>;
+  setFullChunkOverrides: React.Dispatch<React.SetStateAction<Record<string, { startSecond?: number; endSecond?: number }>>>;
   setPendingClipStart: React.Dispatch<React.SetStateAction<number | null>>;
   setCustomCuts: React.Dispatch<React.SetStateAction<import('../lib/fillerDetector').CustomCut[]>>;
   setJumpCutGapOverrides: React.Dispatch<React.SetStateAction<Record<string, { startMs: number; endMs: number }>>>;

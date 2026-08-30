@@ -128,6 +128,7 @@ export interface AutoSaveSettings {
   editorSubTab: EditorSubTab;
   editorMode: EditorMode;
   selectedFullSegmentId: string | null;
+  fullChunkOverrides: Record<string, { startSecond?: number; endSecond?: number }>;
   showAudioTracks: boolean;
   muted: boolean;
   mediaVolume: number;
@@ -149,7 +150,7 @@ function buildSavePayload(settings: AutoSaveSettings) {
     microTimelines, selectedClipId, captionClipEdits,
     customCuts, jumpCutGapOverrides, jumpCutGapDisabled, jumpCutsEnabled, jumpCutGapMs, jumpCutPaddingMs, customCutPaddingMs,
     showSilenceGaps, showFillerCuts, showManualCuts,
-    mainTab, bgSubTab, videoSubTab, videoShaderSubTab, audioSubTab, captionsSubTab, editorSubTab, editorMode, selectedFullSegmentId, showAudioTracks, muted, mediaVolume, outroVolume, currentPresetId,
+    mainTab, bgSubTab, videoSubTab, videoShaderSubTab, audioSubTab, captionsSubTab, editorSubTab, editorMode, selectedFullSegmentId, fullChunkOverrides, showAudioTracks, muted, mediaVolume, outroVolume, currentPresetId,
   } = settings;
   return {
     background: bg, backgroundDither: bgDither, video: vid,
@@ -170,7 +171,7 @@ function buildSavePayload(settings: AutoSaveSettings) {
       disabled: jumpCutGapDisabled,
     },
     customCuts,
-    ui: { mainTab, bgSubTab, videoSubTab, videoShaderSubTab, audioSubTab, captionsSubTab, editorSubTab, editorMode, selectedFullSegmentId, showAudioTracks, muted, mediaVolume, outroVolume, presetId: currentPresetId },
+    ui: { mainTab, bgSubTab, videoSubTab, videoShaderSubTab, audioSubTab, captionsSubTab, editorSubTab, editorMode, selectedFullSegmentId, fullChunkOverrides, showAudioTracks, muted, mediaVolume, outroVolume, presetId: currentPresetId },
   };
 }
 
@@ -187,7 +188,7 @@ export function useAutoSave(activeProjectId: string | null, settings: AutoSaveSe
     microTimelines, selectedClipId, captionClipEdits,
     customCuts, jumpCutGapOverrides, jumpCutGapDisabled, jumpCutsEnabled, jumpCutGapMs, jumpCutPaddingMs, customCutPaddingMs,
     showSilenceGaps, showFillerCuts, showManualCuts,
-    mainTab, bgSubTab, videoSubTab, videoShaderSubTab, audioSubTab, captionsSubTab, editorSubTab, editorMode, selectedFullSegmentId, showAudioTracks, muted, mediaVolume, outroVolume, currentPresetId,
+    mainTab, bgSubTab, videoSubTab, videoShaderSubTab, audioSubTab, captionsSubTab, editorSubTab, editorMode, selectedFullSegmentId, fullChunkOverrides, showAudioTracks, muted, mediaVolume, outroVolume, currentPresetId,
     projectHasVideo, projectHasAudio, videoInfoLoaded, audioInfoLoaded,
   } = settings;
 
@@ -230,7 +231,7 @@ export function useAutoSave(activeProjectId: string | null, settings: AutoSaveSe
     return () => {
       if (saveTimerRef.current) { clearTimeout(saveTimerRef.current); saveTimerRef.current = null; }
     };
-  }, [activeProjectId, bg, bgDither, vid, audioReactivity, visualizer, compositionMode, music, musicLibraryDurations, musicTimelineClips, limiter, captionMode, captionStyle, captionShader, captionStyleByGuide, captionShaderByGuide, bgLayerOn, bgOffMode, bgOffColor, videoLayerOn, captionsLayerOn, musicLayerOn, activeGuide, cropToGuide, bgExport, vidExport, microTimelines, selectedClipId, captionClipEdits, customCuts, jumpCutGapOverrides, jumpCutGapDisabled, jumpCutsEnabled, jumpCutGapMs, jumpCutPaddingMs, customCutPaddingMs, showSilenceGaps, showFillerCuts, showManualCuts, mainTab, bgSubTab, videoSubTab, videoShaderSubTab, audioSubTab, captionsSubTab, editorSubTab, editorMode, selectedFullSegmentId, showAudioTracks, muted, mediaVolume, outroVolume, currentPresetId, projectHasVideo, projectHasAudio, videoInfoLoaded, audioInfoLoaded]);
+  }, [activeProjectId, bg, bgDither, vid, audioReactivity, visualizer, compositionMode, music, musicLibraryDurations, musicTimelineClips, limiter, captionMode, captionStyle, captionShader, captionStyleByGuide, captionShaderByGuide, bgLayerOn, bgOffMode, bgOffColor, videoLayerOn, captionsLayerOn, musicLayerOn, activeGuide, cropToGuide, bgExport, vidExport, microTimelines, selectedClipId, captionClipEdits, customCuts, jumpCutGapOverrides, jumpCutGapDisabled, jumpCutsEnabled, jumpCutGapMs, jumpCutPaddingMs, customCutPaddingMs, showSilenceGaps, showFillerCuts, showManualCuts, mainTab, bgSubTab, videoSubTab, videoShaderSubTab, audioSubTab, captionsSubTab, editorSubTab, editorMode, selectedFullSegmentId, fullChunkOverrides, showAudioTracks, muted, mediaVolume, outroVolume, currentPresetId, projectHasVideo, projectHasAudio, videoInfoLoaded, audioInfoLoaded]);
 }
 
 /**

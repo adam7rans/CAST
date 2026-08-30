@@ -85,6 +85,7 @@ export function resetProjectState(setters: ProjectHandlerSetters) {
   setters.setMicroTimelines([]);
   setters.setSelectedClipId(null);
   setters.setSelectedFullSegmentId(null);
+  setters.setFullChunkOverrides({});
   setters.setPendingClipStart(null);
   setters.setCustomCuts([]);
   setters.setJumpCutsEnabled(false);
@@ -146,6 +147,7 @@ export function applyProjectUiState(proj: ProjectData, setters: ProjectHandlerSe
     setters.setEditorSubTab('edits');
     setters.setEditorMode('clips');
     setters.setSelectedFullSegmentId(null);
+    setters.setFullChunkOverrides({});
     setters.setShowAudioTracks(true);
     setters.setCurrentPresetId(null);
     return;
@@ -170,6 +172,7 @@ export function applyProjectUiState(proj: ProjectData, setters: ProjectHandlerSe
   setters.setEditorSubTab(proj.ui.editorSubTab ?? 'edits');
   setters.setEditorMode(proj.ui.editorMode ?? 'clips');
   setters.setSelectedFullSegmentId(typeof proj.ui.selectedFullSegmentId === 'string' || proj.ui.selectedFullSegmentId === null ? proj.ui.selectedFullSegmentId : null);
+  setters.setFullChunkOverrides(proj.ui.fullChunkOverrides && typeof proj.ui.fullChunkOverrides === 'object' ? proj.ui.fullChunkOverrides : {});
   setters.setShowAudioTracks(typeof proj.ui.showAudioTracks === 'boolean' ? proj.ui.showAudioTracks : true);
   if (typeof proj.ui.muted === 'boolean') setters.setMuted(proj.ui.muted);
   if (typeof proj.ui.mediaVolume === 'number') setters.setMediaVolume(proj.ui.mediaVolume);

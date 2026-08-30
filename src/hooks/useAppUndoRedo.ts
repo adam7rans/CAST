@@ -21,6 +21,7 @@ export type SettingsSnapshot = {
   activeGuide: GuideKey | null; cropToGuide: boolean;
   bgExport: ExportParams; vidExport: ExportParams;
   microTimelines: MicroTimeline[]; selectedClipId: string | null;
+  fullChunkOverrides: Record<string, { startSecond?: number; endSecond?: number }>;
   musicTimelineClips: MusicTimelineClip[]; selectedMusicClipId: string | null; showAudioTracks: boolean;
   customCuts: CustomCut[];
   jumpCutGapOverrides: Record<string, { startMs: number; endMs: number }>;
@@ -55,6 +56,7 @@ export interface UndoSetters {
   setVidExport: React.Dispatch<React.SetStateAction<ExportParams>>;
   setMicroTimelines: React.Dispatch<React.SetStateAction<MicroTimeline[]>>;
   setSelectedClipId: React.Dispatch<React.SetStateAction<string | null>>;
+  setFullChunkOverrides: React.Dispatch<React.SetStateAction<Record<string, { startSecond?: number; endSecond?: number }>>>;
   setMusicTimelineClips: React.Dispatch<React.SetStateAction<MusicTimelineClip[]>>;
   setSelectedMusicClipId: React.Dispatch<React.SetStateAction<string | null>>;
   setShowAudioTracks: React.Dispatch<React.SetStateAction<boolean>>;
@@ -99,7 +101,7 @@ export function useAppUndoRedo(
     s.setVideoLayerOn(snap.videoLayerOn); s.setCaptionsLayerOn(snap.captionsLayerOn); s.setMusicLayerOn(snap.musicLayerOn);
     s.setActiveGuide(snap.activeGuide); s.setCropToGuide(snap.cropToGuide);
     s.setBgExport(snap.bgExport); s.setVidExport(snap.vidExport);
-    s.setMicroTimelines(snap.microTimelines); s.setSelectedClipId(snap.selectedClipId);
+    s.setMicroTimelines(snap.microTimelines); s.setSelectedClipId(snap.selectedClipId); s.setFullChunkOverrides(snap.fullChunkOverrides);
     s.setMusicTimelineClips(snap.musicTimelineClips); s.setSelectedMusicClipId(snap.selectedMusicClipId); s.setShowAudioTracks(snap.showAudioTracks);
     s.setCustomCuts(snap.customCuts);
     s.setJumpCutGapOverrides(snap.jumpCutGapOverrides); s.setJumpCutGapDisabled(snap.jumpCutGapDisabled);
@@ -120,7 +122,7 @@ export function useAppUndoRedo(
     captionMode, captionStyleByGuide, captionShaderByGuide,
     bgLayerOn, bgOffMode, bgOffColor, videoLayerOn, captionsLayerOn, musicLayerOn,
     activeGuide, cropToGuide, bgExport, vidExport,
-    microTimelines, selectedClipId, musicTimelineClips, selectedMusicClipId, showAudioTracks, customCuts,
+    microTimelines, selectedClipId, fullChunkOverrides, musicTimelineClips, selectedMusicClipId, showAudioTracks, customCuts,
     jumpCutGapOverrides, jumpCutGapDisabled,
     jumpCutsEnabled, jumpCutGapMs, jumpCutPaddingMs, customCutPaddingMs,
     showSilenceGaps, showFillerCuts, showManualCuts, muted, mediaVolume, outroVolume,
@@ -133,7 +135,7 @@ export function useAppUndoRedo(
     captionMode, captionStyleByGuide, captionShaderByGuide,
     bgLayerOn, bgOffMode, bgOffColor, videoLayerOn, captionsLayerOn, musicLayerOn,
     activeGuide, cropToGuide, bgExport, vidExport,
-    microTimelines, selectedClipId, musicTimelineClips, selectedMusicClipId, showAudioTracks, customCuts,
+    microTimelines, selectedClipId, fullChunkOverrides, musicTimelineClips, selectedMusicClipId, showAudioTracks, customCuts,
     jumpCutGapOverrides, jumpCutGapDisabled,
     jumpCutsEnabled, jumpCutGapMs, jumpCutPaddingMs, customCutPaddingMs,
     showSilenceGaps, showFillerCuts, showManualCuts, muted, mediaVolume, outroVolume,

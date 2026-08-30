@@ -11,6 +11,13 @@ import { MICRO_TIMELINE_COLORS, type ExportParams, type MicroTimeline } from '..
 
 export const FULL_EXPORT_CHUNK_SECONDS = 300;
 
+/** Per-chunk inward trim for Full mode. Values are absolute seconds, clamped to the chunk's original tile span. */
+export type FullChunkRange = { startSecond?: number; endSecond?: number };
+
+function clamp(value: number, min: number, max: number) {
+  return Math.min(Math.max(value, min), max);
+}
+
 function sanitizeExportPrefix(name: string, fallback: string) {
   return name.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || fallback;
 }
@@ -23,6 +30,7 @@ interface Args {
   selectedClipId: string | null;
   selectedFullSegmentId: string | null;
   setSelectedFullSegmentId: React.Dispatch<React.SetStateAction<string | null>>;
+  fullChunkOverrides: Record<string, FullChunkRange>;
   jumpCutsEnabled: boolean;
   jumpCutGapDisabled: Record<string, boolean>;
   jumpCutGapsEffective: JumpCutGap[];
@@ -43,6 +51,7 @@ export function useAppDerivedState({
   selectedClipId,
   selectedFullSegmentId,
   setSelectedFullSegmentId,
+  fullChunkOverrides,
   jumpCutsEnabled,
   jumpCutGapDisabled,
   jumpCutGapsEffective,
@@ -60,18 +69,25 @@ export function useAppDerivedState({
     if (!Number.isFinite(mediaDuration) || mediaDuration <= 0) return [];
     const chunks: MicroTimeline[] = [];
     for (let start = 0, index = 0; start < mediaDuration - 0.001; index += 1) {
-      const end = Math.min(mediaDuration, start + FULL_EXPORT_CHUNK_SECONDS);
+      const tileStart = start;
+      const tileEnd = Math.min(mediaDuration, start + FULL_EXPORT_CHUNK_SECONDS);
+      const id = `full-chunk-${index + 1}`;
+      // Overrides can only trim inward (never past the chunk's original tile boundaries),
+      // so chunks never overlap their neighbors — independent trim leaves a gap.
+      const override = fullChunkOverrides[id];
+      const startSecond = clamp(override?.startSecond ?? tileStart, tileStart, tileEnd - 0.01);
+      const endSecond = clamp(override?.endSecond ?? tileEnd, startSecond + 0.01, tileEnd);
       chunks.push({
-        id: `full-chunk-${index + 1}`,
+        id,
         name: `Full ${index + 1}`,
-        startSecond: start,
-        endSecond: end,
+        startSecond,
+        endSecond,
         color: MICRO_TIMELINE_COLORS[index % MICRO_TIMELINE_COLORS.length],
       });
-      start = end;
+      start = tileEnd;
     }
     return chunks;
-  }, [mediaDuration]);
+  }, [mediaDuration, fullChunkOverrides]);
   const selectedFullSegment = fullExportChunks.find((chunk) => chunk.id === selectedFullSegmentId) ?? null;
   const selectedTimelineSegment = editorMode === 'clips' ? selectedProjectClip : selectedFullSegment;
   const timelineSegments = editorMode === 'clips' ? microTimelines : fullExportChunks;

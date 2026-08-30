@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import type { MicroTimeline } from '../../lib/types';
 import { OUTRO_DUR, clamp, fmt, type DragKind } from './timelineUtils';
 
-const HANDLE_HIT = 12; // px wide hit zone centered on each clip edge
+const HANDLE_HIT = 14; // px wide hit zone centered on each clip edge
 
 interface Props {
   microTimelines: MicroTimeline[];
@@ -71,7 +71,8 @@ export const ClipTrackOverlay: React.FC<Props> = ({
                 title={`${mt.name} start: ${fmt(mt.startSecond)} — drag to adjust`}
                 style={{
                   position: 'absolute',
-                  left: `calc(${l}% - ${HANDLE_HIT / 2}px)`,
+                  // Clamp so the first clip's start handle stays fully on-track (never half off the left edge).
+                  left: `max(0px, calc(${l}% - ${HANDLE_HIT / 2}px))`,
                   top: 0, bottom: 0, width: HANDLE_HIT,
                   cursor: 'ew-resize',
                   zIndex: 7,
@@ -102,7 +103,8 @@ export const ClipTrackOverlay: React.FC<Props> = ({
                 title={`${mt.name} end: ${fmt(mt.endSecond)} — drag to adjust`}
                 style={{
                   position: 'absolute',
-                  left: `calc(${r}% - ${HANDLE_HIT / 2}px)`,
+                  // Clamp so the last clip's end handle stays fully on-track (never half off the right edge).
+                  left: `min(calc(100% - ${HANDLE_HIT}px), calc(${r}% - ${HANDLE_HIT / 2}px))`,
                   top: 0, bottom: 0, width: HANDLE_HIT,
                   cursor: 'ew-resize',
                   zIndex: 7,
