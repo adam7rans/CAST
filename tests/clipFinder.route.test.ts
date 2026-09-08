@@ -17,6 +17,10 @@ await new Promise<void>((resolve) => server.once('listening', resolve));
 const address = server.address() as { port: number };
 const endpoint = `http://127.0.0.1:${address.port}/api/projects/fixture/clip-candidates`;
 const nativeFetch = globalThis.fetch;
+const keyEndpoint = `http://127.0.0.1:${address.port}/api/projects/clip-finder/key`;
+const configEndpoint = `http://127.0.0.1:${address.port}/api/projects/clip-finder/config`;
+const storedKeyFile = path.join(directory, '.openai-key');
+const validKey = 'sk-test-0123456789abcdef';
 const projectDirectory = path.join(directory, 'fixture');
 mkdirSync(projectDirectory);
 writeFileSync(path.join(projectDirectory, 'project.json'), JSON.stringify({ id: 'fixture', name: 'Fixture' }));
@@ -45,6 +49,34 @@ test('missing server key and unknown projects return actionable errors before st
   assert.equal((await response.json()).code, 'missing_key');
   const missing = await nativeFetch(endpoint.replace('/fixture/', '/absent/'), { method: 'POST' });
   assert.equal(missing.status, 404);
+});
+
+test('config reports key state and the key endpoint saves a usable key without echoing it', async () => {
+  delete process.env.OPENAI_API_KEY;
+  assert.deepEqual(await (await nativeFetch(configEndpoint)).json(), { hasKey: false });
+  const bad = await nativeFetch(keyEndpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ apiKey: 'not-a-key' }) });
+  assert.equal(bad.status, 400);
+  assert.equal((await bad.json()).code, 'invalid_key');
+  const forbidden = await nativeFetch(keyEndpoint, { method: 'POST', headers: {
+    'Content-Type': 'application/json', Origin: 'https://untrusted.example' },
+    body: JSON.stringify({ apiKey: validKey }) });
+  assert.equal(forbidden.status, 403);
+  const saved = await nativeFetch(keyEndpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ apiKey: validKey }) });
+  assert.equal(saved.status, 200);
+  assert.doesNotMatch(await saved.text(), /sk-test/);
+  assert.deepEqual(await (await nativeFetch(configEndpoint)).json(), { hasKey: true });
+  assert.match(readFileSync(storedKeyFile, 'utf8'), new RegExp(`^${validKey}\\n$`));
+  globalThis.fetch = async (_url, init) => {
+    assert.equal((init?.headers as Record<string, string>).Authorization, `Bearer ${validKey}`);
+    const units = JSON.parse(JSON.parse(String(init?.body)).input);
+    return providerResponse(units[0].id, units.at(-1).id);
+  };
+  const discovery = await nativeFetch(endpoint, { method: 'POST' });
+  const events = (await discovery.text()).trim().split('\n').map((line) => JSON.parse(line));
+  assert.equal(events.at(-1).type, 'complete');
+  rmSync(storedKeyFile, { force: true });
 });
 
 test('rejects cross-origin discovery before any paid provider work', async () => {

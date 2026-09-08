@@ -1,4 +1,5 @@
 import { ClipFinderError } from './errors.js';
+import { readStoredKey } from './keyStore.js';
 import { clipSchema, parseClipResponse } from './response.js';
 import type { TimedUnit } from './transcript.js';
 
@@ -14,10 +15,10 @@ Timestamps are source milliseconds. Prefer sentence boundaries, not partial word
 Adjacent sections overlap for context. Do not force a clip from weak material; an empty clips array is valid.`;
 
 export function providerConfig() {
-  const apiKey = process.env.OPENAI_API_KEY?.trim();
+  const apiKey = process.env.OPENAI_API_KEY?.trim() || readStoredKey() || undefined;
   if (!apiKey) {
     throw new ClipFinderError('missing_key',
-      'Set OPENAI_API_KEY in the CAST server environment, then restart the server to find clips.', 503);
+      'Add your OpenAI API key below to find clips. It is stored locally on this machine.', 503);
   }
   return { apiKey, model: process.env.OPENAI_MODEL?.trim() || 'gpt-5.4-mini' };
 }

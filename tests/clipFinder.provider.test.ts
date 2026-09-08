@@ -15,7 +15,7 @@ test('server config requires a key, defaults to gpt-5.4-mini and permits a model
   const before = { key: process.env.OPENAI_API_KEY, model: process.env.OPENAI_MODEL };
   try {
     delete process.env.OPENAI_API_KEY;
-    assert.throws(providerConfig, /Set OPENAI_API_KEY/);
+    assert.throws(providerConfig, /Add your OpenAI API key/);
     process.env.OPENAI_API_KEY = 'fake-key';
     delete process.env.OPENAI_MODEL;
     assert.equal(providerConfig().model, 'gpt-5.4-mini');

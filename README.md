@@ -41,8 +41,12 @@ Selected candidates append to the existing colored, editable timeline clips and 
 project autosave. Existing clips are never replaced. Candidates are temporary until added;
 changing the project or transcript clears the review list. Cancel stops an in-flight search.
 
-Set these variables in the **server process environment**, not a client/Vite configuration:
-`OPENAI_API_KEY` is required for discovery; `OPENAI_MODEL` is optional and defaults to `gpt-5.4-mini`.
+The easiest way is to paste your key into the **Editor Clips workspace** when prompted — CAST
+saves it locally on this machine (outside project files, mode 600) and sends it only to OpenAI.
+
+Alternatively set these variables in the **server process environment**, not a client/Vite
+configuration. An environment `OPENAI_API_KEY` takes precedence over the saved key;
+`OPENAI_MODEL` is optional and defaults to `gpt-5.4-mini`.
 
 ```bash
 export OPENAI_API_KEY="your-api-key"

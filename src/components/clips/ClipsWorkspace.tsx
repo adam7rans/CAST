@@ -1,8 +1,9 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import type { ClipDiscovery } from '../../hooks/useClipDiscovery';
 import { candidateError, type ClipCandidate } from '../../lib/clipCandidates';
 import type { TranscriptData } from '../../lib/transcript';
 import { Section } from '../Controls';
+import { ApiKeyEntry } from './ApiKeyEntry';
 import { ClipCandidateCard } from './ClipCandidateCard';
 import { clipButtonStyle } from './styles';
 
@@ -18,6 +19,7 @@ export interface ClipsWorkspaceProps {
 export const ClipsWorkspace: React.FC<ClipsWorkspaceProps> = ({
   discovery, projectId, transcript, mediaDuration, onAppend, onSeek,
 }) => {
+  const [keySaved, setKeySaved] = useState(false);
   const loading = discovery.status === 'loading';
   const ready = !!projectId && !!transcript?.utterances.length;
   const transcriptEnd = useMemo(() => transcript?.utterances.reduce((latest, utterance) =>
@@ -41,6 +43,13 @@ export const ClipsWorkspace: React.FC<ClipsWorkspaceProps> = ({
         <p style={{ color: '#888', lineHeight: 1.5, margin: '0 0 10px' }}>
           Sends the timed transcript to OpenAI using your API account. Response storage is off.
         </p>
+        <ApiKeyEntry onSaved={() => {
+          setKeySaved(true);
+          if (discovery.missingKey) void discovery.discover();
+        }} />
+        {keySaved && <p role="status" style={{ color: '#7ee787', margin: '10px 0 0', lineHeight: 1.5 }}>
+          Key saved on this machine.{discovery.missingKey ? ' Starting discovery…' : ''}
+        </p>}
         {!ready && <p role="status">{!projectId ? 'Create or select a project first.' : 'Load a timed transcript to find clips.'}</p>}
         <div style={{ display: 'flex', gap: 8 }}>
           <button disabled={!ready || loading} onClick={() => void discovery.discover()}

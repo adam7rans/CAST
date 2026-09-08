@@ -51,8 +51,9 @@ test('shows missing transcript, missing key, provider error and empty discovery 
   await expect(page.getByRole('button', { name: 'Find clips', exact: true })).toBeDisabled();
   const id = await fixtureProject(request);
   await openProject(page, id);
+  await expect(page.getByLabel(/Paste an OpenAI API key/)).toBeVisible();
   await page.getByRole('button', { name: 'Find clips', exact: true }).click();
-  await expect(page.getByRole('alert')).toContainText('OPENAI_API_KEY');
+  await expect(page.getByRole('alert')).toContainText('Add your OpenAI API key');
   await page.route(`**/api/projects/${id}/clip-candidates`, (route) => route.fulfill({
     contentType: 'application/x-ndjson',
     body: '{"type":"progress","completed":0,"total":2}\n{"type":"error","error":"OpenAI rate or usage limit reached.","code":"provider_error"}\n',
@@ -66,6 +67,25 @@ test('shows missing transcript, missing key, provider error and empty discovery 
   await page.getByRole('button', { name: 'Find clips', exact: true }).click();
   await expect(page.getByText(/no strong standalone clips/)).toBeVisible();
   expect((await (await request.get(`/api/projects/${id}`)).json()).microTimelines).toEqual([existingClip]);
+});
+
+test('saves an API key from the workspace and retries discovery with it', async ({ page, request }) => {
+  const id = await fixtureProject(request);
+  await openProject(page, id);
+  const input = page.getByLabel(/Paste an OpenAI API key/);
+  await expect(input).toBeVisible();
+  await input.fill('wrong-shape');
+  await page.getByRole('button', { name: 'Save key', exact: true }).click();
+  await expect(page.getByRole('alert')).toContainText('should start with "sk-"');
+  await input.fill('sk-ui-test-key-0123456789abcdef');
+  await page.route(`**/api/projects/${id}/clip-candidates`, (route) => route.fulfill({
+    contentType: 'application/x-ndjson', body: candidateStream(),
+  }));
+  await page.getByRole('button', { name: 'Save key', exact: true }).click();
+  await expect(page.getByText(/Key saved on this machine/)).toBeVisible();
+  await expect(page.getByRole('article', { name: 'Candidate 1', exact: true })).toBeVisible();
+  const config = await (await request.get('/api/projects/clip-finder/config')).json();
+  expect(config).toEqual({ hasKey: true });
 });
 
 test('cancels in-flight discovery and clears candidates when switching projects', async ({ page, request }) => {
