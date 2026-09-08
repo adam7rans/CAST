@@ -1,16 +1,6 @@
-import { ClipClientError, type ClipDiscoveryEvent } from './clipCandidates';
+import type { ClipDiscoveryEvent } from './clipCandidates';
 import type { TranscriptData } from './transcript';
-import { BASE, fetchJson } from './projectApi.shared';
-
-export function fetchClipFinderConfig() {
-  return fetchJson<{ hasKey: boolean }>(`${BASE}/projects/clip-finder/config`);
-}
-
-export function saveClipFinderKey(apiKey: string) {
-  return fetchJson<{ ok: boolean }>(`${BASE}/projects/clip-finder/key`, {
-    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ apiKey }),
-  });
-}
+import { BASE } from './projectApi.shared';
 
 export async function discoverProjectClips(
   projectId: string, transcript: TranscriptData, signal: AbortSignal,
@@ -22,7 +12,7 @@ export async function discoverProjectClips(
   });
   if (!response.ok) {
     const body = await response.json().catch(() => null);
-    throw new ClipClientError(body?.error || 'Could not start clip discovery. Check the CAST server.', body?.code);
+    throw new Error(body?.error || 'Could not start clip discovery. Check the CAST server.');
   }
   if (!response.body) throw new Error('The server did not return a discovery stream.');
   const reader = response.body.getReader();
@@ -32,7 +22,7 @@ export async function discoverProjectClips(
   const consume = (line: string) => {
     if (!line.trim()) return;
     const event = JSON.parse(line) as ClipDiscoveryEvent;
-    if (event.type === 'error') throw new ClipClientError(event.error, event.code);
+    if (event.type === 'error') throw new Error(event.error);
     if (event.type !== 'progress' && event.type !== 'complete') throw new Error('Invalid discovery stream.');
     if (event.type === 'complete') complete = true;
     onEvent(event);

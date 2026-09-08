@@ -20,13 +20,6 @@ export type ClipDiscoveryEvent =
   | { type: 'complete'; candidates: ClipCandidate[]; total: number }
   | { type: 'error'; error: string; code: string };
 
-export class ClipClientError extends Error {
-  constructor(message: string, public code?: string) {
-    super(message);
-    this.name = 'ClipClientError';
-  }
-}
-
 export function candidateError(candidate: ClipCandidate, duration: number): string | null {
   if (!candidate.title.trim()) return 'Enter a clip title.';
   if (!Number.isFinite(candidate.startSecond) || !Number.isFinite(candidate.endSecond)) {

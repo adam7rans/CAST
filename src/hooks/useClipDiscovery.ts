@@ -1,29 +1,23 @@
 import { useEffect, useRef, useState } from 'react';
 import type { ClipDraft } from '../lib/clipCandidates';
 import type { TranscriptData } from '../lib/transcript';
-import { ClipClientError } from '../lib/clipCandidates';
-import { discoverProjectClips, fetchClipFinderConfig } from '../lib/projectApi.clips';
+import { discoverProjectClips } from '../lib/projectApi.clips';
 
 export function useClipDiscovery(projectId: string | null, transcript: TranscriptData | null) {
   const [candidates, setCandidates] = useState<ClipDraft[]>([]);
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [message, setMessage] = useState('');
   const [progress, setProgress] = useState({ completed: 0, total: 0 });
-  const [missingKey, setMissingKey] = useState(false);
   const requestRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
-    let cancelled = false;
-    fetchClipFinderConfig()
-      .then((config) => { if (!cancelled) setMissingKey(!config.hasKey); })
-      .catch(() => {});
     requestRef.current?.abort();
     requestRef.current = null;
     setCandidates([]);
     setStatus('idle');
     setMessage('');
     setProgress({ completed: 0, total: 0 });
-    return () => { cancelled = true; requestRef.current?.abort(); };
+    return () => { requestRef.current?.abort(); };
   }, [projectId, transcript]);
 
   const discover = async () => {
@@ -50,9 +44,7 @@ export function useClipDiscovery(projectId: string | null, transcript: Transcrip
     } catch (error) {
       if (request.signal.aborted || requestRef.current !== request) return;
       setStatus('error');
-      const text = error instanceof Error ? error.message : 'Clip discovery failed. Please retry.';
-      setMissingKey(error instanceof ClipClientError && error.code === 'missing_key');
-      setMessage(text);
+      setMessage(error instanceof Error ? error.message : 'Clip discovery failed. Please retry.');
     } finally {
       if (requestRef.current === request) requestRef.current = null;
     }
@@ -77,7 +69,7 @@ export function useClipDiscovery(projectId: string | null, transcript: Transcrip
   const selectAll = (selected: boolean) => {
     setCandidates((previous) => previous.map((candidate) => candidate.added ? candidate : { ...candidate, selected }));
   };
-  return { candidates, status, message, progress, missingKey, discover, cancel, update, markAdded, selectAll };
+  return { candidates, status, message, progress, discover, cancel, update, markAdded, selectAll };
 }
 
 export type ClipDiscovery = ReturnType<typeof useClipDiscovery>;
