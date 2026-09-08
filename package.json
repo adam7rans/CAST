@@ -5,6 +5,9 @@
   "type": "module",
   "description": "CAST is a local-first transcript-driven video editing and export tool with shader-driven visuals, captions, and clip extraction.",
   "scripts": {
+    "test": "tsx --test tests/*.test.ts",
+    "test:ui": "playwright test",
+    "typecheck": "tsc --noEmit",
     "dev": "concurrently -k -n API,VITE -c cyan,green \"CAST_PORT=3001 tsx watch server/index.ts\" \"vite\"",
     "server": "CAST_PORT=3001 tsx watch server/index.ts",
     "build": "vite build",
@@ -22,6 +25,7 @@
     "three": "^0.169.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.63.0",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
     "@types/multer": "^2.1.0",

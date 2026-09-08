@@ -2,10 +2,12 @@ import type React from 'react';
 import type { TranscriptData } from '../../lib/transcript';
 import type { CustomCut } from '../../lib/fillerDetector';
 import type { EditorMode, EditorSubTab } from '../../lib/constants';
+import type { ClipsWorkspaceProps } from '../clips/ClipsWorkspace';
 
 export type SkipGap = { startMs: number; endMs: number; key: string; kind?: 'silence' | 'custom'; label?: string };
 
 export interface EditorPanelProps {
+  clipsWorkspace: ClipsWorkspaceProps;
   editorSubTab: EditorSubTab;
   setEditorSubTab: React.Dispatch<React.SetStateAction<EditorSubTab>>;
   editorMode: EditorMode;

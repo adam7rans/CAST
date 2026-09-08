@@ -4,7 +4,7 @@ export type VideoSubTab = 'shader' | 'gradient' | 'settings';
 export type VideoShaderSubTab = 'image' | 'rez' | 'distortion' | 'dither' | 'position';
 export type AudioSubTab = 'music' | 'mixer' | 'reactivity';
 export type CaptionsSubTab = 'editor' | 'type' | 'font' | 'shader';
-export type EditorSubTab = 'edits' | 'mode';
+export type EditorSubTab = 'edits' | 'clips' | 'mode';
 export type EditorMode = 'clips' | 'full';
 export type FxSubTab = 'sidechain' | 'limiter';
 

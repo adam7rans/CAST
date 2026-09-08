@@ -8,6 +8,7 @@ import { exportRoutes } from './routes/exports.js';
 import { presetRoutes } from './routes/presets.js';
 import { metalRoutes } from './routes/metal.js';
 import { obsPresetRoutes } from './routes/obsPresets.js';
+import { clipFinderRoutes } from './routes/clipFinder.js';
 import { APP_HOST, APP_NAME, APP_PORT, DIST_DIR } from './helpers.js';
 
 const app = express();
@@ -18,6 +19,7 @@ app.use(express.json({ limit: '25mb' }));
 app.use('/api/projects', projectRoutes);
 app.use('/api/projects', mediaRoutes);
 app.use('/api/projects', exportRoutes);
+app.use('/api/projects', clipFinderRoutes);
 app.use('/api/presets', presetRoutes);
 app.use('/api/metal', metalRoutes);
 app.use('/api/obs-presets', obsPresetRoutes);

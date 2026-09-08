@@ -1,5 +1,6 @@
 import React from 'react';
 import { MICRO_TIMELINE_COLORS, type MicroTimeline, type ExportParams } from '../lib/types';
+import { appendClipCandidates, candidateError, type ClipCandidate } from '../lib/clipCandidates';
 
 interface ClipHandlersDeps {
   microTimelines: MicroTimeline[];
@@ -29,6 +30,13 @@ export function useClipHandlers(deps: ClipHandlersDeps) {
     setMicroTimelines(prev => prev.map(mt =>
       mt.id === id ? { ...mt, startSecond: s, endSecond: e } : mt
     ));
+  };
+
+  const handleAppendClipCandidates = (candidates: ClipCandidate[], duration: number) => {
+    if (candidates.some((candidate) => candidateError(candidate, duration))) return;
+    const clips = candidates.map((candidate) => ({ ...candidate, id: crypto.randomUUID() }));
+    setMicroTimelines((previous) => appendClipCandidates(previous, clips, duration));
+    if (clips.length) setSelectedClipId(clips[0].id);
   };
 
   const handleAddClipStart = () => {
@@ -76,6 +84,7 @@ export function useClipHandlers(deps: ClipHandlersDeps) {
   };
 
   return {
+    handleAppendClipCandidates,
     handleClipRangeChange,
     handleAddClipStart,
     handleAddClipEnd,
