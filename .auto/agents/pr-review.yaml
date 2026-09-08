@@ -1,0 +1,8 @@
+annotations:
+  auto.sh/onboarding-install-run-id: onbrun_c6e98de6-08ae-4295-92fa-f3511676873e
+imports:
+  - "@auto/agents@latest/pr-review.yaml"
+  - ../fragments/environments/agent-runtime.yaml
+variables:
+  repoFullName: adam7rans/CAST
+  githubConnection: github-adam7rans
