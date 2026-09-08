@@ -29,8 +29,10 @@ import type {
   GuideKey,
 } from '../../lib/constants';
 import type { ProjectMeta } from '../../lib/projectApi';
+import type { ClipsWorkspaceProps } from '../clips/ClipsWorkspace';
 
 export interface SidebarPanelProps {
+  clipsWorkspace: ClipsWorkspaceProps;
   projects: ProjectMeta[];
   activeProjectId: string | null;
   activeProject: ProjectMeta | undefined;

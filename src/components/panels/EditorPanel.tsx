@@ -5,6 +5,7 @@ import { Section, Slider } from '../Controls';
 import { fmt } from '../timeline/timelineUtils';
 import type { EditorPanelProps, SkipGap } from './EditorPanel.types';
 import type { EditorMode, EditorSubTab } from '../../lib/constants';
+import { ClipsWorkspace } from '../clips/ClipsWorkspace';
 
 const fieldStyle: React.CSSProperties = {
   width: '100%',
@@ -51,6 +52,7 @@ function formatGapKind(gap: SkipGap): string {
 }
 
 export const EditorPanel: React.FC<EditorPanelProps> = ({
+  clipsWorkspace,
   editorSubTab,
   setEditorSubTab,
   editorMode,
@@ -82,6 +84,7 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
       <TabBar<EditorSubTab>
         tabs={[
           { value: 'edits', label: 'Edits' },
+          { value: 'clips', label: 'Clips' },
           { value: 'mode', label: 'Mode' },
         ]}
         value={editorSubTab}
@@ -89,7 +92,7 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
         variant="sub"
       />
 
-      {editorSubTab === 'mode' ? (
+      {editorSubTab === 'clips' ? <ClipsWorkspace {...clipsWorkspace} /> : editorSubTab === 'mode' ? (
         <>
           <TabBar<EditorMode>
             tabs={[

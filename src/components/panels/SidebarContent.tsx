@@ -136,6 +136,7 @@ export const SidebarContent: React.FC<SidebarPanelProps> = (p) => (
 
     {p.mainTab === 'editor' && (
       <EditorPanel
+        clipsWorkspace={p.clipsWorkspace}
         editorSubTab={p.editorSubTab}
         setEditorSubTab={p.setEditorSubTab}
         editorMode={p.editorMode}
