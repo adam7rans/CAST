@@ -5,6 +5,7 @@ import { parseTranscript } from '../lib/transcript';
 import { snapToExportResolution } from '../lib/layoutUtils';
 import { describeMediaError } from '../lib/mediaError';
 import { createProject, getAudioUrl, getMusicUrl, getProject, getTranscript, getVideoUrl, listProjects } from '../lib/projectApi';
+import { MOUTH_SOUND_CLASSES } from '../lib/skipTypes';
 import type { GuideKey } from '../lib/constants';
 import type { ProjectHandlerRefs, ProjectHandlerSetters } from './useProjectHandlers.types';
 import { applyProjectUiState, applyProjectVisualState, resetManagedMedia, resetProjectState } from './useProjectHandlers.shared';
@@ -22,6 +23,7 @@ export function createHandleCreateProject(refs: ProjectHandlerRefs, setters: Pro
       resetProjectState(setters);
       applyProjectVisualState(seededProject, setters);
       applyProjectUiState(seededProject, setters);
+      setters.setSettingsReadyId(project.id);
       setters.setProjectStatus({ kind: 'success', message: `Project "${project.name}" created`, detail: `Folder: projects/${project.id}` });
       setters.addToast(`Project "${project.name}" created`, 'success');
     } catch {
@@ -33,6 +35,9 @@ export function createHandleCreateProject(refs: ProjectHandlerRefs, setters: Pro
 export function createHandleSelectProject(refs: ProjectHandlerRefs, setters: ProjectHandlerSetters) {
   return async (id: string) => {
     try {
+      // Block autosave until the freshly loaded state below has been applied,
+      // so a mid-load empty state can never overwrite good data on disk.
+      setters.setSettingsReadyId(null);
       const project = await getProject(id);
       setters.setActiveProjectId(id);
       setters.setPlaying(false);
@@ -62,11 +67,18 @@ export function createHandleSelectProject(refs: ProjectHandlerRefs, setters: Pro
       if (!project.ui || !('selectedFullSegmentId' in project.ui)) setters.setSelectedFullSegmentId(null);
       setters.setPendingClipStart(null);
       setters.setCustomCuts(Array.isArray(project.customCuts) ? project.customCuts : []);
+      setters.setCustomCutsClearedAt(typeof project.customCutsClearedAt === 'number' ? project.customCutsClearedAt : null);
+      setters.setMouthDetectClasses(
+        Array.isArray((project.jumpCuts as any)?.mouthClasses)
+          ? (project.jumpCuts as any).mouthClasses.filter((c: any) => typeof c === 'string')
+          : [...MOUTH_SOUND_CLASSES],
+      );
       setters.setJumpCutGapOverrides({});
       setters.setJumpCutGapDisabled({});
       setters.setShowSilenceGaps(false);
       setters.setShowFillerCuts(false);
       setters.setShowManualCuts(false);
+      setters.setShowMouthCuts(false);
       if (project.jumpCuts) {
         if (typeof project.jumpCuts.enabled === 'boolean') setters.setJumpCutsEnabled(project.jumpCuts.enabled);
         if (typeof project.jumpCuts.gapMs === 'number') setters.setJumpCutGapMs(project.jumpCuts.gapMs);
@@ -76,6 +88,8 @@ export function createHandleSelectProject(refs: ProjectHandlerRefs, setters: Pro
         if (typeof project.jumpCuts.showFiller === 'boolean') setters.setShowFillerCuts(project.jumpCuts.showFiller);
         if (typeof project.jumpCuts.showManual === 'boolean') setters.setShowManualCuts(project.jumpCuts.showManual);
         else if (project.jumpCuts.enabled && Array.isArray(project.customCuts) && project.customCuts.some((cut: any) => String(cut.key || '').startsWith('editorial:') || String(cut.key || '').startsWith('custom:'))) setters.setShowManualCuts(true);
+        if (typeof (project.jumpCuts as any).showMouth === 'boolean') setters.setShowMouthCuts((project.jumpCuts as any).showMouth);
+        else if (project.jumpCuts.enabled && Array.isArray(project.customCuts) && project.customCuts.some((cut: any) => String(cut.key || '').startsWith('mouth:'))) setters.setShowMouthCuts(true);
         if (project.jumpCuts.overrides && typeof project.jumpCuts.overrides === 'object') setters.setJumpCutGapOverrides(project.jumpCuts.overrides);
         if (project.jumpCuts.disabled && typeof project.jumpCuts.disabled === 'object') setters.setJumpCutGapDisabled(project.jumpCuts.disabled);
       } else setters.setJumpCutsEnabled(false);
@@ -177,6 +191,9 @@ export function createHandleSelectProject(refs: ProjectHandlerRefs, setters: Pro
       }
 
       if (!project.audioReactivity) setters.setAudioReactivity(DEFAULT_AUDIO_REACTIVITY);
+      // All loaded state above batches into one render — only now is it safe
+      // for autosave to resume.
+      setters.setSettingsReadyId(id);
       setters.setProjectStatus({
         kind: 'success',
         message: `Loaded "${project.name}"`,

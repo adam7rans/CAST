@@ -45,7 +45,7 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
     () => buildExportBaseName(params.filenamePrefix, start, end),
     [params.filenamePrefix, start, end],
   );
-  const exportMode = params.exportMode ?? 'master';
+  const exportMode = params.exportMode ?? 'web';
 
   const set = (patch: Partial<ExportParams>) => onChange({ ...params, ...patch });
 
@@ -86,7 +86,7 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
       <Slider label="height" value={params.height} min={64} max={4320} step={1} onChange={(v) => set({ height: Math.round(v) })} />
       <Slider label="fps" value={params.fps} min={1} max={120} step={1} onChange={(v) => set({ fps: Math.round(v) })} />
 
-      <Row label="mode">
+      <Row label="profile">
         <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end' }}>
           <button
             onClick={() => set({ exportMode: 'master' })}
@@ -99,7 +99,7 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
               cursor: 'pointer',
             }}
           >
-            master
+            RAW
           </button>
           <button
             onClick={() => set({ exportMode: 'web' })}
@@ -112,7 +112,7 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
               cursor: 'pointer',
             }}
           >
-            web
+            YouTube
           </button>
         </div>
       </Row>
@@ -143,8 +143,8 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
       </div>
       <div style={{ marginTop: 4, color: '#666', fontSize: 11, lineHeight: 1.4 }}>
         {exportMode === 'master'
-          ? 'Master mode keeps the high-fidelity stitch path for editing / archival outputs.'
-          : 'Web mode targets upload-friendly delivery sizes. If the background layer is off, it preserves alpha and exports a transparent web format.'}
+          ? 'RAW keeps the high-fidelity archival/editing encode. With the background layer off, it exports ProRes 4444 with alpha.'
+          : 'YouTube uses the compact high-quality profile: H.264 with an 8 Mbps ceiling and AAC audio (about 3.5–3.7 GB/hour at 1080p30).'}
       </div>
       {params.invertFinalOutput && (
         <div style={{ marginTop: 4, color: '#777', fontSize: 11, lineHeight: 1.4 }}>

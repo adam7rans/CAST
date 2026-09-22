@@ -162,8 +162,16 @@ export const SidebarContent: React.FC<SidebarPanelProps> = (p) => (
         setShowFillerCuts={p.setShowFillerCuts}
         showManualCuts={p.showManualCuts}
         setShowManualCuts={p.setShowManualCuts}
+        showMouthCuts={p.showMouthCuts}
+        setShowMouthCuts={p.setShowMouthCuts}
+        mouthDetectClasses={p.mouthDetectClasses}
+        setMouthDetectClasses={p.setMouthDetectClasses}
         onAddCustomCuts={p.onAddCustomCuts}
         onClearCustomCuts={p.onClearCustomCuts}
+        mouthDetecting={p.mouthDetecting}
+        mouthDetectError={p.mouthDetectError}
+        onDetectMouthSounds={p.onDetectMouthSounds}
+        onClearMouthCuts={p.onClearMouthCuts}
         pendingCustomCutStartMs={p.pendingCustomCutStartMs}
         onStartCustomCut={p.onStartCustomCut}
         onFinishCustomCut={p.onFinishCustomCut}

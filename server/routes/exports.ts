@@ -11,6 +11,7 @@ import {
   writeProject,
 } from '../helpers.js';
 import { cleanupExportFrames, stitchVideo } from './exportRoutes.stitch.js';
+import { findResumableExport } from './exportRoutes.resume.js';
 
 export const exportRoutes = Router();
 
@@ -22,17 +23,46 @@ exportRoutes.post('/:id/exports', (req, res) => {
   const proj = readProject(id);
   if (!proj) return void res.status(404).json({ error: 'Not found' });
 
-  const prefix = slugify(String(req.body?.prefix || 'export'));
+  const rawPrefix = String(req.body?.prefix || 'export').trim();
+  const prefix = slugify(rawPrefix);
+  const resumable = findResumableExport(id, { ...req.body, prefix: rawPrefix });
+  if (resumable) {
+    return void res.json({
+      ok: true,
+      resumed: true,
+      ...resumable,
+      folder: `projects/${id}/exports/${resumable.exportId}`,
+    });
+  }
   const stamp = new Date().toISOString().replace(/[:.]/g, '-');
   const exportId = slugify(`${stamp}-${prefix}`);
   const dir = exportDir(id, exportId);
   fs.mkdirSync(dir, { recursive: true });
+  // Fail fast when the disk can't hold the render: ~750KB per PNG frame
+  // plus headroom for the stitched output. A mid-render ENOSPC leaves
+  // stranded corrupt artifacts and a "stuck" looking client.
+  const totalFrames = Number(req.body?.totalFrames) || 0;
+  if (totalFrames > 0) {
+    try {
+      const stat = fs.statfsSync(dir);
+      const freeBytes = Number(stat.bavail) * Number(stat.bsize);
+      const needBytes = Math.ceil(totalFrames * 750 * 1024 + 512 * 1024 * 1024);
+      if (freeBytes < needBytes) {
+        const gb = (n: number) => `${(n / 1024 ** 3).toFixed(1)} GB`;
+        return void res.status(507).json({
+          error: `Not enough disk space for this export (need ~${gb(needBytes)}, have ${gb(freeBytes)}). Free space or delete old exports, then retry.`,
+        });
+      }
+    } catch {
+      // statfs unavailable on this platform — proceed without the preflight.
+    }
+  }
   fs.writeFileSync(path.join(dir, 'manifest.json'), JSON.stringify({
     status: 'exporting',
     createdAt: new Date().toISOString(),
     ...req.body,
   }, null, 2));
-  res.json({ ok: true, exportId, folder: `projects/${id}/exports/${exportId}` });
+  res.json({ ok: true, resumed: false, nextFrame: 0, exportId, folder: `projects/${id}/exports/${exportId}` });
 });
 
 const frameUpload = multer({
@@ -61,7 +91,15 @@ exportRoutes.post('/:id/exports/:exportId/frame', frameUpload.single('frame'), (
   }
 
   const filename = safePngFilename(String(req.body?.filename || req.file.originalname || 'frame.png'));
-  fs.writeFileSync(path.join(dir, filename), req.file.buffer);
+  try {
+    fs.writeFileSync(path.join(dir, filename), req.file.buffer);
+  } catch (err: any) {
+    // A full disk must read as "disk full", not a generic 500.
+    if (err?.code === 'ENOSPC') {
+      return void res.status(507).json({ error: 'Disk full — frame could not be saved. Free space and resume the export.' });
+    }
+    throw err;
+  }
   res.json({ ok: true, filename });
 });
 
@@ -83,11 +121,9 @@ exportRoutes.post('/:id/exports/:exportId/finish', async (req, res) => {
 
   const manifestPath = path.join(dir, 'manifest.json');
   const manifest = fs.existsSync(manifestPath) ? JSON.parse(fs.readFileSync(manifestPath, 'utf-8')) : {};
-  fs.writeFileSync(manifestPath, JSON.stringify({
-    ...manifest,
-    status: 'complete',
-    completedAt: new Date().toISOString(),
-  }, null, 2));
+  // NOTE: status stays "exporting" until a video file actually exists. An
+  // earlier revision marked "complete" up front, which stranded failed
+  // stitches as complete-but-videoless and invisible to resume.
 
   let videoFile = null;
   let stitchError = null;
@@ -100,16 +136,29 @@ exportRoutes.post('/:id/exports/:exportId/finish', async (req, res) => {
       deletedFrames = cleanupExportFrames(dir);
       fs.writeFileSync(manifestPath, JSON.stringify({
         ...updatedManifest,
+        status: 'complete',
+        completedAt: new Date().toISOString(),
         videoFile,
         cleanedFramesAt: deletedFrames > 0 ? new Date().toISOString() : updatedManifest.cleanedFramesAt,
         deletedFrameCount: (updatedManifest.deletedFrameCount || 0) + deletedFrames,
       }, null, 2));
+    } else {
+      throw new Error('Stitch produced no video file');
     }
   } catch (err) {
     console.error('Stitching failed', err);
     stitchError = err instanceof Error ? err.message : String(err);
     const logPath = path.join(dir, 'stitch-error.log');
     fs.writeFileSync(logPath, `${new Date().toISOString()}\n${stitchError}\n\n`);
+    // Leave the export resumable: frames are intact, only the stitch failed.
+    try {
+      const failedManifest = fs.existsSync(manifestPath) ? JSON.parse(fs.readFileSync(manifestPath, 'utf-8')) : manifest;
+      fs.writeFileSync(manifestPath, JSON.stringify({
+        ...failedManifest,
+        status: 'exporting',
+        lastStitchError: stitchError,
+      }, null, 2));
+    } catch {}
   }
 
   if (stitchError) {

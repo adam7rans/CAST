@@ -1,52 +1,58 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type SetStateAction } from 'react';
 import type { TranscriptData } from '../lib/transcript';
 import type { CustomCut } from '../lib/fillerDetector';
+import {
+  MOUTH_SOUND_CLASSES, isCustomKey, isFillerCutKey, isManualCutKey, isMouthCutKey, mergeCutsByKey,
+} from '../lib/skipTypes';
 
 export type JumpCutGap = { startMs: number; endMs: number; key: string; kind?: 'silence' | 'custom'; label?: string };
 
-const CUSTOM_KEY_PREFIXES = ['custom:', 'filler:', 'stutter:', 'editorial:'];
-export const isCustomKey = (k: string) => CUSTOM_KEY_PREFIXES.some(p => k.startsWith(p));
-export const isFillerCutKey = (k: string) => k.startsWith('filler:') || k.startsWith('stutter:');
-export const isManualCutKey = (k: string) => isCustomKey(k) && !isFillerCutKey(k);
+export { isCustomKey, isFillerCutKey, isManualCutKey, isMouthCutKey };
 
 export function useJumpCuts(transcript: TranscriptData | null) {
   const [jumpCutGapMs, setJumpCutGapMs] = useState(300);
   const [jumpCutPaddingMs, setJumpCutPaddingMs] = useState(0);
-  // Tighten knob for custom/filler cuts — EXPANDS each cut by N ms on each
-  // side so the trailing micro-silence around a filler word also gets eaten.
-  // (Inverse of jumpCutPaddingMs, which shrinks silence gaps.)
+  // Tighten knob for custom/filler cuts — EXPANDS each cut by N ms per side
+  // (inverse of jumpCutPaddingMs, which shrinks silence gaps).
   const [customCutPaddingMs, setCustomCutPaddingMs] = useState(0);
-  // user-edited overrides for individual silence gaps; key = `${baseStartMs}|${baseEndMs}` of the auto-detected gap
+  // user-edited overrides for individual gaps, keyed by gap key
   const [jumpCutGapOverrides, setJumpCutGapOverrides] = useState<Record<string, { startMs: number; endMs: number }>>({});
-  // disabled gaps — kept visible but not skipped during playback (works for both silence and custom cuts)
+  // disabled gaps — kept visible but not skipped during playback
   const [jumpCutGapDisabled, setJumpCutGapDisabled] = useState<Record<string, true>>({});
-  // currently selected gap (for delete/restore actions)
   const [selectedGapKey, setSelectedGapKey] = useState<string | null>(null);
   // manually added cuts — filler words, weak sentences, editorial trims
   const [customCuts, setCustomCuts] = useState<CustomCut[]>([]);
+  // Timestamp of the last explicit clear-all, persisted so the server can
+  // tell a deliberate clear apart from a stale/empty autosave.
+  const [customCutsClearedAt, setCustomCutsClearedAt] = useState<number | null>(null);
   const [pendingCustomCutStartMs, setPendingCustomCutStartMs] = useState<number | null>(null);
   // category toggles (affect both timeline rendering and playback/export)
   const [showSilenceGaps, setShowSilenceGaps] = useState(false);
   const [showFillerCuts, setShowFillerCuts] = useState(false);
   const [showManualCuts, setShowManualCuts] = useState(false);
+  const [showMouthCuts, setShowMouthCuts] = useState(false);
+  // Which YAMNet types the Detect button looks for (persisted per project).
+  const [mouthDetectClasses, setMouthDetectClasses] = useState<string[]>([...MOUTH_SOUND_CLASSES]);
 
   const jumpCutsEnabledRef = useRef(false);
   const jumpCutGapListRef = useRef<JumpCutGap[]>([]);
-  const jumpCutsEnabled = showSilenceGaps || showFillerCuts || showManualCuts;
+  const jumpCutsEnabled = showSilenceGaps || showFillerCuts || showManualCuts || showMouthCuts;
   const setJumpCutsEnabled = useCallback((value: SetStateAction<boolean>) => {
     const nextValue = typeof value === 'function'
-      ? (value as (prevState: boolean) => boolean)(showSilenceGaps || showFillerCuts || showManualCuts)
+      ? (value as (prevState: boolean) => boolean)(showSilenceGaps || showFillerCuts || showManualCuts || showMouthCuts)
       : value;
     if (!nextValue) {
       setShowSilenceGaps(false);
       setShowFillerCuts(false);
       setShowManualCuts(false);
+      setShowMouthCuts(false);
       return;
     }
     if (transcript) setShowSilenceGaps(true);
     if (customCuts.some((cut) => isFillerCutKey(cut.key))) setShowFillerCuts(true);
-    if (customCuts.some((cut) => isManualCutKey(cut.key) || !isFillerCutKey(cut.key))) setShowManualCuts(true);
-  }, [customCuts, showFillerCuts, showManualCuts, showSilenceGaps, transcript]);
+    if (customCuts.some((cut) => isManualCutKey(cut.key))) setShowManualCuts(true);
+    if (customCuts.some((cut) => isMouthCutKey(cut.key))) setShowMouthCuts(true);
+  }, [customCuts, showFillerCuts, showManualCuts, showMouthCuts, showSilenceGaps, transcript]);
 
   useEffect(() => { jumpCutsEnabledRef.current = jumpCutsEnabled; }, [jumpCutsEnabled]);
   useEffect(() => { setPendingCustomCutStartMs(null); }, [transcript]);
@@ -69,9 +75,8 @@ export function useJumpCuts(transcript: TranscriptData | null) {
     return gaps;
   }, [transcript, jumpCutGapMs]);
 
-  // Treat user-added custom cuts as additional gaps that flow through the
-  // same overrides/disabled/timeline pipeline. They use 'custom:' keys so
-  // they never collide with auto-detected silences.
+  // User-added custom cuts flow through the same
+  // overrides/disabled/timeline pipeline as auto-detected gaps.
   const customCutGaps = useMemo<JumpCutGap[]>(() => {
     return customCuts.map(c => ({
       startMs: c.startMs,
@@ -94,10 +99,13 @@ export function useJumpCuts(transcript: TranscriptData | null) {
   // Filtered view respecting visibility toggles — drives timeline + effective gaps
   const jumpCutGaps = useMemo(() => {
     return jumpCutGapsAll.filter(g => {
-      if (g.kind === 'custom') return isFillerCutKey(g.key) ? showFillerCuts : showManualCuts;
+      if (g.kind === 'custom') {
+        if (isMouthCutKey(g.key)) return showMouthCuts;
+        return isFillerCutKey(g.key) ? showFillerCuts : showManualCuts;
+      }
       return showSilenceGaps;
     });
-  }, [jumpCutGapsAll, showSilenceGaps, showFillerCuts, showManualCuts]);
+  }, [jumpCutGapsAll, showSilenceGaps, showFillerCuts, showManualCuts, showMouthCuts]);
 
   // Effective gaps = silence gaps get symmetrical padding; custom cuts pass
   // through as-is (they're already word-precise). These are the actual skip
@@ -141,33 +149,48 @@ export function useJumpCuts(transcript: TranscriptData | null) {
 
   const handleAddCustomCuts = useCallback((cuts: CustomCut[]) => {
     if (!cuts.length) return;
-    setCustomCuts(prev => {
-      const seen = new Set(prev.map(c => c.key));
-      const merged = [...prev];
-      for (const c of cuts) {
-        if (!seen.has(c.key)) {
-          merged.push(c);
-          seen.add(c.key);
-        }
-      }
-      return merged.sort((a, b) => a.startMs - b.startMs);
-    });
+    setCustomCuts(prev => mergeCutsByKey(prev, cuts));
     // Auto-enable skip so the user immediately hears the result.
     setShowFillerCuts(true);
   }, []);
 
+  const handleAddMouthCuts = useCallback((cuts: CustomCut[]) => {
+    if (!cuts.length) return;
+    setCustomCuts(prev => mergeCutsByKey(prev, cuts));
+    // Auto-enable skip so the user immediately hears the result.
+    setShowMouthCuts(true);
+  }, []);
+
   const handleClearCustomCuts = useCallback(() => {
-    setCustomCuts([]);
+    // Clears filler + manual skips but spares YAMNet mouth sounds, which have
+    // their own section and clear button.
+    setCustomCuts(prev => prev.filter(c => isMouthCutKey(c.key)));
+    setCustomCutsClearedAt(Date.now());
     setPendingCustomCutStartMs(null);
-    // Drop disabled/override state that was anchored to custom-cut keys.
+    // Drop disabled/override state that was anchored to cleared custom-cut keys.
     setJumpCutGapDisabled(prev => {
       const next: Record<string, true> = {};
-      for (const k of Object.keys(prev)) if (!isCustomKey(k)) next[k] = true;
+      for (const k of Object.keys(prev)) if (!isCustomKey(k) || isMouthCutKey(k)) next[k] = true;
       return next;
     });
     setJumpCutGapOverrides(prev => {
       const next: typeof prev = {};
-      for (const k of Object.keys(prev)) if (!isCustomKey(k)) next[k] = prev[k];
+      for (const k of Object.keys(prev)) if (!isCustomKey(k) || isMouthCutKey(k)) next[k] = prev[k];
+      return next;
+    });
+  }, []);
+
+  const handleClearMouthCuts = useCallback(() => {
+    setCustomCuts(prev => prev.filter(c => !isMouthCutKey(c.key)));
+    setCustomCutsClearedAt(Date.now());
+    setJumpCutGapDisabled(prev => {
+      const next: Record<string, true> = {};
+      for (const k of Object.keys(prev)) if (!isMouthCutKey(k)) next[k] = true;
+      return next;
+    });
+    setJumpCutGapOverrides(prev => {
+      const next: typeof prev = {};
+      for (const k of Object.keys(prev)) if (!isMouthCutKey(k)) next[k] = prev[k];
       return next;
     });
   }, []);
@@ -248,6 +271,8 @@ export function useJumpCuts(transcript: TranscriptData | null) {
     showSilenceGaps, setShowSilenceGaps,
     showFillerCuts, setShowFillerCuts,
     showManualCuts, setShowManualCuts,
+    showMouthCuts, setShowMouthCuts,
+    mouthDetectClasses, setMouthDetectClasses,
     jumpCutGapOverrides,
     setJumpCutGapOverrides,
     jumpCutGapDisabled,
@@ -259,12 +284,15 @@ export function useJumpCuts(transcript: TranscriptData | null) {
     jumpCutsEnabledRef,
     jumpCutGapListRef,
     customCuts, setCustomCuts,
+    customCutsClearedAt, setCustomCutsClearedAt,
     pendingCustomCutStartMs,
     handleAdjustGap,
     handleResetGap,
     handleResetAllGaps,
     handleAddCustomCuts,
     handleClearCustomCuts,
+    handleAddMouthCuts,
+    handleClearMouthCuts,
     handleStartCustomCut,
     handleCancelPendingCustomCut,
     handleFinishCustomCut,

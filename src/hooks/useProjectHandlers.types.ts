@@ -89,6 +89,8 @@ export interface ProjectHandlerSetters {
   setFullChunkOverrides: React.Dispatch<React.SetStateAction<Record<string, { startSecond?: number; endSecond?: number }>>>;
   setPendingClipStart: React.Dispatch<React.SetStateAction<number | null>>;
   setCustomCuts: React.Dispatch<React.SetStateAction<import('../lib/fillerDetector').CustomCut[]>>;
+  setCustomCutsClearedAt: React.Dispatch<React.SetStateAction<number | null>>;
+  setSettingsReadyId: (id: string | null) => void;
   setJumpCutGapOverrides: React.Dispatch<React.SetStateAction<Record<string, { startMs: number; endMs: number }>>>;
   setJumpCutGapDisabled: React.Dispatch<React.SetStateAction<Record<string, true>>>;
   setSelectedGapKey: React.Dispatch<React.SetStateAction<string | null>>;
@@ -99,6 +101,8 @@ export interface ProjectHandlerSetters {
   setShowSilenceGaps: React.Dispatch<React.SetStateAction<boolean>>;
   setShowFillerCuts: React.Dispatch<React.SetStateAction<boolean>>;
   setShowManualCuts: React.Dispatch<React.SetStateAction<boolean>>;
+  setShowMouthCuts: React.Dispatch<React.SetStateAction<boolean>>;
+  setMouthDetectClasses: React.Dispatch<React.SetStateAction<string[]>>;
   setShowAudioTracks: React.Dispatch<React.SetStateAction<boolean>>;
   addToast: (message: string, type?: Toast['type'], sticky?: boolean) => number;
 }

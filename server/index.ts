@@ -4,6 +4,7 @@ import path from 'path';
 import fs from 'fs';
 import { projectRoutes } from './routes/projects.js';
 import { mediaRoutes } from './routes/media.js';
+import { mouthSoundsRoutes } from './routes/mouthSounds.js';
 import { exportRoutes } from './routes/exports.js';
 import { presetRoutes } from './routes/presets.js';
 import { metalRoutes } from './routes/metal.js';
@@ -17,6 +18,7 @@ app.use(express.json({ limit: '25mb' }));
 // Mount route modules
 app.use('/api/projects', projectRoutes);
 app.use('/api/projects', mediaRoutes);
+app.use('/api/projects', mouthSoundsRoutes);
 app.use('/api/projects', exportRoutes);
 app.use('/api/presets', presetRoutes);
 app.use('/api/metal', metalRoutes);

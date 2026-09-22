@@ -32,12 +32,13 @@ interface CreateProjectExportInput {
     mediaVolume?: number;
     outroVolume?: number;
   };
+  renderFingerprint?: string;
 }
 
 export async function createProjectExport(
   id: string,
   data: CreateProjectExportInput,
-): Promise<{ ok: boolean; exportId: string; folder: string }> {
+): Promise<{ ok: boolean; exportId: string; folder: string; resumed: boolean; nextFrame: number }> {
   return fetchJson(`${BASE}/projects/${id}/exports`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },

@@ -130,6 +130,8 @@ export interface ExportRenderResources {
 export interface CreatedProjectExport {
   exportId: string;
   folder: string;
+  resumed?: boolean;
+  nextFrame?: number;
 }
 
 export interface RenderExportFramesArgs {

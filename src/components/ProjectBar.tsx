@@ -1,14 +1,55 @@
 import React, { useState } from 'react';
 import type { ProjectMeta } from '../lib/projectApi';
+import type { SaveStatus } from '../hooks/useAutoSave';
 
 interface Props {
   projects: ProjectMeta[];
   activeId: string | null;
   onSelect: (id: string) => void;
   onCreate: (name: string) => void;
+  saveStatus: SaveStatus;
 }
 
-export const ProjectBar: React.FC<Props> = ({ projects, activeId, onSelect, onCreate }) => {
+function formatSaveTime(at: number | null): string {
+  if (!at) return '';
+  const d = new Date(at);
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+}
+
+/** Persistent settings-autosave indicator. Distinct from the caption-transcript
+ *  "saved" toasts — this one never disappears and always shows the truth. */
+const SavePill: React.FC<{ status: SaveStatus }> = ({ status }) => {
+  if (status.state === 'idle') return null;
+  const conf =
+    status.state === 'saved'
+      ? { color: '#22c55e', label: `Saved ${formatSaveTime(status.at)}`, title: 'All settings, styles and skip edits are saved on disk.' }
+      : status.state === 'error'
+        ? { color: '#ef4444', label: 'Save failed', title: 'The last autosave did NOT reach the server. Your latest edits may only exist in this tab — do not close it. Check that the server is running, then tweak any setting to retry.' }
+        : { color: '#f59e0b', label: 'Saving…', title: 'Unsaved changes — writing to disk…' };
+  return (
+    <span
+      title={conf.title}
+      style={{
+        background: `${conf.color}1a`, border: `1px solid ${conf.color}88`,
+        color: conf.color, borderRadius: 4, padding: '2px 8px',
+        fontSize: 11, fontWeight: 700, letterSpacing: 0.4,
+        display: 'inline-flex', alignItems: 'center', gap: 6, flexShrink: 0,
+        whiteSpace: 'nowrap',
+      }}
+    >
+      <span style={{
+        width: 8, height: 8, borderRadius: '50%', background: conf.color,
+        boxShadow: `0 0 6px ${conf.color}`,
+        animation: status.state === 'saved' ? undefined : 'save-pulse 1s ease-in-out infinite',
+      }} />
+      {conf.label}
+      <style>{`@keyframes save-pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.35; } }`}</style>
+    </span>
+  );
+};
+
+export const ProjectBar: React.FC<Props> = ({ projects, activeId, onSelect, onCreate, saveStatus }) => {
   const [creating, setCreating] = useState(false);
   const [newName, setNewName] = useState('');
 
@@ -84,6 +125,8 @@ export const ProjectBar: React.FC<Props> = ({ projects, activeId, onSelect, onCr
               {active.hasTranscript && <Badge color="#22c55e">CAPS</Badge>}
             </span>
           )}
+
+          <SavePill status={saveStatus} />
 
           <button onClick={() => setCreating(true)} style={btn('#1a1a1a', '#2a2a2a')} title="New project">
             + New

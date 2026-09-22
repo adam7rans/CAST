@@ -29,12 +29,14 @@ import type {
   GuideKey,
 } from '../../lib/constants';
 import type { ProjectMeta } from '../../lib/projectApi';
+import type { SaveStatus } from '../../hooks/useAutoSave';
 
 export interface SidebarPanelProps {
   projects: ProjectMeta[];
   activeProjectId: string | null;
   activeProject: ProjectMeta | undefined;
   projectStatus: ProjectTaskStatus;
+  saveStatus: SaveStatus;
   onSelectProject: (id: string) => Promise<void>;
   onCreateProject: (name: string) => Promise<void>;
   videoInfo: { name: string; duration: number; w: number; h: number } | null;
@@ -74,8 +76,16 @@ export interface SidebarPanelProps {
   setShowFillerCuts: React.Dispatch<React.SetStateAction<boolean>>;
   showManualCuts: boolean;
   setShowManualCuts: React.Dispatch<React.SetStateAction<boolean>>;
+  showMouthCuts: boolean;
+  setShowMouthCuts: React.Dispatch<React.SetStateAction<boolean>>;
+  mouthDetectClasses: string[];
+  setMouthDetectClasses: React.Dispatch<React.SetStateAction<string[]>>;
   onAddCustomCuts: (cuts: CustomCut[]) => void;
   onClearCustomCuts: () => void;
+  mouthDetecting: boolean;
+  mouthDetectError: string | null;
+  onDetectMouthSounds: () => void;
+  onClearMouthCuts: () => void;
   pendingCustomCutStartMs: number | null;
   onStartCustomCut: (playheadMs: number) => void;
   onFinishCustomCut: (playheadMs: number) => void;

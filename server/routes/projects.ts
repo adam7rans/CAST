@@ -6,6 +6,7 @@ import {
   readProject, writeProject, readSettings, writeSettings, defaultNewProjectSettings,
   captionPath, hasCaption, sseClients,
 } from '../helpers.js';
+import { writeSettingsGuarded } from '../settingsGuard.js';
 
 export const projectRoutes = Router();
 
@@ -72,9 +73,9 @@ function settingsHandler(req: import('express').Request, res: import('express').
     res.status(404).json({ error: 'Not found' });
     return;
   }
-  writeSettings(id, { ...readSettings(id, proj), ...(req.body as any) });
+  const result = writeSettingsGuarded(id, (req.body as any) ?? {});
   writeProject(id, { ...proj, updatedAt: new Date().toISOString() });
-  res.json({ ok: true });
+  res.json({ ok: true, preservedCustomCuts: result.preservedCustomCuts, preservedCount: result.preservedCount });
 }
 
 // Get transcript JSON

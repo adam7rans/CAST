@@ -1,14 +1,15 @@
 import React from 'react';
+import { SKIP_TYPE_META, skipTypeOfGap, type SkipType } from '../../lib/skipTypes';
 import { clamp, fmt, type DragKind } from './timelineUtils';
 
 interface SkipGap { startMs: number; endMs: number; key: string; kind?: 'silence' | 'custom'; label?: string }
 
-// Color palette: silence = orange, custom/filler = green
-const SILENCE_COLOR = '255,180,80';
-const CUSTOM_COLOR = '48,209,88';
-
 function gapBaseColor(g: SkipGap): string {
-  return g.kind === 'custom' ? CUSTOM_COLOR : SILENCE_COLOR;
+  return SKIP_TYPE_META[skipTypeOfGap(g)].rgb;
+}
+
+function gapType(g: SkipGap): SkipType {
+  return skipTypeOfGap(g);
 }
 
 interface Props {
@@ -55,8 +56,9 @@ export const SkipGapOverlay: React.FC<Props> = ({
         ? 'rgba(140,140,140,0.6)'
         : isOverridden ? 'rgba(120,200,255,0.95)' : `rgba(${baseCol},0.9)`;
       const isCustom = g.kind === 'custom';
-      const typeLabel = isCustom ? 'Filler cut' : 'Skip silence';
-      const handleLabel = isCustom ? 'Filler-cut' : 'Skip-silence';
+      const meta = SKIP_TYPE_META[gapType(g)];
+      const typeLabel = isCustom && g.label && gapType(g) === 'mouth' ? `Mouth sound (${g.label})` : meta.label;
+      const handleLabel = isCustom && g.label && gapType(g) === 'mouth' ? `Mouth-sound (${g.label})` : meta.label;
       return (
         <React.Fragment key={`gap-${g.key}`}>
           <div

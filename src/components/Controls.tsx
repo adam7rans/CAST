@@ -13,8 +13,10 @@ export const Section: React.FC<{
   /** Optional on/off toggle rendered next to the title. */
   enabled?: boolean;
   onToggle?: (v: boolean) => void;
+  /** Optional color dot shown right after the title (e.g. skip-type color). */
+  colorDot?: string;
   children: React.ReactNode;
-}> = ({ title, onReset, enabled, onToggle, children }) => (
+}> = ({ title, onReset, enabled, onToggle, colorDot, children }) => (
   <div style={{
     border: `1px solid ${C.line}`, borderRadius: 8, padding: '11px 13px', marginBottom: 10,
     background: ALPHA('#ffffff', 0.012),
@@ -23,6 +25,12 @@ export const Section: React.FC<{
     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
         <div style={{ color: C.faint, textTransform: 'uppercase', letterSpacing: 1, fontSize: 10 }}>{title}</div>
+        {colorDot && (
+          <span title="Skip-type color — matches the timeline regions" style={{
+            width: 10, height: 10, borderRadius: '50%', background: colorDot, flexShrink: 0,
+            boxShadow: `0 0 5px ${colorDot}`,
+          }} />
+        )}
         {onToggle && (
           <button
             onClick={() => onToggle(!enabled)}

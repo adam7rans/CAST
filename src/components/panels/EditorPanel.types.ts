@@ -32,8 +32,16 @@ export interface EditorPanelProps {
   setShowFillerCuts: React.Dispatch<React.SetStateAction<boolean>>;
   showManualCuts: boolean;
   setShowManualCuts: React.Dispatch<React.SetStateAction<boolean>>;
+  showMouthCuts: boolean;
+  setShowMouthCuts: React.Dispatch<React.SetStateAction<boolean>>;
+  mouthDetectClasses: string[];
+  setMouthDetectClasses: React.Dispatch<React.SetStateAction<string[]>>;
   onAddCustomCuts: (cuts: CustomCut[]) => void;
   onClearCustomCuts: () => void;
+  mouthDetecting: boolean;
+  mouthDetectError: string | null;
+  onDetectMouthSounds: () => void;
+  onClearMouthCuts: () => void;
   pendingCustomCutStartMs: number | null;
   onStartCustomCut: (playheadMs: number) => void;
   onFinishCustomCut: (playheadMs: number) => void;

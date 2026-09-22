@@ -1,9 +1,11 @@
 import React from 'react';
 import { detectFillerCuts } from '../../lib/fillerDetector';
+import { SKIP_TYPE_META, formatGapKind, isMouthCutKey } from '../../lib/skipTypes';
 import { TabBar } from '../Tabs';
 import { Section, Slider } from '../Controls';
+import { MouthSoundsSection } from './MouthSoundsSection';
 import { fmt } from '../timeline/timelineUtils';
-import type { EditorPanelProps, SkipGap } from './EditorPanel.types';
+import type { EditorPanelProps } from './EditorPanel.types';
 import type { EditorMode, EditorSubTab } from '../../lib/constants';
 
 const fieldStyle: React.CSSProperties = {
@@ -42,14 +44,6 @@ const dangerButtonStyle: React.CSSProperties = {
   color: '#ff8b84',
 };
 
-function formatGapKind(gap: SkipGap): string {
-  if (gap.kind !== 'custom') return 'silence gap';
-  if (gap.key.startsWith('filler:')) return 'filler cut';
-  if (gap.key.startsWith('stutter:')) return 'stutter cut';
-  if (gap.key.startsWith('editorial:')) return 'manual skip';
-  return 'custom cut';
-}
-
 export const EditorPanel: React.FC<EditorPanelProps> = ({
   editorSubTab,
   setEditorSubTab,
@@ -67,7 +61,10 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
   showSilenceGaps, setShowSilenceGaps,
   showFillerCuts, setShowFillerCuts,
   showManualCuts, setShowManualCuts,
+  showMouthCuts, setShowMouthCuts,
+  mouthDetectClasses, setMouthDetectClasses,
   onAddCustomCuts, onClearCustomCuts,
+  mouthDetecting, mouthDetectError, onDetectMouthSounds, onClearMouthCuts,
   pendingCustomCutStartMs, onStartCustomCut, onFinishCustomCut, onCancelPendingCustomCut,
   selectedGap, selectedGapDisabled, selectedGapHasOverride,
   onAdjustSelectedGap, onToggleSelectedGapDisabled, onResetSelectedGap, onRemoveSelectedCustomCut,
@@ -75,7 +72,8 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
   const selectedStartSec = selectedGap ? selectedGap.startMs / 1000 : 0;
   const selectedEndSec = selectedGap ? selectedGap.endMs / 1000 : 0;
   const fillerCuts = customCuts.filter((cut) => cut.key.startsWith('filler:') || cut.key.startsWith('stutter:'));
-  const manualCuts = customCuts.filter((cut) => !cut.key.startsWith('filler:') && !cut.key.startsWith('stutter:'));
+  const manualCuts = customCuts.filter((cut) => !cut.key.startsWith('filler:') && !cut.key.startsWith('stutter:') && !isMouthCutKey(cut.key));
+  const mouthCuts = customCuts.filter((cut) => isMouthCutKey(cut.key));
 
   return (
     <>
@@ -128,7 +126,7 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
         </>
       ) : (
         <>
-          <Section title="Skip silence" enabled={showSilenceGaps} onToggle={transcript ? setShowSilenceGaps : undefined}>
+          <Section title="Skip silence" colorDot={SKIP_TYPE_META.silence.hex} enabled={showSilenceGaps} onToggle={transcript ? setShowSilenceGaps : undefined}>
             <Slider
               label="min gap ms"
               value={jumpCutGapMs}
@@ -149,7 +147,7 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
             />
           </Section>
 
-          <Section title="Skip filler words" enabled={showFillerCuts} onToggle={customCuts.length > 0 || !!transcript ? setShowFillerCuts : undefined}>
+          <Section title="Skip filler words" colorDot={SKIP_TYPE_META.filler.hex} enabled={showFillerCuts} onToggle={customCuts.length > 0 || !!transcript ? setShowFillerCuts : undefined}>
             <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
               <button
                 onClick={() => transcript && onAddCustomCuts(detectFillerCuts(transcript))}
@@ -180,7 +178,7 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
             )}
           </Section>
 
-          <Section title="Manual skip areas" enabled={showManualCuts} onToggle={customCuts.length > 0 || hasMedia ? setShowManualCuts : undefined}>
+          <Section title="Manual skip areas" colorDot={SKIP_TYPE_META.manual.hex} enabled={showManualCuts} onToggle={customCuts.length > 0 || hasMedia ? setShowManualCuts : undefined}>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
               {pendingCustomCutStartMs === null ? (
                 <button
@@ -209,6 +207,19 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
               </span>
             </div>
           </Section>
+
+          <MouthSoundsSection
+            mouthCutCount={mouthCuts.length}
+            hasMedia={hasMedia}
+            showMouthCuts={showMouthCuts}
+            setShowMouthCuts={setShowMouthCuts}
+            mouthDetectClasses={mouthDetectClasses}
+            setMouthDetectClasses={setMouthDetectClasses}
+            mouthDetecting={mouthDetecting}
+            mouthDetectError={mouthDetectError}
+            onDetectMouthSounds={onDetectMouthSounds}
+            onClearMouthCuts={onClearMouthCuts}
+          />
 
           <Section title="Selected skip area">
             {selectedGap ? (

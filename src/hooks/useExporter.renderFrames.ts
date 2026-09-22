@@ -77,7 +77,10 @@ export async function renderExportFrames({
     )));
   }
 
-  for (let i = 0; i < timing.total; i += 1) {
+  const firstFrame = Math.min(timing.total, Math.max(0, created.nextFrame ?? 0));
+  if (firstFrame > 0) onProgress(firstFrame, timing.total);
+
+  for (let i = firstFrame; i < timing.total; i += 1) {
     throwIfAborted();
     const tOut = i / params.fps;
     const { src: tSrc, inOutro } = timing.outToSrc(tOut);

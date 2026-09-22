@@ -21,12 +21,12 @@ export function resolveExportCodecs(exportMode: 'web' | 'master', wantAlpha: boo
   const videoCodec = exportMode === 'web'
     ? (wantAlpha
         ? ['-c:v', 'libvpx-vp9', '-pix_fmt', 'yuva420p', '-b:v', '0', '-crf', '36', '-deadline', 'good', '-cpu-used', '3', '-row-mt', '1', '-tile-columns', '2', '-frame-parallel', '0', '-auto-alt-ref', '0']
-        : ['-c:v', 'libx264', '-preset', 'slow', '-profile:v', 'high', '-level:v', '4.0', '-crf', '21', '-maxrate', '10000k', '-bufsize', '20000k', '-pix_fmt', 'yuv420p', '-movflags', '+faststart'])
+        : ['-c:v', 'libx264', '-preset', 'slow', '-profile:v', 'high', '-level:v', '4.0', '-crf', '21', '-maxrate', '8000k', '-bufsize', '16000k', '-pix_fmt', 'yuv420p', '-movflags', '+faststart'])
     : (wantAlpha
         ? ['-c:v', 'prores_ks', '-profile:v', '4444', '-pix_fmt', 'yuva444p10le', '-alpha_bits', '16', '-vendor', 'apl0']
         : ['-c:v', 'libx264', '-preset', 'medium', '-profile:v', 'high', '-level:v', '4.0', '-crf', '18', '-pix_fmt', 'yuv420p', '-movflags', '+faststart']);
   const audioCodec = exportMode === 'web'
-    ? (wantAlpha ? ['-c:a', 'libopus', '-b:a', '96k'] : ['-c:a', 'aac', '-b:a', '96k'])
+    ? (wantAlpha ? ['-c:a', 'libopus', '-b:a', '96k'] : ['-c:a', 'aac', '-b:a', '192k'])
     : (wantAlpha ? ['-c:a', 'pcm_s16le'] : ['-c:a', 'aac', '-b:a', '192k']);
   return { videoCodec, audioCodec };
 }

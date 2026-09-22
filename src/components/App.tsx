@@ -30,9 +30,11 @@ import { type CaptionMode, type ClipCaptionEdits, type TranscriptData } from '..
 import { captionGuideSlot, seedGuideMap, type AudioSubTab, type BgSubTab, type CaptionsSubTab, type EditorMode, type EditorSubTab, type GuideKey, type MainTab, type ProjectTaskStatus, type VideoShaderSubTab, type VideoSubTab } from '../lib/constants';
 import { useToasts } from '../hooks/useToasts';
 import { isCustomKey, useJumpCuts } from '../hooks/useJumpCuts';
+import { buildMouthCutKey, MOUTH_SOUND_CLASSES } from '../lib/skipTypes';
+import { detectMouthSounds } from '../lib/projectApi';
 import { useRenderLoop } from '../hooks/useRenderLoop';
 import { usePlayheadTick } from '../hooks/usePlayheadTick';
-import { useAutoSave } from '../hooks/useProjectEffects';
+import { useAutoSave } from '../hooks/useAutoSave';
 import { useAppUndoRedo } from '../hooks/useAppUndoRedo';
 import { useClipHandlers } from '../hooks/useClipHandlers';
 import { useRefSync, useParamPush } from '../hooks/useParamSync';
@@ -144,6 +146,10 @@ export const App: React.FC = () => {
   const [limiter, setLimiter] = useState<LimiterParams>(DEFAULT_LIMITER);
   const [projects, setProjects] = useState<any[]>([]);
   const [activeProjectId, setActiveProjectId] = useState<string | null>(null);
+  // Autosave stays off until the selected project's loaded state (including
+  // cuts) has been applied — see handleSelectProject. Prevents mid-load
+  // empty state from overwriting good data on disk.
+  const [settingsReadyId, setSettingsReadyId] = useState<string | null>(null);
   const [projectStatus, setProjectStatus] = useState<ProjectTaskStatus>({ kind: 'idle', message: 'Create or select a project' });
   const activeProjectIdRef = useRef<string | null>(null);
   const [outroAudio] = useState(() => Object.assign(new Audio('audio/bassnoise.wav'), { loop: false }));
@@ -161,9 +167,11 @@ export const App: React.FC = () => {
     jumpCutsEnabled, setJumpCutsEnabled, jumpCutGapMs, setJumpCutGapMs, jumpCutPaddingMs, setJumpCutPaddingMs,
     customCutPaddingMs, setCustomCutPaddingMs, showSilenceGaps, setShowSilenceGaps, showFillerCuts, setShowFillerCuts,
     showManualCuts, setShowManualCuts, jumpCutGapOverrides, setJumpCutGapOverrides, jumpCutGapDisabled, setJumpCutGapDisabled,
+    showMouthCuts, setShowMouthCuts,
+    mouthDetectClasses, setMouthDetectClasses,
     selectedGapKey, setSelectedGapKey, jumpCutGaps, jumpCutGapsEffective, jumpCutsEnabledRef, jumpCutGapListRef,
-    customCuts, setCustomCuts, pendingCustomCutStartMs, handleAdjustGap, handleResetGap, handleResetAllGaps,
-    handleAddCustomCuts, handleClearCustomCuts, handleStartCustomCut, handleCancelPendingCustomCut, handleFinishCustomCut,
+    customCuts, setCustomCuts, customCutsClearedAt, setCustomCutsClearedAt, pendingCustomCutStartMs, handleAdjustGap, handleResetGap, handleResetAllGaps,
+    handleAddCustomCuts, handleClearCustomCuts, handleAddMouthCuts, handleClearMouthCuts, handleStartCustomCut, handleCancelPendingCustomCut, handleFinishCustomCut,
     handleRemoveCustomCut, handleToggleGapDisabled, handleSelectGap,
   } = jumpCuts;
 
@@ -176,6 +184,48 @@ export const App: React.FC = () => {
   const { mediaDuration, fullExportChunks, timelineSegments, selectedTimelineSegment, selectedGap, effectiveTranscript, activeExportParams, timelineDuration, activeSkipTimeGaps, musicTimelineDuration, musicPlayheadSecond, availableGuides, previewFrame, frameStyle, audioMode } = derived;
 
   const { toasts, addToast, updateToast, dismissToast } = useToasts();
+  const [mouthDetecting, setMouthDetecting] = useState(false);
+  const [mouthDetectError, setMouthDetectError] = useState<string | null>(null);
+  // Detection status belongs to one project — clear it on switch.
+  useEffect(() => {
+    setMouthDetecting(false);
+    setMouthDetectError(null);
+  }, [activeProjectId]);
+
+  const handleDetectMouthSounds = useCallback(async () => {
+    const projectId = activeProjectIdRef.current;
+    if (!projectId || mouthDetecting) return;
+    const classes = mouthDetectClasses.filter((c) => MOUTH_SOUND_CLASSES.includes(c));
+    if (classes.length === 0) {
+      addToast('Select at least one mouth-sound type first', 'error');
+      return;
+    }
+    setMouthDetecting(true);
+    setMouthDetectError(null);
+    try {
+      const { regions } = await detectMouthSounds(projectId, 0.3, classes);
+      const cuts = regions
+        .filter((r) => Number.isFinite(r.startMs) && Number.isFinite(r.endMs) && r.endMs - r.startMs >= 20)
+        .map((r) => ({
+          key: buildMouthCutKey(r.startMs, r.endMs, r.label),
+          startMs: Math.max(0, Math.round(r.startMs)),
+          endMs: Math.max(0, Math.round(r.endMs)),
+          label: r.label,
+        }));
+      if (!cuts.length) {
+        addToast('No mouth sounds found — your audio is clean', 'success');
+      } else {
+        handleAddMouthCuts(cuts);
+        addToast(`Detected ${cuts.length} mouth sound${cuts.length === 1 ? '' : 's'} — skips applied`, 'success');
+      }
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : 'Mouth-sound analysis failed';
+      setMouthDetectError(msg);
+      addToast(msg, 'error');
+    } finally {
+      setMouthDetecting(false);
+    }
+  }, [addToast, handleAddMouthCuts, mouthDetectClasses, mouthDetecting]);
   const previewWrapRef = useRef<HTMLDivElement | null>(null);
   const bgCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const videoCanvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -230,7 +280,7 @@ export const App: React.FC = () => {
   const controls = useProjectMediaControls({
     refs: { previewWrapRef, mediaElRef, videoElRef, audioElRef, audioSourceRef, videoRendererRef, musicElRef, musicPlayerRef, playingInClipRef, activeProjectIdRef, videoBlobUrlRef, audioBlobUrlRef, bgRendererRef, activeExportParamsRef, exportingRef, startRef, jumpCutGapListRef },
     state: { activeProjectId, music, musicLayerOn, musicTimelineClips, videoInfo, audioInfo, selectedTimelineSegment, activeSkipTimeGaps, mediaDuration, bg, bgDither, vid, bgLayerOn, bgOffMode, bgOffColor, videoLayerOn, captionsLayerOn, jumpCutsEnabled, audioReactivity, visualizer, compositionMode, limiter, mediaVolume, outroVolume, captionMode, captionStyle, captionShader, effectiveTranscript, cropToGuide, activeGuide, availableGuides, previewFrame },
-    setters: { setProjects, setActiveProjectId, setProjectStatus, setMainTab, setBgSubTab, setVideoSubTab, setAudioSubTab, setVideoShaderSubTab, setCaptionsSubTab, setEditorSubTab, setEditorMode, setBg, setBgDither, setVid, setBgExport, setVidExport, setActiveGuide, setCropToGuide, setBgLayerOn, setBgOffMode, setBgOffColor, setVideoLayerOn, setCaptionsLayerOn, setMusicLayerOn, setCaptionMode, setCaptionStyle, setCaptionShader, setCaptionStyleByGuide, setCaptionShaderByGuide, setMuted, setPlaybackRate, setMediaVolume, setOutroVolume, setVideoInfo, setAudioInfo, setPlayheadSecond, setTranscript, setTranscriptName, setCaptionClipEdits, setCurrentPresetId, setPlaying, setAudioReactivity, setVisualizer, setCompositionMode, setMusicInfo, setMusic, setMusicLibrary, setMusicAssetDurations, setSelectedMusicAssetIds, setMusicTimelineClips, setSelectedMusicClipId, setLimiter, setMicroTimelines, setSelectedClipId, setSelectedFullSegmentId, setFullChunkOverrides, setPendingClipStart, setCustomCuts, setJumpCutGapOverrides, setJumpCutGapDisabled, setSelectedGapKey, setJumpCutsEnabled, setJumpCutGapMs, setJumpCutPaddingMs, setCustomCutPaddingMs, setShowSilenceGaps, setShowFillerCuts, setShowManualCuts, setShowAudioTracks, setPlaybackStartMs },
+    setters: { setProjects, setActiveProjectId, setProjectStatus, setMainTab, setBgSubTab, setVideoSubTab, setAudioSubTab, setVideoShaderSubTab, setCaptionsSubTab, setEditorSubTab, setEditorMode, setBg, setBgDither, setVid, setBgExport, setVidExport, setActiveGuide, setCropToGuide, setBgLayerOn, setBgOffMode, setBgOffColor, setVideoLayerOn, setCaptionsLayerOn, setMusicLayerOn, setCaptionMode, setCaptionStyle, setCaptionShader, setCaptionStyleByGuide, setCaptionShaderByGuide, setMuted, setPlaybackRate, setMediaVolume, setOutroVolume, setVideoInfo, setAudioInfo, setPlayheadSecond, setTranscript, setTranscriptName, setCaptionClipEdits, setCurrentPresetId, setPlaying, setAudioReactivity, setVisualizer, setCompositionMode, setMusicInfo, setMusic, setMusicLibrary, setMusicAssetDurations, setSelectedMusicAssetIds, setMusicTimelineClips, setSelectedMusicClipId, setLimiter, setMicroTimelines, setSelectedClipId, setSelectedFullSegmentId, setFullChunkOverrides, setPendingClipStart, setCustomCuts, setCustomCutsClearedAt, setSettingsReadyId, setJumpCutGapOverrides, setJumpCutGapDisabled, setSelectedGapKey, setJumpCutsEnabled, setJumpCutGapMs, setJumpCutPaddingMs, setCustomCutPaddingMs, setShowSilenceGaps, setShowFillerCuts, setShowManualCuts, setShowMouthCuts, setMouthDetectClasses, setShowAudioTracks, setPlaybackStartMs },
     toasts: { addToast, updateToast },
   });
   const { currentPresetSettings, applyPresetSettings } = usePresetSettings({
@@ -238,17 +288,31 @@ export const App: React.FC = () => {
     setters: { setBg, setBgDither, setVid, setAudioReactivity, setMusic, setLimiter, setCaptionMode, setCaptionStyle, setCaptionShader, setCaptionStyleByGuide, setCaptionShaderByGuide, setBgLayerOn, setVideoLayerOn, setCaptionsLayerOn, setMusicLayerOn, setBgOffMode, setBgOffColor, setActiveGuide, setCropToGuide },
   });
 
-  useAutoSave(activeProjectId, {
+  const saveStatus = useAutoSave(activeProjectId, settingsReadyId !== null && settingsReadyId === activeProjectId, {
     bg, bgDither, vid, audioReactivity, visualizer, compositionMode, music, musicLibraryDurations: musicAssetDurations, musicTimelineClips, limiter, captionMode, captionStyle, captionShader, captionStyleByGuide, captionShaderByGuide,
     bgLayerOn, bgOffMode, bgOffColor, videoLayerOn, captionsLayerOn, musicLayerOn, activeGuide, cropToGuide, bgExport, vidExport,
-    microTimelines, selectedClipId, captionClipEdits, customCuts, jumpCutGapOverrides, jumpCutGapDisabled, jumpCutsEnabled, jumpCutGapMs, jumpCutPaddingMs, customCutPaddingMs,
-    showSilenceGaps, showFillerCuts, showManualCuts, mainTab, bgSubTab, videoSubTab, audioSubTab, captionsSubTab, editorSubTab, editorMode, selectedFullSegmentId, fullChunkOverrides,
+    microTimelines, selectedClipId, captionClipEdits, customCuts, customCutsClearedAt, jumpCutGapOverrides, jumpCutGapDisabled, jumpCutsEnabled, jumpCutGapMs, jumpCutPaddingMs, customCutPaddingMs,
+    showSilenceGaps, showFillerCuts, showManualCuts, showMouthCuts, mouthDetectClasses, mainTab, bgSubTab, videoSubTab, audioSubTab, captionsSubTab, editorSubTab, editorMode, selectedFullSegmentId, fullChunkOverrides,
     showAudioTracks, muted, mediaVolume, outroVolume, currentPresetId, videoShaderSubTab, projectHasVideo: !!projects.find((p) => p.id === activeProjectId)?.hasVideo,
     projectHasAudio: !!projects.find((p) => p.id === activeProjectId)?.hasAudio, videoInfoLoaded: !!videoInfo, audioInfoLoaded: !!audioInfo,
   });
+
+  // Surface server-side guard interventions: an empty autosave tried to wipe
+  // stored manual skips and was blocked — the user should know it happened.
+  const guardedSaveCount = saveStatus.guardedCount;
+  useEffect(() => {
+    if (guardedSaveCount > 0) {
+      const n = saveStatus.guardedProtected;
+      addToast(
+        `Protected ${n > 0 ? `${n} ` : ''}manual skip${n === 1 ? '' : 's'} from an empty autosave — nothing was lost`,
+        'success',
+      );
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [guardedSaveCount]);
   useAppUndoRedo(
-    { bg, bgDither, vid, audioReactivity, music, limiter, captionMode, captionStyleByGuide, captionShaderByGuide, bgLayerOn, bgOffMode, bgOffColor, videoLayerOn, captionsLayerOn, musicLayerOn, activeGuide, cropToGuide, bgExport, vidExport, microTimelines, selectedClipId, fullChunkOverrides, musicTimelineClips, selectedMusicClipId, showAudioTracks, customCuts, jumpCutGapOverrides, jumpCutGapDisabled, jumpCutsEnabled, jumpCutGapMs, jumpCutPaddingMs, customCutPaddingMs, showSilenceGaps, showFillerCuts, showManualCuts, muted, mediaVolume, outroVolume },
-    { setBg, setBgDither, setVid, setAudioReactivity, setMusic, setLimiter, setCaptionMode, setCaptionStyleByGuide, setCaptionShaderByGuide, setBgLayerOn, setBgOffMode, setBgOffColor, setVideoLayerOn, setCaptionsLayerOn, setMusicLayerOn, setActiveGuide, setCropToGuide, setBgExport, setVidExport, setMicroTimelines, setSelectedClipId, setFullChunkOverrides, setMusicTimelineClips, setSelectedMusicClipId, setShowAudioTracks, setCustomCuts, setJumpCutGapOverrides, setJumpCutGapDisabled, setJumpCutsEnabled, setJumpCutGapMs, setJumpCutPaddingMs, setCustomCutPaddingMs, setShowSilenceGaps, setShowFillerCuts, setShowManualCuts, setMuted, setMediaVolume, setOutroVolume },
+    { bg, bgDither, vid, audioReactivity, music, limiter, captionMode, captionStyleByGuide, captionShaderByGuide, bgLayerOn, bgOffMode, bgOffColor, videoLayerOn, captionsLayerOn, musicLayerOn, activeGuide, cropToGuide, bgExport, vidExport, microTimelines, selectedClipId, fullChunkOverrides, musicTimelineClips, selectedMusicClipId, showAudioTracks, customCuts, jumpCutGapOverrides, jumpCutGapDisabled, jumpCutsEnabled, jumpCutGapMs, jumpCutPaddingMs, customCutPaddingMs, showSilenceGaps, showFillerCuts, showManualCuts, showMouthCuts, muted, mediaVolume, outroVolume },
+    { setBg, setBgDither, setVid, setAudioReactivity, setMusic, setLimiter, setCaptionMode, setCaptionStyleByGuide, setCaptionShaderByGuide, setBgLayerOn, setBgOffMode, setBgOffColor, setVideoLayerOn, setCaptionsLayerOn, setMusicLayerOn, setActiveGuide, setCropToGuide, setBgExport, setVidExport, setMicroTimelines, setSelectedClipId, setFullChunkOverrides, setMusicTimelineClips, setSelectedMusicClipId, setShowAudioTracks, setCustomCuts, setJumpCutGapOverrides, setJumpCutGapDisabled, setJumpCutsEnabled, setJumpCutGapMs, setJumpCutPaddingMs, setCustomCutPaddingMs, setShowSilenceGaps, setShowFillerCuts, setShowManualCuts, setShowMouthCuts, setMuted, setMediaVolume, setOutroVolume },
     activeProjectId,
   );
 
@@ -265,7 +329,7 @@ export const App: React.FC = () => {
     <AppLayout
       previewAreaProps={{ previewWrapRef, bgCanvasRef, videoCanvasRef, visualizerCanvasRef, frameStyle, bgLayerOn, bgOffMode, bgOffColor, videoLayerOn, vid, setVid, captionsLayerOn, audioMode, compositionMode, visualizer, activeGuide, cropToGuide, availableGuides, previewFrame, videoInfo, audioInfo, transcript: effectiveTranscript, captionMode, captionStyle, captionShader, mediaElRef, playheadSecond, playbackStartMs, activeExportParams, toasts, onDismissToast: dismissToast, onDrop: controls.onDrop }}
       timelineProps={{ duration: mediaDuration, playhead: playheadSecond, onPlayheadChange: controls.handleSeekPlayhead, playing, onTogglePlay: controls.togglePlay, playbackRate, onSetPlaybackRate: setPlaybackRate, muted, onToggleMuted: () => setMuted((v) => !v), outroEnabled: activeExportParams.outroEnabled, onToggleOutro: handleToggleOutro, microTimelines: timelineSegments, timelineItemLabel: editorMode === 'clips' ? 'clip' : 'chunk', clipEditingEnabled: true, musicTimelineClips, musicClipLabels: musicTimeline.musicClipLabels, musicDuration: musicTimelineDuration, musicPlayhead: musicPlayheadSecond, selectedMusicClipId, showAudioTracks, musicMuted: !musicLayerOn, onToggleMusicMuted: () => setMusicLayerOn((v) => !v), selectedId: editorMode === 'clips' ? selectedClipId : selectedFullSegmentId, pendingClipStart: editorMode === 'clips' ? pendingClipStart : null, onSelectClip: editorMode === 'clips' ? setSelectedClipId : setSelectedFullSegmentId, onSelectMusicClip: setSelectedMusicClipId, onMusicPlayheadChange: controls.handleMusicTimelineSeek, onClipRangeChange: editorMode === 'clips' ? handleClipRangeChange : handleFullChunkRangeChange, onMoveMusicClip: musicTimeline.handleMoveMusicClip, onAdjustMusicClipFade: musicTimeline.handleAdjustMusicClipFade, onAddStart: editorMode === 'clips' ? handleAddClipStart : undefined, onAddEnd: editorMode === 'clips' ? handleAddClipEnd : undefined, onCancelPending: editorMode === 'clips' ? (() => setPendingClipStart(null)) : undefined, onDeleteClip: editorMode === 'clips' ? handleDeleteClip : undefined, onRenameClip: editorMode === 'clips' ? handleRenameClip : undefined, onToggleAudioTracks: () => setShowAudioTracks((value) => !value), skipGapsEnabled: jumpCutsEnabled, skipGaps: jumpCutGaps, skipGapsEffective: jumpCutGapsEffective, skipGapOverrides: jumpCutGapOverrides, skipGapDisabled: jumpCutGapDisabled, selectedGapKey, onSelectGap: handleSelectGap, onToggleGapDisabled: handleToggleGapDisabled, onAdjustSkipGap: handleAdjustGap, onResetSkipGap: handleResetGap, onResetAllSkipGaps: handleResetAllGaps }}
-      sidebarProps={{ projects, activeProjectId, activeProject, projectStatus, onSelectProject: controls.handleSelectProject, onCreateProject: controls.handleCreateProject, videoInfo, audioInfo, audioMode, compositionMode, setCompositionMode, playheadSecond, mediaDuration, playing, togglePlay: controls.togglePlay, muted, setMuted, playbackRate, setPlaybackRate, editorSubTab, setEditorSubTab, editorMode, setEditorMode, clipCount: microTimelines.length, fullChunkCount: fullExportChunks.length, fullChunkSpanSec: 300, transcript, transcriptName, jumpCutsEnabled, setJumpCutsEnabled, jumpCutGapMs, setJumpCutGapMs, jumpCutPaddingMs, setJumpCutPaddingMs, customCuts, customCutPaddingMs, setCustomCutPaddingMs, showSilenceGaps, setShowSilenceGaps, showFillerCuts, setShowFillerCuts, showManualCuts, setShowManualCuts, onAddCustomCuts: handleAddCustomCuts, onClearCustomCuts: handleClearCustomCuts, pendingCustomCutStartMs, onStartCustomCut: handleStartCustomCut, onFinishCustomCut: handleFinishCustomCut, onCancelPendingCustomCut: handleCancelPendingCustomCut, selectedGap, selectedGapDisabled: !!(selectedGapKey && jumpCutGapDisabled[selectedGapKey]), selectedGapHasOverride: !!(selectedGapKey && jumpCutGapOverrides[selectedGapKey]), onAdjustSelectedGap: (startMs: number, endMs: number) => selectedGapKey && handleAdjustGap(selectedGapKey, Math.max(0, Math.min(startMs, endMs - 20)), Math.max(Math.max(0, Math.min(startMs, endMs - 20)) + 20, endMs)), onToggleSelectedGapDisabled: handleToggleGapDisabled, onResetSelectedGap: handleResetGap, onRemoveSelectedCustomCut: (key: string) => { if (isCustomKey(key)) handleRemoveCustomCut(key); }, bgLayerOn, setBgLayerOn, bgOffMode, setBgOffMode, bgOffColor, setBgOffColor, videoLayerOn, setVideoLayerOn, captionsLayerOn, setCaptionsLayerOn, musicLayerOn, setMusicLayerOn, activeGuide, setActiveGuide, cropToGuide, setCropToGuide, availableGuides, mainTab, setMainTab, bg, setBg, bgDither, setBgDither, bgSubTab, setBgSubTab, vid, setVid, videoSubTab, setVideoSubTab, videoShaderSubTab, setVideoShaderSubTab, invertFinalOutput: !!activeExportParams.invertFinalOutput, setInvertFinalOutput: (value: boolean) => setBaseExportParams((prev) => ({ ...prev, invertFinalOutput: value })), onPickFile: controls.onPickFile, onDrop: controls.onDrop, onImportNativeMedia: controls.importNativeFile, captionsSubTab, setCaptionsSubTab, captionMode, setCaptionMode, captionStyle, setCaptionStyle, captionShader, setCaptionShader, onPropagateCaptions: handlePropagateCaptions, onPickTranscript: controls.onPickTranscript, onEditorUpdate: controls.handleEditorUpdateTranscript, onSearchMatchNavigate: (startMs: number) => controls.handleSeekPlayhead(startMs / 1000), audioSubTab, setAudioSubTab, audioReactivity, setAudioReactivity, visualizer, setVisualizer, lastBandsRef, music, setMusic, musicInfo, musicLibrary, musicAssetDurations, selectedMusicAssetIds, setSelectedMusicAssetIds, musicTimelineClips, selectedMusicClip: musicTimeline.selectedMusicClip, selectedMusicClipName: musicTimeline.selectedMusicClipName, showAudioTracks, setShowAudioTracks, onPickMusicFiles: musicTimeline.handlePickMusicFiles, onDeleteMusicAsset: musicTimeline.handleDeleteMusicAsset, onAutoArrangeSelectedMusic: musicTimeline.handleAutoArrangeSelectedMusic, onUpdateSelectedMusicClip: musicTimeline.handleUpdateSelectedMusicClip, onDeleteSelectedMusicClip: musicTimeline.handleDeleteSelectedMusicClip, onClearMusicTimeline: musicTimeline.handleClearMusicTimeline, onPickMusicFile: (file: File) => activeProjectIdRef.current ? controls.loadMusicFile(file, activeProjectIdRef.current) : addToast('Select project first', 'error'), onClearMusic: controls.handleClearMusic, musicDuckGainRef, speechRmsRef, mediaVolume, setMediaVolume, limiter, setLimiter, limiterReductionRef, outroVolume, setOutroVolume, activeExportParams, setActiveExportParams: setBaseExportParams, exportComposition: controls.exportComposition, exportLayerSummary, selectedClipName: selectedTimelineSegment?.name, currentPresetId, setCurrentPresetId, currentPresetSettings, onApplyPresetSettings: applyPresetSettings, addToast }}
+      sidebarProps={{ projects, activeProjectId, activeProject, projectStatus, saveStatus, onSelectProject: controls.handleSelectProject, onCreateProject: controls.handleCreateProject, videoInfo, audioInfo, audioMode, compositionMode, setCompositionMode, playheadSecond, mediaDuration, playing, togglePlay: controls.togglePlay, muted, setMuted, playbackRate, setPlaybackRate, editorSubTab, setEditorSubTab, editorMode, setEditorMode, clipCount: microTimelines.length, fullChunkCount: fullExportChunks.length, fullChunkSpanSec: 300, transcript, transcriptName, jumpCutsEnabled, setJumpCutsEnabled, jumpCutGapMs, setJumpCutGapMs, jumpCutPaddingMs, setJumpCutPaddingMs, customCuts, customCutPaddingMs, setCustomCutPaddingMs, showSilenceGaps, setShowSilenceGaps, showFillerCuts, setShowFillerCuts, showManualCuts, setShowManualCuts, onAddCustomCuts: handleAddCustomCuts, onClearCustomCuts: handleClearCustomCuts, showMouthCuts, setShowMouthCuts, mouthDetectClasses, setMouthDetectClasses, mouthDetecting, mouthDetectError, onDetectMouthSounds: handleDetectMouthSounds, onClearMouthCuts: handleClearMouthCuts, pendingCustomCutStartMs, onStartCustomCut: handleStartCustomCut, onFinishCustomCut: handleFinishCustomCut, onCancelPendingCustomCut: handleCancelPendingCustomCut, selectedGap, selectedGapDisabled: !!(selectedGapKey && jumpCutGapDisabled[selectedGapKey]), selectedGapHasOverride: !!(selectedGapKey && jumpCutGapOverrides[selectedGapKey]), onAdjustSelectedGap: (startMs: number, endMs: number) => selectedGapKey && handleAdjustGap(selectedGapKey, Math.max(0, Math.min(startMs, endMs - 20)), Math.max(Math.max(0, Math.min(startMs, endMs - 20)) + 20, endMs)), onToggleSelectedGapDisabled: handleToggleGapDisabled, onResetSelectedGap: handleResetGap, onRemoveSelectedCustomCut: (key: string) => { if (isCustomKey(key)) handleRemoveCustomCut(key); }, bgLayerOn, setBgLayerOn, bgOffMode, setBgOffMode, bgOffColor, setBgOffColor, videoLayerOn, setVideoLayerOn, captionsLayerOn, setCaptionsLayerOn, musicLayerOn, setMusicLayerOn, activeGuide, setActiveGuide, cropToGuide, setCropToGuide, availableGuides, mainTab, setMainTab, bg, setBg, bgDither, setBgDither, bgSubTab, setBgSubTab, vid, setVid, videoSubTab, setVideoSubTab, videoShaderSubTab, setVideoShaderSubTab, invertFinalOutput: !!activeExportParams.invertFinalOutput, setInvertFinalOutput: (value: boolean) => setBaseExportParams((prev) => ({ ...prev, invertFinalOutput: value })), onPickFile: controls.onPickFile, onDrop: controls.onDrop, onImportNativeMedia: controls.importNativeFile, captionsSubTab, setCaptionsSubTab, captionMode, setCaptionMode, captionStyle, setCaptionStyle, captionShader, setCaptionShader, onPropagateCaptions: handlePropagateCaptions, onPickTranscript: controls.onPickTranscript, onEditorUpdate: controls.handleEditorUpdateTranscript, onSearchMatchNavigate: (startMs: number) => controls.handleSeekPlayhead(startMs / 1000), audioSubTab, setAudioSubTab, audioReactivity, setAudioReactivity, visualizer, setVisualizer, lastBandsRef, music, setMusic, musicInfo, musicLibrary, musicAssetDurations, selectedMusicAssetIds, setSelectedMusicAssetIds, musicTimelineClips, selectedMusicClip: musicTimeline.selectedMusicClip, selectedMusicClipName: musicTimeline.selectedMusicClipName, showAudioTracks, setShowAudioTracks, onPickMusicFiles: musicTimeline.handlePickMusicFiles, onDeleteMusicAsset: musicTimeline.handleDeleteMusicAsset, onAutoArrangeSelectedMusic: musicTimeline.handleAutoArrangeSelectedMusic, onUpdateSelectedMusicClip: musicTimeline.handleUpdateSelectedMusicClip, onDeleteSelectedMusicClip: musicTimeline.handleDeleteSelectedMusicClip, onClearMusicTimeline: musicTimeline.handleClearMusicTimeline, onPickMusicFile: (file: File) => activeProjectIdRef.current ? controls.loadMusicFile(file, activeProjectIdRef.current) : addToast('Select project first', 'error'), onClearMusic: controls.handleClearMusic, musicDuckGainRef, speechRmsRef, mediaVolume, setMediaVolume, limiter, setLimiter, limiterReductionRef, outroVolume, setOutroVolume, activeExportParams, setActiveExportParams: setBaseExportParams, exportComposition: controls.exportComposition, exportLayerSummary, selectedClipName: selectedTimelineSegment?.name, currentPresetId, setCurrentPresetId, currentPresetSettings, onApplyPresetSettings: applyPresetSettings, addToast }}
     />
   );
 };

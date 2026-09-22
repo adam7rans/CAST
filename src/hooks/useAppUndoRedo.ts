@@ -29,6 +29,7 @@ export type SettingsSnapshot = {
   jumpCutsEnabled: boolean; jumpCutGapMs: number;
   jumpCutPaddingMs: number; customCutPaddingMs: number;
   showSilenceGaps: boolean; showFillerCuts: boolean; showManualCuts: boolean;
+  showMouthCuts: boolean;
   muted: boolean; mediaVolume: number; outroVolume: number;
 };
 
@@ -70,6 +71,7 @@ export interface UndoSetters {
   setShowSilenceGaps: React.Dispatch<React.SetStateAction<boolean>>;
   setShowFillerCuts: React.Dispatch<React.SetStateAction<boolean>>;
   setShowManualCuts: React.Dispatch<React.SetStateAction<boolean>>;
+  setShowMouthCuts: React.Dispatch<React.SetStateAction<boolean>>;
   setMuted: React.Dispatch<React.SetStateAction<boolean>>;
   setMediaVolume: React.Dispatch<React.SetStateAction<number>>;
   setOutroVolume: React.Dispatch<React.SetStateAction<number>>;
@@ -107,7 +109,7 @@ export function useAppUndoRedo(
     s.setJumpCutGapOverrides(snap.jumpCutGapOverrides); s.setJumpCutGapDisabled(snap.jumpCutGapDisabled);
     s.setJumpCutsEnabled(snap.jumpCutsEnabled); s.setJumpCutGapMs(snap.jumpCutGapMs);
     s.setJumpCutPaddingMs(snap.jumpCutPaddingMs); s.setCustomCutPaddingMs(snap.customCutPaddingMs);
-    s.setShowSilenceGaps(snap.showSilenceGaps); s.setShowFillerCuts(snap.showFillerCuts); s.setShowManualCuts(snap.showManualCuts);
+    s.setShowSilenceGaps(snap.showSilenceGaps); s.setShowFillerCuts(snap.showFillerCuts); s.setShowManualCuts(snap.showManualCuts); s.setShowMouthCuts(snap.showMouthCuts);
     s.setMuted(snap.muted); s.setMediaVolume(snap.mediaVolume); s.setOutroVolume(snap.outroVolume);
   };
   const restoreRef = useRef(restore);
@@ -125,7 +127,7 @@ export function useAppUndoRedo(
     microTimelines, selectedClipId, fullChunkOverrides, musicTimelineClips, selectedMusicClipId, showAudioTracks, customCuts,
     jumpCutGapOverrides, jumpCutGapDisabled,
     jumpCutsEnabled, jumpCutGapMs, jumpCutPaddingMs, customCutPaddingMs,
-    showSilenceGaps, showFillerCuts, showManualCuts, muted, mediaVolume, outroVolume,
+    showSilenceGaps, showFillerCuts, showManualCuts, showMouthCuts, muted, mediaVolume, outroVolume,
   } = state;
 
   useEffect(() => {
@@ -138,7 +140,7 @@ export function useAppUndoRedo(
     microTimelines, selectedClipId, fullChunkOverrides, musicTimelineClips, selectedMusicClipId, showAudioTracks, customCuts,
     jumpCutGapOverrides, jumpCutGapDisabled,
     jumpCutsEnabled, jumpCutGapMs, jumpCutPaddingMs, customCutPaddingMs,
-    showSilenceGaps, showFillerCuts, showManualCuts, muted, mediaVolume, outroVolume,
+    showSilenceGaps, showFillerCuts, showManualCuts, showMouthCuts, muted, mediaVolume, outroVolume,
   ]);
 
   // Clear history on project switch so undo doesn't cross project boundaries.

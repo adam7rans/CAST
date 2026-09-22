@@ -9,7 +9,7 @@ import { ProjectBar } from './ProjectBar';
 
 type TopBarProps = Pick<
   SidebarPanelProps,
-  | 'projects' | 'activeProjectId' | 'onSelectProject' | 'onCreateProject'
+  | 'projects' | 'activeProjectId' | 'onSelectProject' | 'onCreateProject' | 'saveStatus'
   | 'videoInfo' | 'audioInfo' | 'audioMode' | 'compositionMode' | 'setCompositionMode'
   | 'bgLayerOn' | 'setBgLayerOn' | 'videoLayerOn' | 'setVideoLayerOn'
   | 'captionsLayerOn' | 'setCaptionsLayerOn' | 'musicLayerOn' | 'setMusicLayerOn'
@@ -54,8 +54,8 @@ export const TopBar: React.FC<TopBarProps> = (p) => {
 
   return (
     <div style={{ flexShrink: 0, background: C.bar, borderBottom: `1px solid ${C.line}` }}>
-      {/* Row A — topline: project select + badges + New */}
-      <ProjectBar projects={p.projects} activeId={p.activeProjectId} onSelect={p.onSelectProject} onCreate={p.onCreateProject} />
+      {/* Row A — topline: project select + save status + badges + New */}
+      <ProjectBar projects={p.projects} activeId={p.activeProjectId} onSelect={p.onSelectProject} onCreate={p.onCreateProject} saveStatus={p.saveStatus} />
 
       {/* Row B — layers + mode/guide popovers + filename */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '6px 12px', borderBottom: `1px solid ${C.line}`, flexWrap: 'wrap' }}>
