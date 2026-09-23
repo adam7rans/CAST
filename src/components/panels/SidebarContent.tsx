@@ -1,11 +1,12 @@
-import React from 'react';
-import type { AudioSubTab } from '../../lib/constants';
+import React, { useState } from 'react';
+import type { AudioSubTab, ExportSubTab } from '../../lib/constants';
 import type { SidebarPanelProps } from './SidebarPanel.types';
 import { TabBar } from '../Tabs';
 import { ReactivityControls } from '../ReactivityControls';
 import { MusicControls } from '../MusicControls';
 import { MusicLibraryControls } from '../MusicLibraryControls';
 import { ExportPanel } from '../ExportPanel';
+import { ExportTestSection } from './ExportTestSection';
 import { ImportPresetPanel } from '../ImportPresetPanel';
 import { BackgroundPanel } from './BackgroundPanel';
 import { VideoPanel } from './VideoPanel';
@@ -14,8 +15,16 @@ import { VisualizerPanel } from './VisualizerPanel';
 import { CaptionsPanel } from './CaptionsPanel';
 import { EditorPanel } from './EditorPanel';
 
-export const SidebarContent: React.FC<SidebarPanelProps> = (p) => (
-  <div style={{ overflowY: 'auto', padding: 10, flex: '1 1 0', minHeight: 0 }}>
+export const SidebarContent: React.FC<SidebarPanelProps> = (p) => {
+  const [exportSubTab, setExportSubTab] = useState<ExportSubTab>('export');
+  return (
+  <div className="cast-scroll" style={{ overflowY: 'auto', padding: 10, flex: '1 1 0', minHeight: 0, scrollbarWidth: 'thin', scrollbarColor: '#2e2e2e transparent' }}>
+    <style>{`
+      .cast-scroll::-webkit-scrollbar { width: 8px; }
+      .cast-scroll::-webkit-scrollbar-track { background: transparent; }
+      .cast-scroll::-webkit-scrollbar-thumb { background: #2e2e2e; border-radius: 4px; }
+      .cast-scroll::-webkit-scrollbar-thumb:hover { background: #4a4a4a; }
+    `}</style>
     {p.mainTab === 'background' && (
       <BackgroundPanel
         bg={p.bg}
@@ -188,24 +197,46 @@ export const SidebarContent: React.FC<SidebarPanelProps> = (p) => (
 
     {p.mainTab === 'export' && (
       <>
-        <ExportPanel
-          params={p.activeExportParams}
-          onChange={p.setActiveExportParams}
-          onExport={p.exportComposition}
-          lockedDuration={p.videoInfo?.duration ?? p.audioInfo?.duration}
-          layerSummary={p.exportLayerSummary}
-          clipName={p.selectedClipName}
+        <TabBar<ExportSubTab>
+          tabs={[
+            { value: 'export', label: 'Export' },
+            { value: 'presets', label: 'Presets' },
+            { value: 'tests', label: 'Tests' },
+          ]}
+          value={exportSubTab}
+          onChange={setExportSubTab}
+          variant="sub"
         />
-        <ImportPresetPanel
-          projects={p.projects}
-          activeProjectId={p.activeProjectId}
-          currentPresetId={p.currentPresetId}
-          onPresetIdChange={p.setCurrentPresetId}
-          currentSettings={p.currentPresetSettings}
-          onApplySettings={p.onApplyPresetSettings}
-          addToast={p.addToast}
-        />
+        {exportSubTab === 'export' && (
+          <ExportPanel
+            params={p.activeExportParams}
+            onChange={p.setActiveExportParams}
+            onExport={p.exportComposition}
+            lockedDuration={p.videoInfo?.duration ?? p.audioInfo?.duration}
+            layerSummary={p.exportLayerSummary}
+            clipName={p.selectedClipName}
+          />
+        )}
+        {exportSubTab === 'presets' && (
+          <ImportPresetPanel
+            projects={p.projects}
+            activeProjectId={p.activeProjectId}
+            currentPresetId={p.currentPresetId}
+            onPresetIdChange={p.setCurrentPresetId}
+            currentSettings={p.currentPresetSettings}
+            onApplySettings={p.onApplyPresetSettings}
+            addToast={p.addToast}
+          />
+        )}
+        {exportSubTab === 'tests' && (
+          <ExportTestSection
+            projectId={p.activeProjectId}
+            initialOffsetSec={p.playheadSecond}
+            addToast={p.addToast}
+          />
+        )}
       </>
     )}
   </div>
-);
+  );
+};

@@ -5,6 +5,7 @@ export type VideoShaderSubTab = 'image' | 'rez' | 'distortion' | 'dither' | 'pos
 export type AudioSubTab = 'music' | 'mixer' | 'reactivity';
 export type CaptionsSubTab = 'editor' | 'type' | 'font' | 'shader';
 export type EditorSubTab = 'edits' | 'mode';
+export type ExportSubTab = 'export' | 'presets' | 'tests';
 export type EditorMode = 'clips' | 'full';
 export type FxSubTab = 'sidechain' | 'limiter';
 

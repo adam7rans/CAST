@@ -10,6 +10,8 @@ __pycache__/
 # Local app data
 /projects/
 /models/
+# Per-project settings archive tip (always-fresh copy; history files stay tracked)
+/archive/*/latest.json
 /server.log
 /*errors.txt
 /build/

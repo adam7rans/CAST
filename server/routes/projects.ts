@@ -7,6 +7,7 @@ import {
   captionPath, hasCaption, sseClients,
 } from '../helpers.js';
 import { writeSettingsGuarded } from '../settingsGuard.js';
+import { writeLatest } from '../archive.js';
 
 export const projectRoutes = Router();
 
@@ -75,6 +76,8 @@ function settingsHandler(req: import('express').Request, res: import('express').
   }
   const result = writeSettingsGuarded(id, (req.body as any) ?? {});
   writeProject(id, { ...proj, updatedAt: new Date().toISOString() });
+  // Permanent copy outside the deletable project folder (never throws).
+  writeLatest(id);
   res.json({ ok: true, preservedCustomCuts: result.preservedCustomCuts, preservedCount: result.preservedCount });
 }
 
