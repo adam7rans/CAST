@@ -3,6 +3,7 @@ annotations:
 imports:
   - "@auto/agents@latest/staff-engineer.yaml"
   - ../fragments/environments/agent-runtime.yaml
+  - ../fragments/credential-setup.yaml
 variables:
   repoFullName: adam7rans/CAST
   githubConnection: github-adam7rans
