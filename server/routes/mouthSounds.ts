@@ -3,6 +3,7 @@ import { execFileSync } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
 import { APP_ROOT, projectDir, readProject } from '../helpers.js';
+import { resolvePython } from '../pythonEnv.js';
 
 export const mouthSoundsRoutes = Router();
 
@@ -45,9 +46,10 @@ mouthSoundsRoutes.post('/:id/mouth-sounds', (req, res) => {
     return;
   }
   try {
+    const python = resolvePython();
     const out = execFileSync(
-      'python3',
-      [SCRIPT, mediaPath, '--threshold', String(threshold), '--classes', classes.join(',')],
+      python,
+      [SCRIPT, mediaPath, '--threshold', String(threshold)],
       { timeout: 20 * 60 * 1000, maxBuffer: 64 * 1024 * 1024, encoding: 'utf-8' },
     );
     const parsed = JSON.parse(out) as { regions?: unknown[]; meta?: unknown };
