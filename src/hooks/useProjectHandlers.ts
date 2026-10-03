@@ -6,6 +6,7 @@ import { snapToExportResolution } from '../lib/layoutUtils';
 import { describeMediaError } from '../lib/mediaError';
 import { createProject, getAudioUrl, getMusicUrl, getProject, getTranscript, getVideoUrl, listProjects } from '../lib/projectApi';
 import { MOUTH_SOUND_CLASSES } from '../lib/skipTypes';
+import { DEFAULT_FILLER_CATEGORIES, sanitizeFillerCategories } from '../lib/fillerDetector';
 import type { GuideKey } from '../lib/constants';
 import type { ProjectHandlerRefs, ProjectHandlerSetters } from './useProjectHandlers.types';
 import { applyProjectUiState, applyProjectVisualState, resetManagedMedia, resetProjectState } from './useProjectHandlers.shared';
@@ -73,6 +74,8 @@ export function createHandleSelectProject(refs: ProjectHandlerRefs, setters: Pro
           ? (project.jumpCuts as any).mouthClasses.filter((c: any) => typeof c === 'string')
           : [...MOUTH_SOUND_CLASSES],
       );
+      const savedFillers = sanitizeFillerCategories((project.jumpCuts as any)?.fillerCategories);
+      setters.setFillerCategories(savedFillers && savedFillers.length > 0 ? savedFillers : [...DEFAULT_FILLER_CATEGORIES]);
       setters.setJumpCutGapOverrides({});
       setters.setJumpCutGapDisabled({});
       setters.setShowSilenceGaps(false);

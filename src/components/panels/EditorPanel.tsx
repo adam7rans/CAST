@@ -1,9 +1,9 @@
 import React from 'react';
-import { detectFillerCuts } from '../../lib/fillerDetector';
 import { SKIP_TYPE_META, formatGapKind, isMouthCutKey } from '../../lib/skipTypes';
 import { TabBar } from '../Tabs';
 import { Section, Slider } from '../Controls';
 import { MouthSoundsSection } from './MouthSoundsSection';
+import { FillerWordsSection } from './FillerWordsSection';
 import { fmt } from '../timeline/timelineUtils';
 import type { EditorPanelProps } from './EditorPanel.types';
 import type { EditorMode, EditorSubTab } from '../../lib/constants';
@@ -63,7 +63,8 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
   showManualCuts, setShowManualCuts,
   showMouthCuts, setShowMouthCuts,
   mouthDetectClasses, setMouthDetectClasses,
-  onAddCustomCuts, onClearCustomCuts,
+  fillerCategories, setFillerCategories,
+  onDetectFillers, onClearCustomCuts,
   mouthDetecting, mouthDetectError, onDetectMouthSounds, onClearMouthCuts,
   pendingCustomCutStartMs, onStartCustomCut, onFinishCustomCut, onCancelPendingCustomCut,
   selectedGap, selectedGapDisabled, selectedGapHasOverride,
@@ -147,36 +148,19 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
             />
           </Section>
 
-          <Section title="Skip filler words" colorDot={SKIP_TYPE_META.filler.hex} enabled={showFillerCuts} onToggle={customCuts.length > 0 || !!transcript ? setShowFillerCuts : undefined}>
-            <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-              <button
-                onClick={() => transcript && onAddCustomCuts(detectFillerCuts(transcript))}
-                disabled={!transcript}
-                style={{ ...primaryButtonStyle, opacity: transcript ? 1 : 0.5, cursor: transcript ? 'pointer' : 'not-allowed' }}
-              >
-                ✂ Skip filler words
-              </button>
-              <span style={{ color: '#888', fontSize: 12 }}>
-                {fillerCuts.length > 0 ? `${fillerCuts.length} filler skip${fillerCuts.length === 1 ? '' : 's'}` : 'no filler skips yet'}
-              </span>
-              {customCuts.length > 0 && (
-                <button onClick={onClearCustomCuts} style={buttonStyle}>
-                  Clear custom skips
-                </button>
-              )}
-            </div>
-            {customCuts.length > 0 && (
-              <Slider
-                label="tighten ms"
-                value={customCutPaddingMs}
-                min={0}
-                max={500}
-                step={10}
-                ticks={[50, 100, 200, 300]}
-                onChange={(value) => setCustomCutPaddingMs(Math.max(0, Math.round(value)))}
-              />
-            )}
-          </Section>
+          <FillerWordsSection
+            hasTranscript={!!transcript}
+            fillerCutCount={fillerCuts.length}
+            customCutCount={customCuts.length}
+            showFillerCuts={showFillerCuts}
+            setShowFillerCuts={setShowFillerCuts}
+            fillerCategories={fillerCategories}
+            setFillerCategories={setFillerCategories}
+            onDetectFillers={onDetectFillers}
+            onClearCustomCuts={onClearCustomCuts}
+            customPaddingMs={customCutPaddingMs}
+            setCustomPaddingMs={setCustomCutPaddingMs}
+          />
 
           <Section title="Manual skip areas" colorDot={SKIP_TYPE_META.manual.hex} enabled={showManualCuts} onToggle={customCuts.length > 0 || hasMedia ? setShowManualCuts : undefined}>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>

@@ -36,6 +36,9 @@ export interface EditorPanelProps {
   setShowMouthCuts: React.Dispatch<React.SetStateAction<boolean>>;
   mouthDetectClasses: string[];
   setMouthDetectClasses: React.Dispatch<React.SetStateAction<string[]>>;
+  fillerCategories: import('../../lib/fillerDetector').FillerCategoryId[];
+  setFillerCategories: React.Dispatch<React.SetStateAction<import('../../lib/fillerDetector').FillerCategoryId[]>>;
+  onDetectFillers: () => void;
   onAddCustomCuts: (cuts: CustomCut[]) => void;
   onClearCustomCuts: () => void;
   mouthDetecting: boolean;

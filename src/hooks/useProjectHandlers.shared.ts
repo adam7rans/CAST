@@ -1,5 +1,6 @@
 import { DEFAULT_LIMITER } from '../lib/AudioSource';
 import { MOUTH_SOUND_CLASSES } from '../lib/skipTypes';
+import { DEFAULT_FILLER_CATEGORIES } from '../lib/fillerDetector';
 import { DEFAULT_MUSIC_PARAMS } from '../lib/MusicPlayer';
 import { DEFAULT_AUDIO_REACTIVITY, DEFAULT_AUDIO_VISUALIZER, DEFAULT_BACKGROUND, DEFAULT_CAPTION_SHADER, DEFAULT_CAPTION_STYLE, DEFAULT_DITHER, DEFAULT_EXPORT, DEFAULT_VIDEO, normalizeCaptionShaderParams, normalizeVideoShaderParams } from '../lib/types';
 import { seedGuideMap, type GuideKey } from '../lib/constants';
@@ -103,6 +104,7 @@ export function resetProjectState(setters: ProjectHandlerSetters) {
   setters.setShowManualCuts(false);
   setters.setShowMouthCuts(false);
   setters.setMouthDetectClasses([...MOUTH_SOUND_CLASSES]);
+  setters.setFillerCategories([...DEFAULT_FILLER_CATEGORIES]);
 }
 
 export function applyProjectVisualState(proj: ProjectData, setters: ProjectHandlerSetters) {

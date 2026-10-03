@@ -175,6 +175,9 @@ export const SidebarContent: React.FC<SidebarPanelProps> = (p) => {
         setShowMouthCuts={p.setShowMouthCuts}
         mouthDetectClasses={p.mouthDetectClasses}
         setMouthDetectClasses={p.setMouthDetectClasses}
+        fillerCategories={p.fillerCategories}
+        setFillerCategories={p.setFillerCategories}
+        onDetectFillers={p.onDetectFillers}
         onAddCustomCuts={p.onAddCustomCuts}
         onClearCustomCuts={p.onClearCustomCuts}
         mouthDetecting={p.mouthDetecting}

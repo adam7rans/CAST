@@ -49,6 +49,7 @@ export interface Settings {
     showSilence?: boolean;
     showFiller?: boolean;
     showManual?: boolean;
+    fillerCategories?: string[];
     overrides?: Record<string, { startMs: number; endMs: number }>;
     disabled?: Record<string, true>;
   };

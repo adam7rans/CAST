@@ -1,11 +1,18 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type SetStateAction } from 'react';
 import type { TranscriptData } from '../lib/transcript';
-import type { CustomCut } from '../lib/fillerDetector';
+import type { CustomCut, FillerCategoryId } from '../lib/fillerDetector';
+import { DEFAULT_FILLER_CATEGORIES } from '../lib/fillerDetector';
 import {
   MOUTH_SOUND_CLASSES, isCustomKey, isFillerCutKey, isManualCutKey, isMouthCutKey, mergeCutsByKey,
 } from '../lib/skipTypes';
 
-export type JumpCutGap = { startMs: number; endMs: number; key: string; kind?: 'silence' | 'custom'; label?: string };
+import {
+  applyPadding, buildCustomCutGaps, buildSilenceGaps, filterByVisibility,
+  mergeAndOverride, removeDisabled, type SkipGap,
+} from './useSkipGaps';
+
+/** @deprecated Prefer `SkipGap` from ./useSkipGaps. Kept as an alias for existing importers. */
+export type JumpCutGap = SkipGap;
 
 export { isCustomKey, isFillerCutKey, isManualCutKey, isMouthCutKey };
 
@@ -33,6 +40,8 @@ export function useJumpCuts(transcript: TranscriptData | null) {
   const [showMouthCuts, setShowMouthCuts] = useState(false);
   // Which YAMNet types the Detect button looks for (persisted per project).
   const [mouthDetectClasses, setMouthDetectClasses] = useState<string[]>([...MOUTH_SOUND_CLASSES]);
+  // Which filler categories the Detect button looks for (persisted per project).
+  const [fillerCategories, setFillerCategories] = useState<FillerCategoryId[]>([...DEFAULT_FILLER_CATEGORIES]);
 
   const jumpCutsEnabledRef = useRef(false);
   const jumpCutGapListRef = useRef<JumpCutGap[]>([]);
@@ -57,73 +66,29 @@ export function useJumpCuts(transcript: TranscriptData | null) {
   useEffect(() => { jumpCutsEnabledRef.current = jumpCutsEnabled; }, [jumpCutsEnabled]);
   useEffect(() => { setPendingCustomCutStartMs(null); }, [transcript]);
 
-  const jumpCutGapsBase = useMemo(() => {
-    if (!transcript) return [] as JumpCutGap[];
-    const words: Array<{ start: number; end: number }> = [];
-    for (const u of transcript.utterances) {
-      if (u.words) for (const w of u.words) words.push(w);
-    }
-    words.sort((a, b) => a.start - b.start);
-    const gaps: JumpCutGap[] = [];
-    for (let i = 0; i < words.length - 1; i++) {
-      const gapStart = words[i].end;
-      const gapEnd = words[i + 1].start;
-      if (gapEnd - gapStart >= jumpCutGapMs) {
-        gaps.push({ startMs: gapStart, endMs: gapEnd, key: `${gapStart}|${gapEnd}`, kind: 'silence' });
-      }
-    }
-    return gaps;
-  }, [transcript, jumpCutGapMs]);
-
-  // User-added custom cuts flow through the same
-  // overrides/disabled/timeline pipeline as auto-detected gaps.
-  const customCutGaps = useMemo<JumpCutGap[]>(() => {
-    return customCuts.map(c => ({
-      startMs: c.startMs,
-      endMs: c.endMs,
-      key: isCustomKey(c.key) ? c.key : `custom:${c.key}`,
-      kind: 'custom',
-      label: c.label,
-    }));
-  }, [customCuts]);
-
-  const jumpCutGapsAll = useMemo(() => {
-    const all = [...jumpCutGapsBase, ...customCutGaps];
-    all.sort((a, b) => a.startMs - b.startMs);
-    return all.map(g => {
-      const o = jumpCutGapOverrides[g.key];
-      return o ? { ...g, startMs: o.startMs, endMs: o.endMs } : g;
-    });
-  }, [jumpCutGapsBase, customCutGaps, jumpCutGapOverrides]);
-
+  const jumpCutGapsBase = useMemo(
+    () => buildSilenceGaps(transcript, jumpCutGapMs),
+    [transcript, jumpCutGapMs],
+  );
+  const customCutGaps = useMemo(() => buildCustomCutGaps(customCuts), [customCuts]);
+  const jumpCutGapsAll = useMemo(
+    () => mergeAndOverride(jumpCutGapsBase, customCutGaps, jumpCutGapOverrides),
+    [jumpCutGapsBase, customCutGaps, jumpCutGapOverrides],
+  );
   // Filtered view respecting visibility toggles — drives timeline + effective gaps
-  const jumpCutGaps = useMemo(() => {
-    return jumpCutGapsAll.filter(g => {
-      if (g.kind === 'custom') {
-        if (isMouthCutKey(g.key)) return showMouthCuts;
-        return isFillerCutKey(g.key) ? showFillerCuts : showManualCuts;
-      }
-      return showSilenceGaps;
-    });
-  }, [jumpCutGapsAll, showSilenceGaps, showFillerCuts, showManualCuts, showMouthCuts]);
-
-  // Effective gaps = silence gaps get symmetrical padding; custom cuts pass
-  // through as-is (they're already word-precise). These are the actual skip
-  // zones used for playback and export.
-  const jumpCutGapsEffective = useMemo(() => {
-    return jumpCutGaps
-      .map(g => g.kind === 'custom'
-        // Custom/filler cuts: SHRINK by customCutPaddingMs on each side
-        // (loosens the cut so more surrounding context survives)
-        ? { ...g, startMs: g.startMs + customCutPaddingMs, endMs: g.endMs - customCutPaddingMs }
-        // Silence gaps: SHRINK by jumpCutPaddingMs on each side
-        : { ...g, startMs: g.startMs + jumpCutPaddingMs, endMs: g.endMs - jumpCutPaddingMs })
-      .filter(g => g.endMs - g.startMs > 20); // drop gaps that padding has consumed entirely
-  }, [jumpCutGaps, jumpCutPaddingMs, customCutPaddingMs]);
+  const jumpCutGaps = useMemo(
+    () => filterByVisibility(jumpCutGapsAll, { showSilenceGaps, showFillerCuts, showManualCuts, showMouthCuts }),
+    [jumpCutGapsAll, showSilenceGaps, showFillerCuts, showManualCuts, showMouthCuts],
+  );
+  // Effective gaps = the actual skip zones used for playback and export.
+  const jumpCutGapsEffective = useMemo(
+    () => applyPadding(jumpCutGaps, { jumpCutPaddingMs, customCutPaddingMs }),
+    [jumpCutGaps, jumpCutPaddingMs, customCutPaddingMs],
+  );
 
   // RAF loop should never see disabled gaps
   useEffect(() => {
-    jumpCutGapListRef.current = jumpCutGapsEffective.filter(g => !jumpCutGapDisabled[g.key]);
+    jumpCutGapListRef.current = removeDisabled(jumpCutGapsEffective, jumpCutGapDisabled);
   }, [jumpCutGapsEffective, jumpCutGapDisabled]);
 
   const handleAdjustGap = useCallback((key: string, startMs: number, endMs: number) => {
@@ -273,6 +238,7 @@ export function useJumpCuts(transcript: TranscriptData | null) {
     showManualCuts, setShowManualCuts,
     showMouthCuts, setShowMouthCuts,
     mouthDetectClasses, setMouthDetectClasses,
+    fillerCategories, setFillerCategories,
     jumpCutGapOverrides,
     setJumpCutGapOverrides,
     jumpCutGapDisabled,

@@ -102,7 +102,11 @@ export interface ProjectHandlerSetters {
   setShowFillerCuts: React.Dispatch<React.SetStateAction<boolean>>;
   setShowManualCuts: React.Dispatch<React.SetStateAction<boolean>>;
   setShowMouthCuts: React.Dispatch<React.SetStateAction<boolean>>;
+  setFillerCategories: (v: import('../lib/fillerDetector').FillerCategoryId[]) => void;
   setMouthDetectClasses: React.Dispatch<React.SetStateAction<string[]>>;
+  // Consumed by sibling hooks (usePlaybackKeyboard) that share this setters bag.
+  setPlaybackRate: React.Dispatch<React.SetStateAction<number>>;
+  setPlaybackStartMs: React.Dispatch<React.SetStateAction<number | undefined>>;
   setShowAudioTracks: React.Dispatch<React.SetStateAction<boolean>>;
   addToast: (message: string, type?: Toast['type'], sticky?: boolean) => number;
 }

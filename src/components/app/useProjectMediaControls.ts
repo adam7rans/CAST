@@ -5,13 +5,19 @@ import { createImportNativeMedia, createLoadFile, createLoadMusicFile, createHan
 import { createTogglePlay, createHandleSeekPlayhead, usePlaybackKeyboard } from '../../hooks/usePlayback';
 import { createExportComposition } from '../../hooks/useExporter';
 import { useProjectRouting, useSSEStream } from '../../hooks/useProjectEffects';
+import type { ProjectHandlerSetters } from '../../hooks/useProjectHandlers.types';
 import { useTranscriptHandlers } from '../../hooks/useTranscript';
 import { outputToSourceTime } from '../../lib/timeMapping';
 
 interface Args {
   refs: any;
   state: any;
-  setters: any;
+  // Typed so a setter added to ProjectHandlerSetters cannot be silently
+  // omitted here — a missing key throws inside the project-load handler and
+  // surfaces only as a generic "Failed to load project" toast.
+  // The call site spreads the shared setters bag and injects addToast from the
+  // toast hook, so it is supplied here rather than passed in directly.
+  setters: Omit<ProjectHandlerSetters, 'addToast'>;
   toasts: any;
 }
 

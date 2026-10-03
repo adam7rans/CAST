@@ -65,6 +65,7 @@ export interface AutoSaveSettings {
   showManualCuts: boolean;
   showMouthCuts: boolean;
   mouthDetectClasses: string[];
+  fillerCategories: string[];
   mainTab: MainTab;
   bgSubTab: BgSubTab;
   videoSubTab: VideoSubTab;
@@ -95,7 +96,7 @@ function buildSavePayload(settings: AutoSaveSettings) {
     activeGuide, cropToGuide, bgExport, vidExport,
     microTimelines, selectedClipId, captionClipEdits,
     customCuts, customCutsClearedAt, jumpCutGapOverrides, jumpCutGapDisabled, jumpCutsEnabled, jumpCutGapMs, jumpCutPaddingMs, customCutPaddingMs,
-    showSilenceGaps, showFillerCuts, showManualCuts, showMouthCuts, mouthDetectClasses,
+    showSilenceGaps, showFillerCuts, showManualCuts, showMouthCuts, mouthDetectClasses, fillerCategories,
     mainTab, bgSubTab, videoSubTab, videoShaderSubTab, audioSubTab, captionsSubTab, editorSubTab, editorMode, selectedFullSegmentId, fullChunkOverrides, showAudioTracks, muted, mediaVolume, outroVolume, currentPresetId,
   } = settings;
   return {
@@ -116,6 +117,7 @@ function buildSavePayload(settings: AutoSaveSettings) {
       showManual: showManualCuts,
       showMouth: showMouthCuts,
       mouthClasses: mouthDetectClasses,
+      fillerCategories,
       overrides: jumpCutGapOverrides,
       disabled: jumpCutGapDisabled,
     },
@@ -144,7 +146,7 @@ export function useAutoSave(activeProjectId: string | null, ready: boolean, sett
     activeGuide, cropToGuide, bgExport, vidExport,
     microTimelines, selectedClipId, captionClipEdits,
     customCuts, customCutsClearedAt, jumpCutGapOverrides, jumpCutGapDisabled, jumpCutsEnabled, jumpCutGapMs, jumpCutPaddingMs, customCutPaddingMs,
-    showSilenceGaps, showFillerCuts, showManualCuts, showMouthCuts, mouthDetectClasses,
+    showSilenceGaps, showFillerCuts, showManualCuts, showMouthCuts, mouthDetectClasses, fillerCategories,
     mainTab, bgSubTab, videoSubTab, videoShaderSubTab, audioSubTab, captionsSubTab, editorSubTab, editorMode, selectedFullSegmentId, fullChunkOverrides, showAudioTracks, muted, mediaVolume, outroVolume, currentPresetId,
     projectHasVideo, projectHasAudio, videoInfoLoaded, audioInfoLoaded,
   } = settings;
@@ -209,7 +211,7 @@ export function useAutoSave(activeProjectId: string | null, ready: boolean, sett
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeProjectId, ready, bg, bgDither, vid, audioReactivity, visualizer, compositionMode, music, musicLibraryDurations, musicTimelineClips, limiter, captionMode, captionStyle, captionShader, captionStyleByGuide, captionShaderByGuide, bgLayerOn, bgOffMode, bgOffColor, videoLayerOn, captionsLayerOn, musicLayerOn, activeGuide, cropToGuide, bgExport, vidExport, microTimelines, selectedClipId, captionClipEdits,     customCuts, customCutsClearedAt, jumpCutGapOverrides, jumpCutGapDisabled, jumpCutsEnabled, jumpCutGapMs, jumpCutPaddingMs, customCutPaddingMs,
-    showSilenceGaps, showFillerCuts, showManualCuts, showMouthCuts, mouthDetectClasses, mainTab, bgSubTab, videoSubTab, videoShaderSubTab, audioSubTab, captionsSubTab, editorSubTab, editorMode, selectedFullSegmentId, fullChunkOverrides, showAudioTracks, muted, mediaVolume, outroVolume, currentPresetId, projectHasVideo, projectHasAudio, videoInfoLoaded, audioInfoLoaded]);
+    showSilenceGaps, showFillerCuts, showManualCuts, showMouthCuts, mouthDetectClasses, fillerCategories, mainTab, bgSubTab, videoSubTab, videoShaderSubTab, audioSubTab, captionsSubTab, editorSubTab, editorMode, selectedFullSegmentId, fullChunkOverrides, showAudioTracks, muted, mediaVolume, outroVolume, currentPresetId, projectHasVideo, projectHasAudio, videoInfoLoaded, audioInfoLoaded]);
 
   return status;
 }
