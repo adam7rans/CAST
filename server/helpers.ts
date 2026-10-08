@@ -11,7 +11,7 @@ export const PUBLIC_DIR = path.join(APP_ROOT, 'public');
 export const APP_NAME = 'CAST';
 export const APP_HOST = process.env.CAST_HOST || '127.0.0.1';
 const staticMode = process.env.CAST_SERVE_STATIC === '1' || process.env.CAST_SERVE_STATIC === 'true';
-export const APP_PORT = Number(process.env.CAST_PORT || (staticMode ? 4312 : 3001));
+export const APP_PORT = Number(process.env.CAST_PORT || (staticMode ? 4312 : 3002));
 export const PROJECTS_DIR = path.resolve(process.env.CAST_DATA_DIR || path.join(APP_ROOT, 'projects'));
 fs.mkdirSync(PROJECTS_DIR, { recursive: true });
 export const PRESETS_DIR = path.resolve(process.env.CAST_PRESETS_DIR || path.join(APP_ROOT, 'presets'));

@@ -1,7 +1,9 @@
 .assemblyai_key
 .env
 .env.*
+/server/.youtube-token.json
 node_modules/
+/.venv/
 dist/
 __pycache__/
 *.pyc

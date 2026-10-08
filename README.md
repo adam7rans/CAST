@@ -21,6 +21,7 @@ npm run dev
 ```
 
 Open [http://127.0.0.1:5180](http://127.0.0.1:5180).
+The development API listens on port 3002, which is CAST's assigned local port.
 
 Single-origin local app mode:
 
@@ -30,6 +31,31 @@ npm run start:app
 ```
 
 Open [http://127.0.0.1:4312](http://127.0.0.1:4312) by default.
+Rebuild after source changes. Restart the dock app after server route changes.
+
+## Finalize and YouTube
+
+After exporting the project's chunks, use **Export → Finalize** to check coverage,
+stitch the full video, choose chapters, and prepare a description. YouTube upload
+requires a Google OAuth Web application client with the YouTube Data API v3 enabled. Put
+its credentials in the untracked `.env` file:
+
+```text
+YOUTUBE_CLIENT_ID=...
+YOUTUBE_CLIENT_SECRET=...
+YOUTUBE_REDIRECT_URI=http://127.0.0.1:3002/api/youtube/oauth/callback
+YOUTUBE_UNLISTED_APPROVED=1
+```
+
+Authorize both `http://127.0.0.1:3002/api/youtube/oauth/callback` (development API)
+and `http://127.0.0.1:4312/api/youtube/oauth/callback` (dock app) in the OAuth client.
+The server uses its current port for the callback.
+
+Set `YOUTUBE_UNLISTED_APPROVED=1` only for a project that has passed YouTube's
+API audit (or is otherwise exempt from its private-upload restriction). The app
+blocks uploads until then. It stores the refresh token in the ignored
+`server/.youtube-token.json` with owner-only permissions. Uploads request
+unlisted visibility and are marked not for kids.
 
 ## Projects and presets
 

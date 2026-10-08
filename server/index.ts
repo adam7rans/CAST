@@ -10,6 +10,8 @@ import { exportRoutes } from './routes/exports.js';
 import { presetRoutes } from './routes/presets.js';
 import { metalRoutes } from './routes/metal.js';
 import { obsPresetRoutes } from './routes/obsPresets.js';
+import { finalizeRoutes } from './routes/finalize.js';
+import { youtubeRoutes, projectYoutubeRoutes } from './routes/youtube.js';
 import { APP_HOST, APP_NAME, APP_PORT, DIST_DIR } from './helpers.js';
 
 const app = express();
@@ -22,6 +24,9 @@ app.use('/api/projects', mediaRoutes);
 app.use('/api/projects', mouthSoundsRoutes);
 app.use('/api/projects', qualityTestsRoutes);
 app.use('/api/projects', exportRoutes);
+app.use('/api/projects', finalizeRoutes);
+app.use('/api/projects', projectYoutubeRoutes);
+app.use('/api/youtube', youtubeRoutes);
 app.use('/api/presets', presetRoutes);
 app.use('/api/metal', metalRoutes);
 app.use('/api/obs-presets', obsPresetRoutes);

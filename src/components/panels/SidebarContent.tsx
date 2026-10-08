@@ -14,6 +14,7 @@ import { MetalCameraPanel } from './MetalCameraPanel';
 import { VisualizerPanel } from './VisualizerPanel';
 import { CaptionsPanel } from './CaptionsPanel';
 import { EditorPanel } from './EditorPanel';
+import { FinalizePanel } from '../finalize/FinalizePanel';
 
 export const SidebarContent: React.FC<SidebarPanelProps> = (p) => {
   const [exportSubTab, setExportSubTab] = useState<ExportSubTab>('export');
@@ -205,6 +206,7 @@ export const SidebarContent: React.FC<SidebarPanelProps> = (p) => {
             { value: 'export', label: 'Export' },
             { value: 'presets', label: 'Presets' },
             { value: 'tests', label: 'Tests' },
+            { value: 'finalize', label: 'Finalize' },
           ]}
           value={exportSubTab}
           onChange={setExportSubTab}
@@ -238,6 +240,8 @@ export const SidebarContent: React.FC<SidebarPanelProps> = (p) => {
             addToast={p.addToast}
           />
         )}
+        {exportSubTab === 'finalize' && <FinalizePanel projectId={p.activeProjectId}
+          onSeek={(second) => p.onSearchMatchNavigate(second * 1000, second * 1000)} />}
       </>
     )}
   </div>
