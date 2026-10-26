@@ -13,6 +13,8 @@ import {
 import { VideoPositionAnimationSection } from '../VideoPositionAnimationSection';
 import { VideoDistortionAnimationSection } from '../VideoDistortionAnimationSection';
 import { TabBar } from '../Tabs';
+import { PipelineEditor } from '../pipeline/PipelineEditor';
+import { convertToPipeline, defaultPipeline, keepPipeline } from '../../lib/pipeline/legacyConversion';
 import type { VideoShaderSubTab, VideoSubTab } from '../../lib/constants';
 
 const MediaDropZone: React.FC<{
@@ -86,19 +88,19 @@ export const VideoPanel: React.FC<Props> = ({
         <TabBar<VideoSubTab>
           tabs={[
             { value: 'shader', label: 'Shader', disabled: audioMode },
-            { value: 'gradient', label: 'Gradient', disabled: audioMode },
+            ...(vid.pipeline ? [] : [{ value: 'gradient' as const, label: 'Gradient', disabled: audioMode }]),
             { value: 'settings', label: 'Settings' },
           ]}
-          value={audioMode && videoSubTab !== 'settings' ? 'settings' : videoSubTab}
+          value={audioMode && videoSubTab !== 'settings' ? 'settings' : (vid.pipeline && videoSubTab === 'gradient' ? 'shader' : videoSubTab)}
           onChange={setVideoSubTab}
           variant="sub"
         />
         {!audioMode && (
           <>
-            {videoSubTab === 'gradient' && (
+            {videoSubTab === 'gradient' && !vid.pipeline && (
               <VideoGradientSection value={vid} onChange={setVid} onReset={() => setVid(v => ({ ...v, ...DEFAULT_VIDEO_GRADIENT }))} />
             )}
-            {videoSubTab === 'shader' && (
+            {(videoSubTab === 'shader' || (videoSubTab === 'gradient' && !!vid.pipeline)) && (
               <>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
@@ -136,7 +138,7 @@ export const VideoPanel: React.FC<Props> = ({
                     </button>
                   </div>
                   <button
-                    onClick={() => setVid(DEFAULT_VIDEO)}
+                    onClick={() => setVid(vid.pipeline ? { ...DEFAULT_VIDEO, pipeline: defaultPipeline() } : DEFAULT_VIDEO)}
                     style={{
                       padding: '2px 8px',
                       background: 'transparent',
@@ -155,6 +157,10 @@ export const VideoPanel: React.FC<Props> = ({
                     Restore all
                   </button>
                 </div>
+                {vid.pipeline ? (
+                  <PipelineEditor vid={vid} setVid={setVid} playheadSecond={playheadSecond} />
+                ) : (
+                <>
                 <TabBar<VideoShaderSubTab>
                   tabs={[
                     { value: 'image', label: 'Image' },
@@ -181,6 +187,8 @@ export const VideoPanel: React.FC<Props> = ({
                     <VideoPositionSection value={vid} onChange={setVid} animationTime={playheadSecond} onReset={() => setVid(v => ({ ...v, ...DEFAULT_VIDEO_POSITION }))} />
                     <VideoPositionAnimationSection value={vid} onChange={setVid} onReset={() => setVid(v => ({ ...v, ...DEFAULT_VIDEO_POSITION_ANIMATION }))} />
                   </>
+                )}
+                </>
                 )}
               </>
             )}
@@ -214,6 +222,25 @@ export const VideoPanel: React.FC<Props> = ({
               </div>
             </Section>
             {!audioMode && (
+              <Section title="Shader engine">
+                <div style={{ color: '#888', lineHeight: 1.5, marginBottom: 8 }}>
+                  {vid.pipeline
+                    ? 'Pipeline: shaders run in the order you set and you can add more. Only this project uses it.'
+                    : 'Legacy: one fixed shader (image → rez → distort → dither). Pipeline lets you reorder shaders and add new ones.'}
+                </div>
+                {!vid.pipeline && (
+                  <button
+                    onClick={() => {
+                      if (window.confirm('Switch THIS project to the shader pipeline? The look stays the same; other projects are not affected. Undo (Cmd+Z) reverts it.')) setVid(convertToPipeline(vid));
+                    }}
+                    style={{ padding: '6px 12px', background: '#222', color: '#ddd', borderRadius: 3, cursor: 'pointer', border: 'none', fontFamily: 'inherit' }}
+                  >
+                    Convert this project to pipeline…
+                  </button>
+                )}
+              </Section>
+            )}
+            {!audioMode && (
               <Section title="Preset">
                 <Select
                   label="load"
@@ -224,7 +251,7 @@ export const VideoPanel: React.FC<Props> = ({
                   ]}
                   onChange={(name) => {
                     const p = VIDEO_PRESETS.find((x) => x.name === name);
-                    if (p) setVid(normalizeVideoShaderParams(p.params));
+                    if (p) setVid((cur) => keepPipeline(cur, normalizeVideoShaderParams(p.params)));
                   }}
                 />
               </Section>

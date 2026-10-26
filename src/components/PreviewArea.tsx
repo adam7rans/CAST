@@ -7,6 +7,7 @@ import type { GUIDES } from '../lib/constants';
 import { ShaderCaptions } from './ShaderCaptions';
 import { OutroOverlay } from './OutroOverlay';
 import { GradientGuideOverlay } from './GradientGuideOverlay';
+import { gradientView, guideStage, stageFromGradientView } from '../lib/pipeline/gradientStage';
 import { StatusToast, type Toast } from './StatusToast';
 
 interface Props {
@@ -55,6 +56,7 @@ export const PreviewArea: React.FC<Props> = ({
   mediaElRef, playheadSecond, playbackStartMs,
   activeExportParams, toasts, onDismissToast, onDrop,
 }) => {
+  const gradGuide = guideStage(vid);
   const finalOutputFilter = activeExportParams.invertFinalOutput ? 'invert(1)' : 'none';
   return (
   <div
@@ -143,8 +145,10 @@ export const PreviewArea: React.FC<Props> = ({
     {!audioMode && videoLayerOn && (
       <GradientGuideOverlay
         frame={previewFrame}
-        value={vid}
-        onChange={(next) => setVid(next)}
+        value={gradGuide ? gradientView(vid, gradGuide) : (vid.pipeline ? { ...vid, gradientEnabled: false } : vid)}
+        onChange={(next) => setVid((cur) => (gradGuide
+          ? { ...cur, pipeline: cur.pipeline?.map((s) => (s.id === gradGuide.id ? stageFromGradientView(s, next) : s)) }
+          : next))}
       />
     )}
 

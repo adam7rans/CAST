@@ -1,4 +1,6 @@
 import type { AudioReactivityParams, AudioVisualizerParams, BackgroundParams, CaptionShaderParams, CaptionStyle, DitherParams, ExportParams, VideoShaderParams } from './types.models';
+import { normalizePipeline } from './pipeline/registry';
+import { PIPELINE_VERSION, migratePipeline } from './pipeline/gradientMigration';
 import { createDefaultVideoGradientStops, normalizeVideoGradientStops, withGradientStops } from './types.videoGradient';
 
 function clampGradientScale(value: number): number {
@@ -61,6 +63,8 @@ export function normalizeVideoShaderParams(input?: Partial<VideoShaderParams> | 
     ...DEFAULT_VIDEO.distortionAnimation[key],
     ...(input?.distortionAnimation?.[key] ?? {}),
   });
+  const normalizedPipeline = normalizePipeline(input?.pipeline);
+  const pipeline = normalizedPipeline ? migratePipeline(normalizedPipeline, merged, input?.pipelineVersion) : undefined;
   return {
     ...withGradientStops(merged, normalizeVideoGradientStops(input?.gradientStops, merged.gradientColorA, merged.gradientOpacityA, merged.gradientColorB, merged.gradientOpacityB)),
     gradientGuideVisible: typeof input?.gradientGuideVisible === 'boolean' ? input.gradientGuideVisible : DEFAULT_VIDEO.gradientGuideVisible,
@@ -79,6 +83,7 @@ export function normalizeVideoShaderParams(input?: Partial<VideoShaderParams> | 
       speed: distortionAnimationRange('speed'),
       angle: distortionAnimationRange('angle'),
     },
+    ...(pipeline ? { pipeline, pipelineVersion: PIPELINE_VERSION } : {}),
   };
 }
 

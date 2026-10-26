@@ -6,6 +6,7 @@ import {
 } from '../shaders/videoShader';
 import { MAX_VIDEO_GRADIENT_STOPS, type VideoShaderParams, type VideoGradientStop } from './types';
 import { resolveAnimationValue } from './videoPositionAnimation';
+import { PipelineRenderer } from './pipeline/PipelineRenderer';
 
 /**
  * Renders an HTMLVideoElement through the single-pass video shader
@@ -23,6 +24,8 @@ export class VideoRenderer {
   private width = 1;
   private height = 1;
   private startTime = performance.now();
+  /** Only exists while params.pipeline is set; legacy projects never touch it. */
+  private pipeline: PipelineRenderer | null = null;
 
   constructor(canvas: HTMLCanvasElement, params: VideoShaderParams) {
     this.params = { ...params };
@@ -49,6 +52,7 @@ export class VideoRenderer {
     this.scene.add(new THREE.Mesh(new THREE.PlaneGeometry(2, 2), this.material));
 
     this.applyParams();
+    this.syncPipeline();
   }
 
   setVideo(video: HTMLVideoElement | null) {
@@ -79,11 +83,23 @@ export class VideoRenderer {
     // backing-store resolution.
     this.renderer.setSize(this.width, this.height, false);
     (this.material.uniforms.uResolution.value as THREE.Vector2).set(this.width, this.height);
+    this.pipeline?.setSize(this.width, this.height);
   }
 
   setParams(p: VideoShaderParams) {
     this.params = { ...p };
     this.applyParams();
+    this.syncPipeline();
+  }
+
+  private syncPipeline() {
+    if (this.params.pipeline && !this.pipeline) {
+      this.pipeline = new PipelineRenderer(this.renderer);
+      this.pipeline.setSize(this.width, this.height);
+    } else if (!this.params.pipeline && this.pipeline) {
+      this.pipeline.dispose();
+      this.pipeline = null;
+    }
   }
 
   private applyParams() {
@@ -179,6 +195,10 @@ export class VideoRenderer {
     
     this.videoTexture.needsUpdate = true;
     const renderTime = timeSeconds !== undefined ? timeSeconds : (performance.now() - this.startTime) / 1000;
+    if (this.pipeline && this.params.pipeline) {
+      this.pipeline.render(this.params, this.videoTexture, uvScale, renderTime);
+      return;
+    }
     this.material.uniforms.uTime.value = renderTime;
     this.applyAnimations(renderTime);
     this.renderer.render(this.scene, this.camera);
@@ -202,6 +222,7 @@ export class VideoRenderer {
 
   dispose() {
     if (this.videoTexture) this.videoTexture.dispose();
+    this.pipeline?.dispose();
     this.material.dispose();
     this.renderer.dispose();
   }

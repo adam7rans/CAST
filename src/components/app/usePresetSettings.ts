@@ -4,6 +4,7 @@ import { DEFAULT_AUDIO_REACTIVITY, DEFAULT_BACKGROUND, DEFAULT_CAPTION_SHADER, D
 import { DEFAULT_LIMITER } from '../../lib/AudioSource';
 import { DEFAULT_MUSIC_PARAMS } from '../../lib/MusicPlayer';
 import { seedGuideMap } from '../../lib/constants';
+import { keepPipeline } from '../../lib/pipeline/legacyConversion';
 import { extractPresetSettings } from '../../lib/presetSettings';
 
 interface Args {
@@ -82,7 +83,7 @@ export function usePresetSettings({ state, setters }: Args) {
   const applyPresetSettings = (data: Record<string, any>) => {
     if (data.background) setters.setBg(data.background);
     if (data.backgroundDither) setters.setBgDither(data.backgroundDither);
-    if (data.video) setters.setVid(normalizeVideoShaderParams(data.video));
+    if (data.video) setters.setVid((cur) => keepPipeline(cur, normalizeVideoShaderParams(data.video)));
     if (data.audioReactivity) setters.setAudioReactivity({ ...DEFAULT_AUDIO_REACTIVITY, ...data.audioReactivity });
     if (data.captionMode) setters.setCaptionMode(data.captionMode);
     // Per-guide caption settings: prefer the maps; otherwise seed every guide

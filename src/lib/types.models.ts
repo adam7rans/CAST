@@ -1,5 +1,6 @@
 import type { NoiseType } from '../shaders/backgroundShader';
 import type { DitherType } from '../shaders/ditherShader';
+import type { PipelineStage } from './pipeline/types';
 
 export interface DitherParams {
   enabled: boolean;
@@ -101,6 +102,13 @@ export interface VideoShaderParams {
   ditherGradientScale: number;
   ditherGradientOffsetX: number;
   ditherGradientOffsetY: number;
+  /**
+   * Opt-in multi-pass shader pipeline. When present, the stages here replace the legacy
+   * single-pass image/rez/distort/dither chain. Absent = legacy behaviour, unchanged.
+   */
+  pipeline?: PipelineStage[];
+  /** 2 = gradient is a pipeline stage (1 = gradient was drawn in the source pass). */
+  pipelineVersion?: number;
 }
 
 export interface BackgroundParams {
