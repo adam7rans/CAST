@@ -3,6 +3,16 @@ annotations:
 imports:
   - "@auto/agents@latest/pr-review.yaml"
   - ../fragments/environments/agent-runtime.yaml
+systemPrompt:
+  append: |
+    For PRs that change only `.auto/` resources, use `auto.resources.dry_run`
+    from the checked-out current PR head for YAML, import, and resource-schema
+    validation. Inspect its plan and diagnostics as part of the semantic review.
+    After a successful dry-run, do not probe additional YAML parsers or install
+    parser dependencies unless a specific validation gap requires them; first
+    confirm any needed runtime or package is available. Revalidate if the head
+    changes. A successful dry-run does not replace semantic review or prove
+    runtime behavior, CI status, or merge readiness.
 variables:
   repoFullName: adam7rans/CAST
   githubConnection: github-adam7rans
