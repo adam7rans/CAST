@@ -16,7 +16,6 @@ import { TabBar } from '../Tabs';
 import { PipelineEditor } from '../pipeline/PipelineEditor';
 import { convertToPipeline, defaultPipeline, keepPipeline } from '../../lib/pipeline/legacyConversion';
 import type { VideoShaderSubTab, VideoSubTab } from '../../lib/constants';
-import type { ProjectMeta } from '../../lib/projectApi';
 
 const MediaDropZone: React.FC<{
   onDrop: React.DragEventHandler<HTMLDivElement>;
@@ -64,11 +63,10 @@ interface Props {
   onPickFile: React.ChangeEventHandler<HTMLInputElement>;
   onDrop: React.DragEventHandler<HTMLDivElement>;
   onImportNativeMedia: () => void;
-  videoOptimizationResult?: ProjectMeta['videoOptimizationResult'];
 }
 
 export const VideoPanel: React.FC<Props> = ({
-  vid, setVid, videoSubTab, setVideoSubTab, videoShaderSubTab, setVideoShaderSubTab, invertFinalOutput, setInvertFinalOutput, videoInfo, audioInfo, audioMode, playheadSecond, onPickFile, onDrop, onImportNativeMedia, videoOptimizationResult,
+  vid, setVid, videoSubTab, setVideoSubTab, videoShaderSubTab, setVideoShaderSubTab, invertFinalOutput, setInvertFinalOutput, videoInfo, audioInfo, audioMode, playheadSecond, onPickFile, onDrop, onImportNativeMedia,
 }) => (
   <>
     {!videoInfo && !audioInfo ? (
@@ -87,15 +85,6 @@ export const VideoPanel: React.FC<Props> = ({
       </Section>
     ) : (
       <>
-        {videoOptimizationResult && (
-          <div role="status" style={{ margin: '0 0 12px', padding: '12px 14px', border: '1px solid #39734c', borderRadius: 6, background: '#132419', color: '#d5ffdc', fontSize: 13, lineHeight: 1.6 }}>
-            <strong>✓ Compression complete</strong><br />
-            {(videoOptimizationResult.originalBytes / 1e9).toFixed(2)} GB original → {(videoOptimizationResult.optimizedBytes / 1e6).toFixed(1)} MB black-and-white MP4
-            <div style={{ color: '#a6cbb0', fontSize: 11 }}>
-              {((1 - videoOptimizationResult.optimizedBytes / videoOptimizationResult.originalBytes) * 100).toFixed(1)}% smaller · CAST now uses the optimized file
-            </div>
-          </div>
-        )}
         <TabBar<VideoSubTab>
           tabs={[
             { value: 'shader', label: 'Shader', disabled: audioMode },

@@ -60,7 +60,6 @@ export const SidebarContent: React.FC<SidebarPanelProps> = (p) => {
         onPickFile={p.onPickFile}
         onDrop={p.onDrop}
         onImportNativeMedia={p.onImportNativeMedia}
-        videoOptimizationResult={p.activeProject?.videoOptimizationResult}
       />
     )}
 

@@ -113,12 +113,7 @@ export const ProjectBar: React.FC<Props> = ({ projects, activeId, onCreate, save
 
           {active && (
             <span style={{ fontSize: 10, display: 'flex', gap: 4, flexShrink: 0 }}>
-              {active.hasVideo && <Badge color="#1f6feb">VIDEO</Badge>}
-              {active.hasVideo && active.videoOptimizationResult && (
-                <Badge color="#58c4a2" title={`${(active.videoOptimizationResult.originalBytes / 1e9).toFixed(2)} GB original → ${(active.videoOptimizationResult.optimizedBytes / 1e6).toFixed(1)} MB black-and-white MP4`}>
-                  B&amp;W {Math.round(active.videoOptimizationResult.optimizedBytes / 1e6)} MB
-                </Badge>
-              )}
+              {active.hasVideo && <VideoBadge result={active.videoOptimizationResult} />}
               {active.hasTranscript && <Badge color="#22c55e">CAPS</Badge>}
             </span>
           )}
@@ -131,6 +126,18 @@ export const ProjectBar: React.FC<Props> = ({ projects, activeId, onCreate, save
         </>
       )}
     </div>
+  );
+};
+
+/** One badge for the video: plain "VIDEO", or "VIDEO · B&W 125 MB" once compressed (details on hover). */
+const VideoBadge: React.FC<{ result?: ProjectMeta['videoOptimizationResult'] }> = ({ result }) => {
+  if (!result) return <Badge color="#1f6feb">VIDEO</Badge>;
+  const saved = ((1 - result.optimizedBytes / result.originalBytes) * 100).toFixed(1);
+  const title = `Compressed: ${(result.originalBytes / 1e9).toFixed(2)} GB original → ${(result.optimizedBytes / 1e6).toFixed(1)} MB black-and-white MP4 (${saved}% smaller). CAST uses the compressed file.`;
+  return (
+    <Badge color="#58c4a2" title={title}>
+      VIDEO · B&amp;W {Math.round(result.optimizedBytes / 1e6)} MB
+    </Badge>
   );
 };
 
