@@ -2,7 +2,7 @@ import React from 'react';
 import { clamp, fmt, type PreviewTimelineProps } from './timelineUtils';
 import { ClipTrackOverlay } from './ClipTrackOverlay';
 import { MusicTrackOverlay } from './MusicTrackOverlay';
-import { SkipGapOverlay } from './SkipGapOverlay';
+import { CutsSummary, SkipGapOverlay } from './SkipGapOverlay';
 import { TimelineControls } from './TimelineControls';
 import { TimelineTransport } from './TimelineTransport';
 import { usePreviewTimelineState } from './usePreviewTimelineState';
@@ -19,7 +19,7 @@ export const PreviewTimeline: React.FC<PreviewTimelineProps> = ({
   onToggleAudioTracks,
   skipGapsEnabled = false, skipGaps = [], skipGapsEffective = [],
   skipGapOverrides = {}, onAdjustSkipGap, onResetSkipGap, onResetAllSkipGaps,
-  skipGapDisabled = {}, selectedGapKey = null, onSelectGap, onToggleGapDisabled,
+  skipGapDisabled = {}, selectedGapKey = null, onSelectGap, onToggleGapDisabled, onShowAllCuts,
 }) => {
   const timeline = usePreviewTimelineState({
     duration, playhead, onPlayheadChange, outroEnabled, onToggleOutro, microTimelines, timelineItemLabel, clipEditingEnabled,
@@ -160,6 +160,15 @@ export const PreviewTimeline: React.FC<PreviewTimelineProps> = ({
           }} />
         )}
       </div>
+
+      {/* one-line cut summary; the full list lives in Editor › Cuts */}
+      {skipGapsEnabled && timeline.clipCuts.length > 0 && (
+        <CutsSummary
+          cuts={timeline.clipCuts}
+          scopeName={timeline.selectedClip?.name ?? null}
+          onShowAll={onShowAllCuts}
+        />
+      )}
 
       {showAudioTracks && (
         <div style={{ position: 'relative' }}>

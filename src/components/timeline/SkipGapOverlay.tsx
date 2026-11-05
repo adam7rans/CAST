@@ -1,6 +1,36 @@
 import React from 'react';
 import { SKIP_TYPE_META, skipTypeOfGap, type SkipType } from '../../lib/skipTypes';
 import { clamp, fmt, type DragKind } from './timelineUtils';
+import { removedSeconds, type CutRow } from '../../lib/cutRows';
+
+/** One line under the timeline: how many cuts, how much they remove, and a link to the full list. */
+export const CutsSummary: React.FC<{
+  cuts: CutRow[];
+  scopeName: string | null;
+  onShowAll?: () => void;
+}> = ({ cuts, scopeName, onShowAll }) => {
+  if (cuts.length === 0) return null;
+  return (
+    <div style={{
+      display: 'flex', alignItems: 'center', gap: 8, fontSize: 10, color: '#888',
+      background: '#111', border: '1px solid #242424', borderRadius: 4, padding: '4px 8px',
+    }}>
+      <span>
+        {cuts.length} cut{cuts.length !== 1 ? 's' : ''} in {scopeName ?? 'project'}
+        {' · '}<span style={{ color: '#eb6f1f' }}>−{fmt(removedSeconds(cuts))}</span>
+      </span>
+      {onShowAll && (
+        <button
+          onClick={onShowAll}
+          title="Open the full list of cuts in the Editor panel"
+          style={{ background: 'none', border: 'none', color: '#5ac8fa', cursor: 'pointer', fontSize: 10, padding: 0, fontFamily: 'inherit' }}
+        >
+          View all ›
+        </button>
+      )}
+    </div>
+  );
+};
 
 interface SkipGap { startMs: number; endMs: number; key: string; kind?: 'silence' | 'custom'; label?: string }
 

@@ -14,6 +14,7 @@ import { MetalCameraPanel } from './MetalCameraPanel';
 import { VisualizerPanel } from './VisualizerPanel';
 import { CaptionsPanel } from './CaptionsPanel';
 import { EditorPanel } from './EditorPanel';
+import { CutsListPanel } from './CutsListPanel';
 import { FinalizePanel } from '../finalize/FinalizePanel';
 
 export const SidebarContent: React.FC<SidebarPanelProps> = (p) => {
@@ -196,6 +197,20 @@ export const SidebarContent: React.FC<SidebarPanelProps> = (p) => {
         onToggleSelectedGapDisabled={p.onToggleSelectedGapDisabled}
         onResetSelectedGap={p.onResetSelectedGap}
         onRemoveSelectedCustomCut={p.onRemoveSelectedCustomCut}
+      />
+    )}
+
+    {p.mainTab === 'editor' && p.editorSubTab === 'cuts' && (
+      <CutsListPanel
+        gaps={p.cutGaps}
+        disabled={p.cutGapDisabled}
+        mediaDuration={p.mediaDuration}
+        cutsEnabled={p.jumpCutsEnabled}
+        selectedKey={p.selectedCutKey}
+        onSelect={p.onSelectCut}
+        onSeekMs={(ms) => p.onSearchMatchNavigate(ms, ms)}
+        onRemove={p.onRemoveSelectedCustomCut}
+        onToggleDisabled={p.onToggleSelectedGapDisabled}
       />
     )}
 
