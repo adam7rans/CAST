@@ -12,6 +12,8 @@ import { PROJECTS_DIR } from './helpers.js';
 const SEARCH_ROOTS = ['Downloads', 'Desktop', 'Movies', 'Documents'];
 const MAX_DEPTH = 1; // the folder itself plus one level of subfolders
 const MAX_ENTRIES_PER_DIR = 5000;
+/** Only video files can be linked; anything else must be uploaded explicitly. */
+const VIDEO_EXTENSIONS = new Set(['.mp4', '.mov', '.m4v', '.mkv', '.webm', '.avi']);
 
 export interface DroppedFile { name: string; size: number; lastModified?: number }
 
@@ -29,13 +31,28 @@ function candidates(dir: string, name: string, depth: number, out: string[]) {
   }
 }
 
+/** True when `file` really lives inside one of the search roots (no symlink escapes). */
+function insideRoots(file: string, roots: string[]): boolean {
+  try {
+    const real = fs.realpathSync(file);
+    return roots.some((root) => real.startsWith(root + path.sep));
+  } catch {
+    return false;
+  }
+}
+
 export function locateDroppedFile(file: DroppedFile): string | null {
   if (!file.name || file.name.includes('/') || !(file.size > 0)) return null;
+  if (!VIDEO_EXTENSIONS.has(path.extname(file.name).toLowerCase())) return null;
   const home = os.homedir();
+  const roots = SEARCH_ROOTS.map((root) => {
+    try { return fs.realpathSync(path.join(home, root)); } catch { return null; }
+  }).filter((root): root is string => !!root);
   const found: string[] = [];
-  for (const root of SEARCH_ROOTS) candidates(path.join(home, root), file.name, 0, found);
+  for (const root of roots) candidates(root, file.name, 0, found);
   let best: { file: string; drift: number } | null = null;
   for (const candidate of found) {
+    if (!insideRoots(candidate, roots)) continue;
     try {
       const stat = fs.statSync(candidate);
       if (stat.size !== file.size) continue;

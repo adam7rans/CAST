@@ -1,5 +1,5 @@
 import express from 'express';
-import cors from 'cors';
+import { originGuard } from './originGuard.js';
 import path from 'path';
 import fs from 'fs';
 import { projectRoutes } from './routes/projects.js';
@@ -20,7 +20,7 @@ import { youtubeRoutes, projectYoutubeRoutes } from './routes/youtube.js';
 import { APP_HOST, APP_NAME, APP_PORT, DIST_DIR } from './helpers.js';
 
 const app = express();
-app.use(cors());
+app.use(originGuard);
 app.use(express.json({ limit: '25mb' }));
 
 // Mount route modules

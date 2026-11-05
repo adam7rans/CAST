@@ -148,19 +148,27 @@ function linkVideo(id: string, project: Project, sourcePath: string) {
 }
 
 export function registerLinkRoute(router: Router) {
-  router.post('/:id/video-link', (req, res) => {
+  router.post('/:id/video-link', async (req, res) => {
     const id = req.params.id as string;
     const project = readProject(id);
     if (!project) return void res.status(404).json({ error: 'Project not found' });
     const { name, size, lastModified } = (req.body ?? {}) as { name?: string; size?: number; lastModified?: number };
     const sourcePath = locateDroppedFile({ name: String(name ?? ''), size: Number(size), lastModified: Number(lastModified) || undefined });
     if (!sourcePath) return void res.status(404).json({ notFound: true });
+    // Never link something that isn't actually a video, whatever its name says.
+    try {
+      const shape = videoShape(await probe(sourcePath));
+      if (!shape.width || !shape.height) return void res.status(404).json({ notFound: true });
+    } catch {
+      return void res.status(404).json({ notFound: true });
+    }
     // Transcription scratch plus the compressed copy, with the usual free-space reserve.
     const space = checkSpace(PROJECTS_DIR, Number(size) * COMPRESSED_ESTIMATE, 'import this video');
     if (!space.ok) return void res.status(507).json({ error: space.message });
     try {
       linkVideo(id, project, sourcePath);
-      res.json({ ok: true, mediaType: 'video', originalName: path.basename(sourcePath), linkedFrom: path.dirname(sourcePath) });
+      // Only the folder's name goes back to the page, not the full path.
+      res.json({ ok: true, mediaType: 'video', originalName: path.basename(sourcePath), linkedFrom: path.basename(path.dirname(sourcePath)) });
     } catch (err) {
       res.status(500).json({ error: err instanceof Error ? err.message : 'Import failed' });
     }
