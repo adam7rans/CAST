@@ -10,6 +10,8 @@ interface Props {
   onSelect: (id: string) => void;
   onCreate: (name: string) => void;
   saveStatus: SaveStatus;
+  /** The loaded media file, e.g. "clip.mp4 · 1280×720". */
+  fileLabel?: string;
 }
 
 function formatSaveTime(at: number | null): string {
@@ -51,7 +53,7 @@ const SavePill: React.FC<{ status: SaveStatus }> = ({ status }) => {
   );
 };
 
-export const ProjectBar: React.FC<Props> = ({ projects, activeId, onCreate, saveStatus }) => {
+export const ProjectBar: React.FC<Props> = ({ projects, activeId, onCreate, saveStatus, fileLabel }) => {
   const dashboard = useDashboardControl();
   const [creating, setCreating] = useState(false);
   const [newName, setNewName] = useState('');
@@ -110,6 +112,12 @@ export const ProjectBar: React.FC<Props> = ({ projects, activeId, onCreate, save
           }}>
             {active?.name ?? 'No project open'}
           </span>
+
+          {fileLabel && (
+            <span title={fileLabel} style={{ fontSize: 11, color: '#6b6b6b', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '32%', flexShrink: 1 }}>
+              {fileLabel}
+            </span>
+          )}
 
           {active && (
             <span style={{ fontSize: 10, display: 'flex', gap: 4, flexShrink: 0 }}>

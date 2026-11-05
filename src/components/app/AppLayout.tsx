@@ -13,8 +13,8 @@ interface Props {
   sidebarProps: React.ComponentProps<typeof SidebarPanel>;
 }
 
-/* "Tabs" layout: full-width top bar → (preview | 400px right panel) →
-   full-width bottom timeline. The projects dashboard covers it when no
+/* Layout: full-width top bar → (preview over timeline | 400px right panel
+   running to the bottom of the window). The projects dashboard covers it when no
    project is open, or when reopened from the project bar; the editor stays
    mounted underneath so its WebGL renderers survive. */
 export const AppLayout: React.FC<Props> = ({ previewAreaProps, timelineProps, sidebarProps }) => {
@@ -41,12 +41,13 @@ export const AppLayout: React.FC<Props> = ({ previewAreaProps, timelineProps, si
         <div style={{ display: 'flex', flex: 1, minHeight: 0 }}>
           <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minWidth: 0, minHeight: 0 }}>
             <PreviewArea {...previewAreaProps} />
+            <PreviewTimeline {...timelineProps} />
           </div>
-          <div style={{ width: 400, flexShrink: 0, minHeight: 0 }}>
+          {/* The sidebar runs to the bottom of the window; the timeline sits under the preview only. */}
+          <div style={{ width: 400, flexShrink: 0, minHeight: 0, borderLeft: '1px solid #1f1f1f' }}>
             <SidebarPanel {...sidebarProps} />
           </div>
         </div>
-        <PreviewTimeline {...timelineProps} />
       </div>
       {dashboard.visible && <ProjectDashboard control={dashboard} />}
     </DashboardContext.Provider>
