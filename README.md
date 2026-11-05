@@ -44,18 +44,16 @@ its credentials in the untracked `.env` file:
 YOUTUBE_CLIENT_ID=...
 YOUTUBE_CLIENT_SECRET=...
 YOUTUBE_REDIRECT_URI=http://127.0.0.1:3002/api/youtube/oauth/callback
-YOUTUBE_UNLISTED_APPROVED=1
 ```
 
 Authorize both `http://127.0.0.1:3002/api/youtube/oauth/callback` (development API)
 and `http://127.0.0.1:4312/api/youtube/oauth/callback` (dock app) in the OAuth client.
 The server uses its current port for the callback.
 
-Set `YOUTUBE_UNLISTED_APPROVED=1` only for a project that has passed YouTube's
-API audit (or is otherwise exempt from its private-upload restriction). The app
-blocks uploads until then. It stores the refresh token in the ignored
+The app stores the refresh token in the ignored
 `server/.youtube-token.json` with owner-only permissions. Uploads request
-unlisted visibility and are marked not for kids.
+unlisted visibility and are marked not for kids. Check the returned visibility
+in YouTube Studio after the upload completes.
 
 ## Projects and presets
 

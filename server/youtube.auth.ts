@@ -15,7 +15,6 @@ export function youtubeRedirectUri() {
   uri.port = String(APP_PORT);
   return uri.toString();
 }
-export function unlistedApproved() { return process.env.YOUTUBE_UNLISTED_APPROVED === '1'; }
 export function tokenExists() {
   try { return !!(JSON.parse(fs.readFileSync(tokenFile, 'utf8')) as Token).refresh_token; } catch { return false; }
 }

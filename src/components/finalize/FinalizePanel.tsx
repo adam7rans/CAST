@@ -64,7 +64,7 @@ export function FinalizePanel({ projectId, onSeek }: Props) {
   const preview = useMemo(() => template.includes('{chapters}')
     ? template.split('{chapters}').join(block) : `${template.trim()}\n\nChapters:\n${block}`, [template, block]);
   const missing = missingSteps(status, !!chosen, saved && !!title.trim() && !!template.trim() && preview.length <= 5000,
-    !!youtube?.connected, !!youtube?.unlistedReady);
+    !!youtube?.connected);
   const perform = async (label: string, action: () => Promise<void>) => {
     setBusy(label); setError(''); setMessage('');
     try { await action(); } catch (e) { setError(e instanceof Error ? e.message : `${label} failed`); }

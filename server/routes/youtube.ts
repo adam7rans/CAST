@@ -3,7 +3,7 @@ import { Router } from 'express';
 import { google } from 'googleapis';
 import { projectExists } from './finalize.data.js';
 import { startUpload, uploadStatus } from './youtube.upload.js';
-import { deleteToken, saveToken, tokenExists, unlistedApproved, youtubeAuth, youtubeConfigured } from '../youtube.auth.js';
+import { deleteToken, saveToken, tokenExists, youtubeAuth, youtubeConfigured } from '../youtube.auth.js';
 
 export const youtubeRoutes = Router();
 export const projectYoutubeRoutes = Router();
@@ -31,7 +31,7 @@ function finishAuth(res: import('express').Response, session: { returnTo: string
 }
 
 youtubeRoutes.get('/status', async (_req, res) => {
-  if (!youtubeConfigured() || !tokenExists()) return void res.json({ connected: false, setupRequired: !youtubeConfigured(), unlistedReady: unlistedApproved() });
+  if (!youtubeConfigured() || !tokenExists()) return void res.json({ connected: false, setupRequired: !youtubeConfigured() });
   try {
     const auth = youtubeAuth();
     await auth.getAccessToken();
@@ -41,8 +41,8 @@ youtubeRoutes.get('/status', async (_req, res) => {
       const channels = await youtube.channels.list({ part: ['snippet'], mine: true });
       channelTitle = channels.data.items?.[0]?.snippet?.title || undefined;
     } catch { /* Upload permission can still be valid without channel read access. */ }
-    res.json({ connected: true, channelTitle, unlistedReady: unlistedApproved() });
-  } catch { res.json({ connected: false, setupRequired: false, unlistedReady: unlistedApproved() }); }
+    res.json({ connected: true, channelTitle });
+  } catch { res.json({ connected: false, setupRequired: false }); }
 });
 
 youtubeRoutes.get('/oauth/start', (req, res) => {
@@ -85,7 +85,6 @@ projectYoutubeRoutes.get('/:id/youtube/upload/status', (req, res) => {
 projectYoutubeRoutes.post('/:id/youtube/upload', (req, res) => {
   if (!projectExists(req.params.id)) return void res.status(404).json({ error: 'Project not found' });
   if (!youtubeConfigured() || !tokenExists()) return void res.status(409).json({ error: 'Connect YouTube first' });
-  if (!unlistedApproved()) return void res.status(409).json({ error: 'YouTube API audit approval is required for unlisted uploads' });
   if (req.body?.communityGuidelinesAccepted !== true) {
     return void res.status(400).json({ error: 'Confirm the video follows YouTube Community Guidelines before uploading' });
   }

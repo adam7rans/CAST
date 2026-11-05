@@ -1,6 +1,6 @@
 import { BASE, fetchJson } from './projectApi.shared';
 
-export interface YoutubeStatus { connected: boolean; setupRequired?: boolean; unlistedReady?: boolean; channelTitle?: string }
+export interface YoutubeStatus { connected: boolean; setupRequired?: boolean; channelTitle?: string }
 export interface UploadResult { ok: true; videoId: string; url: string; studioUrl: string; privacyStatus: string }
 export interface UploadStatus { state: 'idle' | 'uploading' | 'done' | 'error'; progress: number; result?: UploadResult; error?: string }
 export const getYoutubeStatus = () => fetchJson<YoutubeStatus>(`${BASE}/youtube/status`);
