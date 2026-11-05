@@ -65,9 +65,11 @@ export interface PreviewTimelineProps {
   onRenameClip?: (id: string, name: string) => void;
   onToggleAudioTracks?: () => void;
   skipGapsEnabled?: boolean;
-  skipGaps?: Array<{ startMs: number; endMs: number; key: string }>;
+  /** Open the full cuts list (Editor › Cuts). */
+  onShowAllCuts?: () => void;
+  skipGaps?: Array<{ startMs: number; endMs: number; key: string; kind?: 'silence' | 'custom'; label?: string }>;
   /** Effective skip zones after padding is applied — drawn as bright inner stripe */
-  skipGapsEffective?: Array<{ startMs: number; endMs: number; key: string }>;
+  skipGapsEffective?: Array<{ startMs: number; endMs: number; key: string; kind?: 'silence' | 'custom'; label?: string }>;
   skipGapOverrides?: Record<string, { startMs: number; endMs: number }>;
   skipGapDisabled?: Record<string, true>;
   selectedGapKey?: string | null;

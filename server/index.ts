@@ -1,9 +1,14 @@
 import express from 'express';
-import cors from 'cors';
+import { originGuard } from './originGuard.js';
 import path from 'path';
 import fs from 'fs';
 import { projectRoutes } from './routes/projects.js';
+import { projectDashboardRoutes } from './routes/projectDashboard.js';
 import { mediaRoutes } from './routes/media.js';
+import { startVideoTranscription } from './routes/mediaRoutes.shared.js';
+import { resumeVideoOptimizations } from './routes/mediaOptimization.js';
+import { logDiskSpaceAtStartup } from './routes/mediaDiskGuards.js';
+import { resumeLinkedImports } from './routes/mediaLink.js';
 import { mouthSoundsRoutes } from './routes/mouthSounds.js';
 import { qualityTestsRoutes } from './routes/qualityTests.js';
 import { exportRoutes } from './routes/exports.js';
@@ -15,10 +20,11 @@ import { youtubeRoutes, projectYoutubeRoutes } from './routes/youtube.js';
 import { APP_HOST, APP_NAME, APP_PORT, DIST_DIR } from './helpers.js';
 
 const app = express();
-app.use(cors());
+app.use(originGuard);
 app.use(express.json({ limit: '25mb' }));
 
 // Mount route modules
+app.use('/api/projects', projectDashboardRoutes);
 app.use('/api/projects', projectRoutes);
 app.use('/api/projects', mediaRoutes);
 app.use('/api/projects', mouthSoundsRoutes);
@@ -52,4 +58,7 @@ app.use(((err: any, _req: express.Request, res: express.Response, next: express.
 app.listen(APP_PORT, APP_HOST, () => {
   const baseUrl = `http://${APP_HOST}:${APP_PORT}`;
   console.log(`${APP_NAME} ${serveStaticApp ? 'app' : 'API'} -> ${baseUrl}`);
+  logDiskSpaceAtStartup();
+  resumeVideoOptimizations(startVideoTranscription);
+  resumeLinkedImports();
 });

@@ -5,3 +5,4 @@ export * from './projectApi.exports';
 export * from './projectApi.media';
 export * from './projectApi.finalize';
 export * from './projectApi.youtube';
+export * from './projectApi.dashboard';

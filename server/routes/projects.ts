@@ -54,7 +54,7 @@ projectRoutes.get('/:id', (req, res) => {
     ...proj,
     ...settings,
     mediaType: proj.mediaType || (proj.audioFile ? 'audio' : proj.videoFile ? 'video' : null),
-    hasVideo: !!(proj.videoFile && fs.existsSync(`${pDir}/${proj.videoFile}`)),
+    hasVideo: !!(proj.videoFile && fs.existsSync(`${pDir}/${proj.videoFile}`)) || !!(proj.linkedSource && fs.existsSync(proj.linkedSource.path)),
     hasAudio: !!(proj.audioFile && fs.existsSync(`${pDir}/${proj.audioFile}`)),
     hasMusic:
       (Array.isArray(proj.musicFiles) && proj.musicFiles.some((asset) => fs.existsSync(`${pDir}/${asset.filename}`))) ||

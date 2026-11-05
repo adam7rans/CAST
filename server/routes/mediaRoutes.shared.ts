@@ -18,6 +18,7 @@ import {
 } from '../helpers.js';
 import { runAudioTranscriptionPipeline, runTranscriptionPipeline } from '../transcribe.js';
 import type { MusicAsset, Project } from '../types.js';
+import { cancelVideoOptimization, optimizeImportedVideo } from './mediaOptimization.js';
 
 const execFileAsync = promisify(execFile);
 const AUDIO_EXTENSIONS = new Set([
@@ -40,7 +41,7 @@ function deleteFileQuiet(filePath: string) {
   try { fs.unlinkSync(filePath); } catch {}
 }
 
-function cleanupReplacedMedia(
+export function cleanupReplacedMedia(
   id: string,
   previousFiles: Array<string | undefined>,
   nextFilename: string,
@@ -52,12 +53,22 @@ function cleanupReplacedMedia(
   clearCaptions(id);
 }
 
-function updateTranscriptionReady(id: string) {
+function updateTranscriptionReady(id: string, importedAt: string) {
   const project = readProject(id);
-  if (!project) return;
+  if (!project || project.importedAt !== importedAt) return;
   project.captionFile = CAPTION_FILE;
   project.updatedAt = new Date().toISOString();
   writeProject(id, project);
+}
+
+export function startVideoTranscription(id: string, filePath: string): Promise<void> {
+  const importedAt = readProject(id)?.importedAt;
+  if (!importedAt) return Promise.resolve();
+  return runTranscriptionPipeline(filePath, projectDir(id), (event) => {
+    if (readProject(id)?.importedAt !== importedAt) return;
+    emit(id, event);
+    if (event.type === 'done') updateTranscriptionReady(id, importedAt);
+  });
 }
 
 export function finalizeVideoImport(
@@ -67,6 +78,7 @@ export function finalizeVideoImport(
   res: Response,
 ) {
   try {
+    cancelVideoOptimization(id);
     cleanupReplacedMedia(id, [project.videoFile, project.audioFile], file.filename);
 
     project.videoFile = file.filename;
@@ -78,13 +90,13 @@ export function finalizeVideoImport(
     delete project.originalAudioName;
     delete project.transcriptFile;
     delete project.captionFile;
+    delete project.videoOptimizationResult;
+    project.videoOptimization = { status: 'pending', sourceFile: file.filename };
     writeProject(id, project);
     emit(id, { type: 'video_saved', message: 'Video imported into project folder' });
 
-    runTranscriptionPipeline(file.path, projectDir(id), (event) => {
-      emit(id, event);
-      if (event.type === 'done') updateTranscriptionReady(id);
-    });
+    const transcription = startVideoTranscription(id, file.path);
+    void transcription.then(() => optimizeImportedVideo(id, file.filename, Promise.resolve()));
 
     res.json({
       ok: true,
@@ -106,6 +118,7 @@ export function finalizeAudioImport(
   res: Response,
 ) {
   try {
+    cancelVideoOptimization(id);
     cleanupReplacedMedia(id, [project.videoFile, project.audioFile], file.filename);
 
     project.audioFile = file.filename;
@@ -117,12 +130,14 @@ export function finalizeAudioImport(
     delete project.originalVideoName;
     delete project.transcriptFile;
     delete project.captionFile;
+    delete project.videoOptimization;
+    delete project.videoOptimizationResult;
     writeProject(id, project);
     emit(id, { type: 'video_saved', message: 'Audio imported into project folder' });
 
     runAudioTranscriptionPipeline(file.path, projectDir(id), (event) => {
       emit(id, event);
-      if (event.type === 'done') updateTranscriptionReady(id);
+      if (event.type === 'done') updateTranscriptionReady(id, project.importedAt!);
     });
 
     res.json({
@@ -186,7 +201,7 @@ function projectDiskStorage(
 }
 
 export const videoUpload = multer({
-  storage: projectDiskStorage((file) => safeFilename(file.originalname)),
+  storage: projectDiskStorage((file) => `${randomUUID().slice(0, 8)}-${safeFilename(file.originalname)}`),
   limits: { fileSize: 10 * 1024 * 1024 * 1024 },
 });
 
