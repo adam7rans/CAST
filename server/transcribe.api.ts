@@ -2,6 +2,7 @@ import { spawn } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
+import { guardChildDiskSpace } from './diskSpace.js';
 import type {
   AssemblyAIParagraph,
   AssemblyAIParagraphsResponse,
@@ -35,9 +36,13 @@ export function extractAudio(videoPath: string, audioPath: string): Promise<void
       '-i', videoPath,
       '-vn', '-c:a', 'aac', '-b:a', '128k', audioPath,
     ]);
-    proc.on('close', (code) => (
-      code === 0 ? resolve() : reject(new Error(`ffmpeg exited ${code}`))
-    ));
+    const diskStop = guardChildDiskSpace(proc, path.dirname(audioPath), 'Audio extraction');
+    proc.on('close', (code) => {
+      const stopped = diskStop();
+      if (stopped) reject(new Error(stopped));
+      else if (code === 0) resolve();
+      else reject(new Error(`ffmpeg exited ${code}`));
+    });
     proc.on('error', reject);
   });
 }

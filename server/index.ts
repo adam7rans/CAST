@@ -4,6 +4,7 @@ import path from 'path';
 import fs from 'fs';
 import { projectRoutes } from './routes/projects.js';
 import { mediaRoutes } from './routes/media.js';
+import { logDiskSpaceAtStartup } from './routes/mediaDiskGuards.js';
 import { mouthSoundsRoutes } from './routes/mouthSounds.js';
 import { qualityTestsRoutes } from './routes/qualityTests.js';
 import { exportRoutes } from './routes/exports.js';
@@ -52,4 +53,5 @@ app.use(((err: any, _req: express.Request, res: express.Response, next: express.
 app.listen(APP_PORT, APP_HOST, () => {
   const baseUrl = `http://${APP_HOST}:${APP_PORT}`;
   console.log(`${APP_NAME} ${serveStaticApp ? 'app' : 'API'} -> ${baseUrl}`);
+  logDiskSpaceAtStartup();
 });

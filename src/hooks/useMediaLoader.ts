@@ -1,5 +1,5 @@
 import { isAudioFile } from '../lib/constants';
-import { deleteMusic, getAudioUrl, getVideoUrl, importNativeMedia, listProjects, uploadAudio, uploadMusic, uploadVideo } from '../lib/projectApi';
+import { checkDiskSpace, deleteMusic, getAudioUrl, getVideoUrl, importNativeMedia, listProjects, uploadAudio, uploadMusic, uploadVideo } from '../lib/projectApi';
 import type { MediaLoaderRefs, MediaLoaderSetters } from './useMediaLoader.types';
 import { loadManagedAudioSource, loadManagedMusicSource, loadManagedVideoSource, resetMediaState, revokeManagedUrls } from './useMediaLoader.shared';
 import { AudioSource } from '../lib/AudioSource';
@@ -7,8 +7,23 @@ import { snapToExportResolution } from '../lib/layoutUtils';
 
 export type { MediaLoaderRefs, MediaLoaderSetters } from './useMediaLoader.types';
 
+/** Refuse an import that would leave the disk too full; true means go ahead. */
+async function hasRoomFor(file: File, projectId: string, setters: MediaLoaderSetters): Promise<boolean> {
+  try {
+    const space = await checkDiskSpace(projectId, file.size);
+    if (space.ok) return true;
+    const message = space.message || 'Not enough free disk space to import this file.';
+    setters.setProjectStatus({ kind: 'error', message });
+    setters.addToast(message, 'error');
+    return false;
+  } catch {
+    return true; // The upload route enforces the same limit server-side.
+  }
+}
+
 export function createLoadVideoFile(refs: MediaLoaderRefs, setters: MediaLoaderSetters) {
-  return (file: File, projectId: string) => {
+  return async (file: File, projectId: string) => {
+    if (!(await hasRoomFor(file, projectId, setters))) return;
     revokeManagedUrls(refs);
     resetMediaState(refs, setters);
     setters.setProjectStatus({ kind: 'progress', message: 'Importing video into project folder', progress: 0, detail: `Folder: projects/${projectId}` });
@@ -52,7 +67,8 @@ export function createLoadVideoFile(refs: MediaLoaderRefs, setters: MediaLoaderS
 }
 
 export function createLoadAudioFile(refs: MediaLoaderRefs, setters: MediaLoaderSetters) {
-  return (file: File, projectId: string) => {
+  return async (file: File, projectId: string) => {
+    if (!(await hasRoomFor(file, projectId, setters))) return;
     revokeManagedUrls(refs);
     resetMediaState(refs, setters);
     setters.setProjectStatus({ kind: 'progress', message: 'Importing audio into project folder', progress: 0, detail: `Folder: projects/${projectId}` });
@@ -143,8 +159,8 @@ export function createLoadFile(refs: MediaLoaderRefs, setters: MediaLoaderSetter
       setters.addToast('Create or select a project before importing media', 'error');
       return;
     }
-    if (isAudioFile(file)) loadAudioFile(file, projectId);
-    else loadVideoFile(file, projectId);
+    if (isAudioFile(file)) void loadAudioFile(file, projectId);
+    else void loadVideoFile(file, projectId);
   };
 }
 

@@ -7,9 +7,18 @@ import {
   submitJob,
   uploadAudio,
 } from './transcribe.api.js';
+import { checkSpace } from './diskSpace.js';
 export type { TranscribeEvent } from './transcribe.types.js';
 
 const CAPTION_FILE = 'caption.json';
+
+/** Room for the extracted audio and the model's temporary WAV windows. */
+const TRANSCRIBE_SCRATCH_BYTES = 512 * 1024 ** 2;
+
+function assertTranscribeSpace(projectDir: string) {
+  const space = checkSpace(projectDir, TRANSCRIBE_SCRATCH_BYTES, 'transcribe safely');
+  if (!space.ok) throw new Error(space.message);
+}
 
 async function runFromAudioFile(
   audioPath: string,
@@ -53,6 +62,7 @@ export async function runTranscriptionPipeline(
   const audioPath = path.join(projectDir, '_audio.m4a');
   const transcriptPath = path.join(projectDir, CAPTION_FILE);
   try {
+    assertTranscribeSpace(projectDir);
     onEvent({ type: 'audio_extracting', message: 'Extracting audio…' });
     await extractAudio(videoPath, audioPath);
     const mb = (fs.statSync(audioPath).size / 1e6).toFixed(1);
@@ -77,6 +87,7 @@ export async function runAudioTranscriptionPipeline(
 ): Promise<void> {
   const transcriptPath = path.join(projectDir, CAPTION_FILE);
   try {
+    assertTranscribeSpace(projectDir);
     onEvent({ type: 'audio_extracted', message: 'Audio ready — sending to AssemblyAI' });
     await runFromAudioFile(audioPath, transcriptPath, onEvent);
   } catch (err: any) {

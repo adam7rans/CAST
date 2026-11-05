@@ -23,13 +23,16 @@ import {
   streamRangedAudio,
   videoUpload,
 } from './mediaRoutes.shared.js';
+import { nativeImportSpaceError, registerDiskCheckRoute, requireUploadSpace } from './mediaDiskGuards.js';
 
 export const mediaRoutes = Router();
+
+registerDiskCheckRoute(mediaRoutes);
 
 // ── video ─────────────────────────────────────────────────────────────────────
 
 // Upload video — save to project folder, then kick off transcription pipeline
-mediaRoutes.post('/:id/video', videoUpload.single('video'), (req, res) => {
+mediaRoutes.post('/:id/video', requireUploadSpace('import this video'), videoUpload.single('video'), (req, res) => {
   const id = req.params.id as string;
   const proj = readProject(id);
   if (!proj || !req.file) {
@@ -84,7 +87,7 @@ mediaRoutes.get('/:id/video', (req, res) => {
 // ── audio ─────────────────────────────────────────────────────────────────────
 
 // Upload audio — save to project folder, then kick off audio-only transcription.
-mediaRoutes.post('/:id/audio', audioUpload.single('audio'), (req, res) => {
+mediaRoutes.post('/:id/audio', requireUploadSpace('import this audio'), audioUpload.single('audio'), (req, res) => {
   const id = req.params.id as string;
   const proj = readProject(id);
   if (!proj || !req.file) {
@@ -112,6 +115,12 @@ mediaRoutes.post('/:id/import-native', async (req, res) => {
     }
     if (!fs.existsSync(sourcePath)) {
       res.status(404).json({ error: 'Selected file no longer exists' });
+      return;
+    }
+
+    const spaceError = nativeImportSpaceError(sourcePath);
+    if (spaceError) {
+      res.status(507).json({ error: spaceError });
       return;
     }
 
