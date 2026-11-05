@@ -27,8 +27,8 @@ export function resetMediaState(refs: MediaLoaderRefs, setters: MediaLoaderSette
   setters.setPlayheadSecond(0);
 }
 
-export function loadManagedVideoSource(refs: MediaLoaderRefs, setters: MediaLoaderSetters, projectId: string, name: string) {
-  const url = getVideoUrl(projectId);
+export function loadManagedVideoSource(refs: MediaLoaderRefs, setters: MediaLoaderSetters, projectId: string, name: string, seekTo = 0, refresh = false) {
+  const url = `${getVideoUrl(projectId)}${refresh ? `?version=${Date.now()}` : ''}`;
   const video = document.createElement('video');
   video.src = url;
   video.muted = false;
@@ -47,8 +47,21 @@ export function loadManagedVideoSource(refs: MediaLoaderRefs, setters: MediaLoad
     refs.videoElRef.current = video;
     refs.mediaElRef.current = video;
     refs.audioSourceRef.current = new AudioSource({ element: video, url });
-    video.currentTime = 0;
+    video.currentTime = Math.min(seekTo, Math.max(0, video.duration - 0.1));
   });
+}
+
+export function switchToOptimizedVideo(refs: MediaLoaderRefs, setters: MediaLoaderSetters, projectId: string, name: string) {
+  const time = refs.videoElRef.current?.currentTime ?? 0;
+  refs.videoElRef.current?.pause();
+  refs.audioSourceRef.current?.dispose();
+  refs.audioSourceRef.current = null;
+  setters.setPlaying(false);
+  if (refs.videoBlobUrlRef.current) {
+    URL.revokeObjectURL(refs.videoBlobUrlRef.current);
+    refs.videoBlobUrlRef.current = null;
+  }
+  loadManagedVideoSource(refs, setters, projectId, name, time, true);
 }
 
 export function loadManagedAudioSource(refs: MediaLoaderRefs, setters: MediaLoaderSetters, projectId: string, name: string) {

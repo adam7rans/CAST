@@ -1,5 +1,5 @@
 import { isAudioFile } from '../lib/constants';
-import { checkDiskSpace, deleteMusic, getAudioUrl, getVideoUrl, importNativeMedia, listProjects, uploadAudio, uploadMusic, uploadVideo } from '../lib/projectApi';
+import { checkDiskSpace, type DiskCheck, deleteMusic, linkDroppedVideo, getAudioUrl, getVideoUrl, importNativeMedia, listProjects, uploadAudio, uploadMusic, uploadVideo } from '../lib/projectApi';
 import type { MediaLoaderRefs, MediaLoaderSetters } from './useMediaLoader.types';
 import { loadManagedAudioSource, loadManagedMusicSource, loadManagedVideoSource, resetMediaState, revokeManagedUrls } from './useMediaLoader.shared';
 import { AudioSource } from '../lib/AudioSource';
@@ -7,12 +7,25 @@ import { snapToExportResolution } from '../lib/layoutUtils';
 
 export type { MediaLoaderRefs, MediaLoaderSetters } from './useMediaLoader.types';
 
+const gb = (bytes: number) => `${(bytes / 1e9).toFixed(1)} GB`;
+
+/** Dropping or picking a file uploads a copy; the "Add video or audio…" button moves it instead. */
+function copyRefusedMessage(size: number, space: DiskCheck): string {
+  const { freeBytes: free, reserveBytes: reserve } = space;
+  if (free === null || reserve === undefined) return space.message || 'Not enough free disk space to import this file.';
+  if (free >= reserve) {
+    return `CAST couldn't find this file in Downloads, Desktop, Movies or Documents, so it would have to copy it in, leaving ${gb(free - size)} free — below the ${gb(reserve)} it keeps free so your Mac doesn't freeze. ` +
+      'Use “Add video or audio…” instead: it moves the file into the project, so it takes no extra space.';
+  }
+  return `Only ${gb(free)} free. CAST needs at least ${gb(reserve)} free to process video safely, even when moving a file in. Free up space first.`;
+}
+
 /** Refuse an import that would leave the disk too full; true means go ahead. */
 async function hasRoomFor(file: File, projectId: string, setters: MediaLoaderSetters): Promise<boolean> {
   try {
     const space = await checkDiskSpace(projectId, file.size);
     if (space.ok) return true;
-    const message = space.message || 'Not enough free disk space to import this file.';
+    const message = copyRefusedMessage(file.size, space);
     setters.setProjectStatus({ kind: 'error', message });
     setters.addToast(message, 'error');
     return false;
@@ -23,7 +36,17 @@ async function hasRoomFor(file: File, projectId: string, setters: MediaLoaderSet
 
 export function createLoadVideoFile(refs: MediaLoaderRefs, setters: MediaLoaderSetters) {
   return async (file: File, projectId: string) => {
-    if (!(await hasRoomFor(file, projectId, setters))) return;
+    // Prefer using the original where it sits (no copy); upload only if the server can't find it.
+    let linked: Awaited<ReturnType<typeof linkDroppedVideo>> = null;
+    try {
+      linked = await linkDroppedVideo(projectId, file);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Import failed';
+      setters.setProjectStatus({ kind: 'error', message });
+      setters.addToast(message, 'error');
+      return;
+    }
+    if (!linked && !(await hasRoomFor(file, projectId, setters))) return;
     revokeManagedUrls(refs);
     resetMediaState(refs, setters);
     setters.setProjectStatus({ kind: 'progress', message: 'Importing video into project folder', progress: 0, detail: `Folder: projects/${projectId}` });
@@ -51,13 +74,22 @@ export function createLoadVideoFile(refs: MediaLoaderRefs, setters: MediaLoaderS
       video.currentTime = 0;
     });
 
+    if (linked) {
+      const where = linked.linkedFrom.split('/').pop() || linked.linkedFrom;
+      const message = `Using ${linked.originalName} from ${where} (no copy) — transcribing, then compressing into the project`;
+      setters.setProjectStatus({ kind: 'progress', message, detail: `Original: ${linked.linkedFrom}` });
+      setters.addToast(message, 'info');
+      listProjects().then(setters.setProjects);
+      return;
+    }
+
     const uploadId = setters.addToast('Importing video into project folder…', 'progress', true);
     uploadVideo(projectId, file, (pct) => {
       setters.setProjectStatus({ kind: 'progress', message: 'Importing video into project folder', progress: pct, detail: `Folder: projects/${projectId}` });
       setters.updateToast(uploadId, `Importing… ${pct}%`, 'progress');
     }).then(() => {
-      setters.setProjectStatus({ kind: 'progress', message: 'Video imported; starting transcription', detail: `Folder: projects/${projectId}` });
-      setters.updateToast(uploadId, 'Video imported — starting transcription…', 'info');
+      setters.setProjectStatus({ kind: 'progress', message: 'Video imported; transcribing before compression', detail: `Folder: projects/${projectId}` });
+      setters.updateToast(uploadId, 'Video imported — transcribing before compression…', 'info');
       listProjects().then(setters.setProjects);
     }).catch((error) => {
       setters.setProjectStatus({ kind: 'error', message: `Import failed: ${error.message}` });
@@ -186,8 +218,9 @@ export function createImportNativeMedia(refs: MediaLoaderRefs, setters: MediaLoa
       } else {
         loadManagedVideoSource(refs, setters, projectId, result.originalName);
       }
-      setters.setProjectStatus({ kind: 'progress', message: `${result.mediaType === 'audio' ? 'Audio' : 'Video'} transferred; starting transcription`, detail: `Folder: projects/${projectId}` });
-      setters.updateToast(importId, `${result.mediaType === 'audio' ? 'Audio' : 'Video'} moved into project — starting transcription…`, 'info');
+      const message = result.mediaType === 'audio' ? 'Audio transferred; starting transcription' : 'Video transferred; transcribing before compression';
+      setters.setProjectStatus({ kind: 'progress', message, detail: `Folder: projects/${projectId}` });
+      setters.updateToast(importId, message, 'info');
       listProjects().then(setters.setProjects);
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Import failed';

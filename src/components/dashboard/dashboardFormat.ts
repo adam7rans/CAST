@@ -50,6 +50,6 @@ export function projectFacts(p: ProjectSummary): Fact[] {
   }
   if (p.cutCount > 0) facts.push({ label: plural(p.cutCount, 'cut') });
   if (p.exportCount > 0) facts.push({ label: plural(p.exportCount, 'export') });
-  if (p.processing) facts.push({ label: 'Processing', tone: 'warn' });
+  if (p.processing) facts.push({ label: p.linkedFrom ? 'Compressing' : 'Processing', tone: 'warn' });
   return facts;
 }

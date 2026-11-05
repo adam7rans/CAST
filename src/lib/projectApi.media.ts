@@ -1,11 +1,33 @@
 import type { NativeImportResult } from './projectApi.types';
 import { BASE, fetchJson, uploadForm } from './projectApi.shared';
 
-export type DiskCheck = { ok: boolean; freeBytes: number | null; needBytes: number; message?: string };
+export type DiskCheck = { ok: boolean; freeBytes: number | null; needBytes: number; reserveBytes?: number; message?: string };
 
 /** Ask the server whether importing `bytes` would leave enough free disk space. */
 export async function checkDiskSpace(id: string, bytes: number): Promise<DiskCheck> {
   return fetchJson<DiskCheck>(`${BASE}/projects/${id}/disk-check?bytes=${Math.ceil(bytes)}`);
+}
+
+/**
+ * Ask the server to use a dropped video where it already sits on disk instead
+ * of uploading a copy. Resolves null when the server can't find the file.
+ */
+export async function linkDroppedVideo(id: string, file: File): Promise<{ originalName: string; linkedFrom: string } | null> {
+  const res = await fetch(`${BASE}/projects/${id}/video-link`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ name: file.name, size: file.size, lastModified: file.lastModified }),
+  });
+  if (res.status === 404) {
+    const body = await res.json().catch(() => ({})) as { notFound?: boolean; error?: string };
+    if (body.notFound) return null;
+    throw new Error(body.error || 'Project not found');
+  }
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({})) as { error?: string };
+    throw new Error(body.error || `Import failed (${res.status})`);
+  }
+  return res.json();
 }
 
 export async function uploadVideo(id: string, file: File, onProgress?: (pct: number) => void): Promise<{ ok: boolean; filename: string }> {

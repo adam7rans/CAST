@@ -33,6 +33,8 @@ export interface ProjectSummary {
   hasThumbnail: boolean;
   thumbnailKey: string | null;
   processing: boolean;
+  /** Path of an original still outside the project folder (never deleted with it). */
+  linkedFrom: string | null;
 }
 
 type Probe = { key: string; durationSec: number | null; width: number | null; height: number | null };
@@ -95,6 +97,7 @@ function mediaPath(id: string): { file: string; type: 'video' | 'audio' } | null
   if (!proj) return null;
   const dir = projectDir(id);
   if (proj.videoFile && fs.existsSync(path.join(dir, proj.videoFile))) return { file: path.join(dir, proj.videoFile), type: 'video' };
+  if (proj.linkedSource && fs.existsSync(proj.linkedSource.path)) return { file: proj.linkedSource.path, type: 'video' };
   if (proj.audioFile && fs.existsSync(path.join(dir, proj.audioFile))) return { file: path.join(dir, proj.audioFile), type: 'audio' };
   return null;
 }
@@ -133,6 +136,7 @@ export async function summarizeProject(id: string): Promise<ProjectSummary | nul
     hasThumbnail: !!previewKey(id) || media?.type === 'video',
     thumbnailKey: previewKey(id) ?? (media?.type === 'video' ? probe?.key ?? null : null),
     processing: proj.videoOptimization?.status === 'pending',
+    linkedFrom: proj.linkedSource ? path.dirname(proj.linkedSource.path) : null,
   };
 }
 

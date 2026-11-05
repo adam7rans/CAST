@@ -114,6 +114,11 @@ export const ProjectBar: React.FC<Props> = ({ projects, activeId, onCreate, save
           {active && (
             <span style={{ fontSize: 10, display: 'flex', gap: 4, flexShrink: 0 }}>
               {active.hasVideo && <Badge color="#1f6feb">VIDEO</Badge>}
+              {active.hasVideo && active.videoOptimizationResult && (
+                <Badge color="#58c4a2" title={`${(active.videoOptimizationResult.originalBytes / 1e9).toFixed(2)} GB original → ${(active.videoOptimizationResult.optimizedBytes / 1e6).toFixed(1)} MB black-and-white MP4`}>
+                  B&amp;W {Math.round(active.videoOptimizationResult.optimizedBytes / 1e6)} MB
+                </Badge>
+              )}
               {active.hasTranscript && <Badge color="#22c55e">CAPS</Badge>}
             </span>
           )}
@@ -129,8 +134,8 @@ export const ProjectBar: React.FC<Props> = ({ projects, activeId, onCreate, save
   );
 };
 
-const Badge: React.FC<{ color: string; children: React.ReactNode }> = ({ color, children }) => (
-  <span style={{
+const Badge: React.FC<{ color: string; children: React.ReactNode; title?: string }> = ({ color, children, title }) => (
+  <span title={title} style={{
     background: `${color}22`, border: `1px solid ${color}66`,
     color, borderRadius: 3, padding: '1px 5px', fontSize: 9, letterSpacing: 0.5,
   }}>{children}</span>

@@ -1,12 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import {
-  extractAudio,
-  pollJob,
-  readApiKey,
-  submitJob,
-  uploadAudio,
-} from './transcribe.api.js';
+import { extractAudio, runParakeet } from './transcribe.api.js';
 import { checkSpace } from './diskSpace.js';
 export type { TranscribeEvent } from './transcribe.types.js';
 
@@ -20,37 +14,17 @@ function assertTranscribeSpace(projectDir: string) {
   if (!space.ok) throw new Error(space.message);
 }
 
+/** Transcribe one audio file locally and write CAST's caption.json. */
 async function runFromAudioFile(
   audioPath: string,
   transcriptPath: string,
   onEvent: (e: import('./transcribe.types.js').TranscribeEvent) => void,
 ): Promise<void> {
-  const key = readApiKey();
-  onEvent({ type: 'uploading', message: 'Uploading to AssemblyAI…' });
-  const audioUrl = await uploadAudio(key, audioPath);
-
-  onEvent({ type: 'submitted', message: 'Transcription job submitted…' });
-  const tid = await submitJob(key, audioUrl);
-
-  const data = await pollJob(key, tid, (status) => {
-    onEvent({ type: 'polling', status, message: `Transcribing… (${status})` });
+  onEvent({ type: 'submitted', message: 'Loading local Parakeet model…' });
+  const { transcript } = await runParakeet(audioPath, (message) => {
+    onEvent({ type: 'polling', status: message, message });
   });
-
-  // Shape to match CAST's parseTranscript loader.
-  const utterances = data.utterances || [];
-  const speakers = [...new Set<string>(utterances.map((u) => u.speaker).filter(Boolean) as string[])].sort();
-  const outData = {
-    speakers,
-    text: data.text || '',
-    utterances: utterances.map((u) => ({
-      speaker: u.speaker,
-      start: u.start || 0,
-      end: u.end || 0,
-      text: u.text || '',
-      words: (u.words || []).map((w) => ({ text: w.text || '', start: w.start || 0, end: w.end || 0 })),
-    })),
-  };
-  fs.writeFileSync(transcriptPath, JSON.stringify(outData, null, 2));
+  fs.writeFileSync(transcriptPath, JSON.stringify(transcript, null, 2));
   onEvent({ type: 'done', message: '✓ Captions ready!' });
 }
 
@@ -76,9 +50,9 @@ export async function runTranscriptionPipeline(
 }
 
 /**
- * For audio-only uploads — no extraction step needed; send the file straight
- * to AssemblyAI. The original audio file is kept in the project folder so the
- * preview/export pipeline can play it back and analyse it for visualisations.
+ * For audio-only uploads — no extraction step needed. The original audio file is
+ * kept in the project folder so the preview/export pipeline can play it back and
+ * analyse it for visualisations.
  */
 export async function runAudioTranscriptionPipeline(
   audioPath: string,
@@ -88,7 +62,7 @@ export async function runAudioTranscriptionPipeline(
   const transcriptPath = path.join(projectDir, CAPTION_FILE);
   try {
     assertTranscribeSpace(projectDir);
-    onEvent({ type: 'audio_extracted', message: 'Audio ready — sending to AssemblyAI' });
+    onEvent({ type: 'audio_extracted', message: 'Audio ready — transcribing locally' });
     await runFromAudioFile(audioPath, transcriptPath, onEvent);
   } catch (err: any) {
     onEvent({ type: 'error', message: err.message || String(err) });

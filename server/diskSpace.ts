@@ -22,6 +22,11 @@ function envGb(name: string, fallback: number): number {
 
 /** Free space that must remain after a step finishes writing. */
 export const RESERVE_BYTES = envGb('CAST_MIN_FREE_GB', 10 * GB);
+/**
+ * Smaller reserve for jobs that only write files (video compression). They use
+ * little memory, so they don't need swap headroom; the watchdog still guards them.
+ */
+export const WRITE_RESERVE_BYTES = envGb('CAST_MIN_FREE_WRITE_GB', 5 * GB);
 /** A running job is stopped when free space drops below this. */
 export const FLOOR_BYTES = envGb('CAST_ABORT_FREE_GB', 4 * GB);
 
@@ -39,10 +44,10 @@ export function freeBytes(dir: string): number | null {
 
 export type SpaceCheck = { ok: boolean; freeBytes: number | null; needBytes: number; message?: string };
 
-/** Can `dir` take `writeBytes` more and still keep RESERVE_BYTES free? */
-export function checkSpace(dir: string, writeBytes: number, action: string): SpaceCheck {
+/** Can `dir` take `writeBytes` more and still keep `reserve` free? */
+export function checkSpace(dir: string, writeBytes: number, action: string, reserve = RESERVE_BYTES): SpaceCheck {
   const free = freeBytes(dir);
-  const needBytes = Math.max(0, writeBytes) + RESERVE_BYTES;
+  const needBytes = Math.max(0, writeBytes) + reserve;
   if (free === null || free >= needBytes) return { ok: true, freeBytes: free, needBytes };
   return {
     ok: false,
@@ -50,7 +55,7 @@ export function checkSpace(dir: string, writeBytes: number, action: string): Spa
     needBytes,
     message:
       `Not enough free disk space to ${action}. It needs about ${formatGb(needBytes)} free ` +
-      `(${formatGb(writeBytes)} for the files plus ${formatGb(RESERVE_BYTES)} kept free so macOS ` +
+      `(${formatGb(writeBytes)} for the files plus ${formatGb(reserve)} kept free so macOS ` +
       `has room for memory swap); this disk has ${formatGb(free)}. Free up space and try again.`,
   };
 }

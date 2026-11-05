@@ -5,7 +5,10 @@ import fs from 'fs';
 import { projectRoutes } from './routes/projects.js';
 import { projectDashboardRoutes } from './routes/projectDashboard.js';
 import { mediaRoutes } from './routes/media.js';
+import { startVideoTranscription } from './routes/mediaRoutes.shared.js';
+import { resumeVideoOptimizations } from './routes/mediaOptimization.js';
 import { logDiskSpaceAtStartup } from './routes/mediaDiskGuards.js';
+import { resumeLinkedImports } from './routes/mediaLink.js';
 import { mouthSoundsRoutes } from './routes/mouthSounds.js';
 import { qualityTestsRoutes } from './routes/qualityTests.js';
 import { exportRoutes } from './routes/exports.js';
@@ -56,4 +59,6 @@ app.listen(APP_PORT, APP_HOST, () => {
   const baseUrl = `http://${APP_HOST}:${APP_PORT}`;
   console.log(`${APP_NAME} ${serveStaticApp ? 'app' : 'API'} -> ${baseUrl}`);
   logDiskSpaceAtStartup();
+  resumeVideoOptimizations(startVideoTranscription);
+  resumeLinkedImports();
 });

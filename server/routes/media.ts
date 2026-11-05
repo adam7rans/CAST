@@ -23,11 +23,14 @@ import {
   streamRangedAudio,
   videoUpload,
 } from './mediaRoutes.shared.js';
+import { randomUUID } from 'crypto';
 import { nativeImportSpaceError, registerDiskCheckRoute, requireUploadSpace } from './mediaDiskGuards.js';
+import { projectVideoPath, registerLinkRoute } from './mediaLink.js';
 
 export const mediaRoutes = Router();
 
 registerDiskCheckRoute(mediaRoutes);
+registerLinkRoute(mediaRoutes);
 
 // ── video ─────────────────────────────────────────────────────────────────────
 
@@ -46,11 +49,11 @@ mediaRoutes.post('/:id/video', requireUploadSpace('import this video'), videoUpl
 mediaRoutes.get('/:id/video', (req, res) => {
   const id = req.params.id as string;
   const proj = readProject(id);
-  if (!proj?.videoFile) {
+  if (!proj?.videoFile && !proj?.linkedSource) {
     res.status(404).json({ error: `Project "${id}" has no video file recorded (project.json is missing videoFile).` });
     return;
   }
-  const vp = path.join(projectDir(id), proj.videoFile);
+  const vp = projectVideoPath(id, proj) ?? path.join(projectDir(id), proj.videoFile ?? '');
   if (!fs.existsSync(vp)) {
     res.status(404).json({
       error: `Video file "${proj.videoFile}" not found in project folder.`,
@@ -63,7 +66,7 @@ mediaRoutes.get('/:id/video', (req, res) => {
 
   const stat = fs.statSync(vp);
   const total = stat.size;
-  const ext = path.extname(proj.videoFile).toLowerCase();
+  const ext = path.extname(vp).toLowerCase();
   const mime = ext === '.mov' ? 'video/quicktime' : 'video/mp4';
   const range = req.headers.range;
 
@@ -127,8 +130,8 @@ mediaRoutes.post('/:id/import-native', async (req, res) => {
     const originalName = path.basename(sourcePath);
     const audio = isAudioPath(sourcePath);
     const filename = audio
-      ? safeAudioFilename(originalName)
-      : safeFilename(originalName);
+      ? `${randomUUID().slice(0, 8)}-${safeAudioFilename(originalName)}`
+      : `${randomUUID().slice(0, 8)}-${safeFilename(originalName)}`;
     const targetPath = path.join(projectDir(id), filename);
     fs.mkdirSync(projectDir(id), { recursive: true });
     moveFileIntoPlace(sourcePath, targetPath);

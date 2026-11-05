@@ -11,7 +11,7 @@ interface Props {
 
 function contents(p: ProjectSummary): string {
   const parts: string[] = [];
-  if (p.mediaName) parts.push(`the ${p.mediaType === 'audio' ? 'audio' : 'video'} file (${p.mediaName})`);
+  if (p.mediaName && !p.linkedFrom) parts.push(`the ${p.mediaType === 'audio' ? 'audio' : 'video'} file (${p.mediaName})`);
   if (p.hasTranscript) parts.push('captions');
   if (p.musicTrackCount > 0) parts.push(`${p.musicTrackCount} music track${p.musicTrackCount === 1 ? '' : 's'}`);
   if (p.cutCount > 0) parts.push(`${p.cutCount} cuts`);
@@ -71,6 +71,9 @@ export const DeleteProjectDialog: React.FC<Props> = ({ project, onCancel, onDele
           <span style={{ color: C.text }}>
             Frees {formatBytes(project.sizeBytes)}. This can’t be undone.
           </span>
+          {project.linkedFrom && (
+            <span>The original video in {project.linkedFrom} is not touched.</span>
+          )}
           {project.processing && (
             <span style={{ color: C.orange }}>Background processing for this project will be stopped.</span>
           )}

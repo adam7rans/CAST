@@ -5,6 +5,7 @@ import { APP_ROOT, PROJECTS_DIR, projectDir } from '../helpers.js';
 import { freeBytes, RESERVE_BYTES } from '../diskSpace.js';
 import { folderBytes, PREVIEW_FILE, projectThumbnail, summarizeProject } from '../projectSummary.js';
 import { cancelTranscriptionJobs } from '../transcribe.api.js';
+import { cancelVideoOptimization } from './mediaOptimization.js';
 
 /**
  * Dashboard API. Mounted at /api/projects BEFORE the main project routes so
@@ -70,6 +71,7 @@ projectDashboardRoutes.delete('/:id', async (req, res) => {
   const freedBytes = folderBytes(dir);
 
   // Stop background work first so nothing keeps writing into the folder.
+  cancelVideoOptimization(id);
   if (cancelTranscriptionJobs(dir) > 0) await new Promise((resolve) => setTimeout(resolve, 500));
 
   try {

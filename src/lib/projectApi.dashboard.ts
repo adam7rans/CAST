@@ -19,6 +19,7 @@ export interface ProjectSummary {
   hasThumbnail: boolean;
   thumbnailKey: string | null;
   processing: boolean;
+  linkedFrom: string | null;
 }
 
 export interface ProjectSummaries {
