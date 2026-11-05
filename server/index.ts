@@ -3,6 +3,7 @@ import cors from 'cors';
 import path from 'path';
 import fs from 'fs';
 import { projectRoutes } from './routes/projects.js';
+import { projectDashboardRoutes } from './routes/projectDashboard.js';
 import { mediaRoutes } from './routes/media.js';
 import { logDiskSpaceAtStartup } from './routes/mediaDiskGuards.js';
 import { mouthSoundsRoutes } from './routes/mouthSounds.js';
@@ -20,6 +21,7 @@ app.use(cors());
 app.use(express.json({ limit: '25mb' }));
 
 // Mount route modules
+app.use('/api/projects', projectDashboardRoutes);
 app.use('/api/projects', projectRoutes);
 app.use('/api/projects', mediaRoutes);
 app.use('/api/projects', mouthSoundsRoutes);

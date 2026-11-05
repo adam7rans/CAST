@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import type { ProjectMeta } from '../lib/projectApi';
 import type { SaveStatus } from '../hooks/useAutoSave';
+import { useDashboardControl } from './app/useDashboard';
+import { Icon } from './ui/Icon';
 
 interface Props {
   projects: ProjectMeta[];
@@ -49,7 +51,8 @@ const SavePill: React.FC<{ status: SaveStatus }> = ({ status }) => {
   );
 };
 
-export const ProjectBar: React.FC<Props> = ({ projects, activeId, onSelect, onCreate, saveStatus }) => {
+export const ProjectBar: React.FC<Props> = ({ projects, activeId, onCreate, saveStatus }) => {
+  const dashboard = useDashboardControl();
   const [creating, setCreating] = useState(false);
   const [newName, setNewName] = useState('');
 
@@ -70,10 +73,6 @@ export const ProjectBar: React.FC<Props> = ({ projects, activeId, onSelect, onCr
       background: 'linear-gradient(180deg, #111 0%, #0c0c0c 100%)',
       flexShrink: 0,
     }}>
-      <span style={{ fontSize: 10, color: '#555', textTransform: 'uppercase', letterSpacing: 1, flexShrink: 0 }}>
-        Project
-      </span>
-
       {creating ? (
         <>
           <input
@@ -96,28 +95,21 @@ export const ProjectBar: React.FC<Props> = ({ projects, activeId, onSelect, onCr
         </>
       ) : (
         <>
-          {projects.length > 0 ? (
-            <select
-              value={activeId || ''}
-              onChange={e => {
-                const val = e.target.value;
-                if (val) onSelect(val);
-              }}
-              style={{
-                flex: 1, background: '#161616', border: '1px solid #2a2a2a',
-                borderRadius: 4, color: activeId ? '#ddd' : '#666',
-                padding: '3px 8px', fontSize: 12, fontFamily: 'inherit',
-                cursor: 'pointer', outline: 'none',
-              }}
-            >
-              {!activeId && <option value="">— select project —</option>}
-              {projects.map(p => (
-                <option key={p.id} value={p.id}>{p.name}{p.hasVideo ? '' : ' (no video)'}</option>
-              ))}
-            </select>
-          ) : (
-            <span style={{ flex: 1, fontSize: 12, color: '#555', fontStyle: 'italic' }}>No projects yet</span>
-          )}
+          <button
+            onClick={() => dashboard?.open()}
+            title="All projects"
+            style={{
+              ...btn('#161616', '#2a2a2a'), display: 'inline-flex', alignItems: 'center', gap: 6, color: '#bbb',
+            }}
+          >
+            <Icon name="grid" size={13} /> Projects
+          </button>
+          <span style={{
+            flex: 1, minWidth: 0, fontSize: 12, color: active ? '#ddd' : '#555',
+            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+          }}>
+            {active?.name ?? 'No project open'}
+          </span>
 
           {active && (
             <span style={{ fontSize: 10, display: 'flex', gap: 4, flexShrink: 0 }}>

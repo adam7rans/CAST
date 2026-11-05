@@ -1,4 +1,4 @@
-import { spawn } from 'child_process';
+import { spawn, type ChildProcess } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
@@ -16,6 +16,26 @@ const API_KEY_PATHS = [
   path.join(__dirname, '../../../.assemblyai_key'),
 ];
 const API_BASE = 'https://api.assemblyai.com/v2';
+
+/** Transcription child processes by the project folder they work in, so deleting a project can stop them. */
+const runningJobs = new Map<ChildProcess, string>();
+
+function trackJob(proc: ChildProcess, dir: string) {
+  runningJobs.set(proc, dir);
+  proc.once('exit', () => runningJobs.delete(proc));
+  proc.once('error', () => runningJobs.delete(proc));
+}
+
+/** Stop every transcription process working inside `dir`. Returns how many were signalled. */
+export function cancelTranscriptionJobs(dir: string): number {
+  let count = 0;
+  for (const [proc, jobDir] of runningJobs) {
+    if (jobDir !== dir) continue;
+    proc.kill('SIGTERM');
+    count += 1;
+  }
+  return count;
+}
 
 export function readApiKey(): string {
   const envKey = process.env.ASSEMBLYAI_API_KEY?.trim();
@@ -36,6 +56,7 @@ export function extractAudio(videoPath: string, audioPath: string): Promise<void
       '-i', videoPath,
       '-vn', '-c:a', 'aac', '-b:a', '128k', audioPath,
     ]);
+    trackJob(proc, path.dirname(audioPath));
     const diskStop = guardChildDiskSpace(proc, path.dirname(audioPath), 'Audio extraction');
     proc.on('close', (code) => {
       const stopped = diskStop();
