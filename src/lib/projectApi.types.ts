@@ -8,6 +8,11 @@ export interface ProjectMeta {
   hasAudio?: boolean;
   hasMusic?: boolean;
   hasTranscript: boolean;
+  videoOptimizationResult?: {
+    originalBytes: number;
+    optimizedBytes: number;
+    profile: 'bw-crf28';
+  };
 }
 
 export interface ProjectData extends ProjectMeta {

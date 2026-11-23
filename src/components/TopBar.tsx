@@ -54,10 +54,10 @@ export const TopBar: React.FC<TopBarProps> = (p) => {
 
   return (
     <div style={{ flexShrink: 0, background: C.bar, borderBottom: `1px solid ${C.line}` }}>
-      {/* Row A — topline: project select + save status + badges + New */}
-      <ProjectBar projects={p.projects} activeId={p.activeProjectId} onSelect={p.onSelectProject} onCreate={p.onCreateProject} saveStatus={p.saveStatus} />
+      {/* Row A — project, file name, badges, save status, New */}
+      <ProjectBar projects={p.projects} activeId={p.activeProjectId} onSelect={p.onSelectProject} onCreate={p.onCreateProject} saveStatus={p.saveStatus} fileLabel={fileLabel} />
 
-      {/* Row B — layers + mode/guide popovers + filename */}
+      {/* Row B — layers + mode/guide popovers, section tabs pushed right */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '6px 12px', borderBottom: `1px solid ${C.line}`, flexWrap: 'wrap' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           {layers.filter((l) => !l.hidden).map((l) => <LayerEye key={l.label} layer={l} />)}
@@ -92,35 +92,28 @@ export const TopBar: React.FC<TopBarProps> = (p) => {
           <PillToggle label="Crop to guide" on={p.cropToGuide} onClick={() => p.setCropToGuide((v) => !v)} activeColor={C.orange} />
         </Popover>
 
-        {fileLabel && (
-          <span style={{ marginLeft: 'auto', fontSize: 11, color: C.faint, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '40%' }}>
-            {fileLabel}
-          </span>
-        )}
+        <nav aria-label="Sections" style={{ marginLeft: 'auto', display: 'flex', gap: 2 }}>
+          {TABS.map((t) => {
+            const label = t.value === 'video' && p.audioMode ? 'Vis' : t.label;
+            const active = p.mainTab === t.value;
+            return (
+              <button
+                key={t.value}
+                onClick={() => p.setMainTab(t.value)}
+                aria-current={active ? 'page' : undefined}
+                style={{
+                  padding: '4px 9px', background: 'transparent', border: 'none', cursor: 'pointer', fontFamily: 'inherit',
+                  fontSize: 12, letterSpacing: 0.2, color: active ? C.text : C.faint,
+                  borderBottom: `2px solid ${active ? C.text : 'transparent'}`, transition: 'color .12s',
+                }}
+              >
+                {label}
+              </button>
+            );
+          })}
+        </nav>
       </div>
 
-      {/* Row C — underlined panel tabs */}
-      <div style={{ display: 'flex', gap: 2, padding: '0 8px', borderBottom: `1px solid ${C.line}` }}>
-        {TABS.map((t) => {
-          const label = t.value === 'video' && p.audioMode ? 'Vis' : t.label;
-          const active = p.mainTab === t.value;
-          return (
-            <button
-              key={t.value}
-              onClick={() => p.setMainTab(t.value)}
-              style={{
-                padding: '9px 12px', background: 'transparent', border: 'none', cursor: 'pointer', fontFamily: 'inherit',
-                fontSize: 12, letterSpacing: 0.2,
-                color: active ? C.text : C.faint,
-                borderBottom: `2px solid ${active ? C.text : 'transparent'}`,
-                marginBottom: -1, transition: 'color .12s',
-              }}
-            >
-              {label}
-            </button>
-          );
-        })}
-      </div>
     </div>
   );
 };

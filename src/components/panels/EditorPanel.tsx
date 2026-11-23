@@ -81,6 +81,7 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
       <TabBar<EditorSubTab>
         tabs={[
           { value: 'edits', label: 'Edits' },
+          { value: 'cuts', label: 'Cuts' },
           { value: 'mode', label: 'Mode' },
         ]}
         value={editorSubTab}
@@ -88,7 +89,7 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
         variant="sub"
       />
 
-      {editorSubTab === 'mode' ? (
+      {editorSubTab === 'cuts' ? null /* rendered by SidebarContent: CutsListPanel */ : editorSubTab === 'mode' ? (
         <>
           <TabBar<EditorMode>
             tabs={[

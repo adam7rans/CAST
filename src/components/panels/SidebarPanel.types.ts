@@ -98,6 +98,11 @@ export interface SidebarPanelProps {
   selectedGapHasOverride: boolean;
   onAdjustSelectedGap: (startMs: number, endMs: number) => void;
   onToggleSelectedGapDisabled: (key: string) => void;
+  /** Every cut (effective ranges) and which are turned off, for the full Cuts list. */
+  cutGaps: import('../../lib/cutRows').CutGap[];
+  cutGapDisabled: Record<string, true>;
+  selectedCutKey: string | null;
+  onSelectCut: (key: string | null) => void;
   onResetSelectedGap: (key: string) => void;
   onRemoveSelectedCustomCut: (key: string) => void;
   bgLayerOn: boolean;

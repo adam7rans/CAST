@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import type { ProjectMeta } from '../lib/projectApi';
 import type { SaveStatus } from '../hooks/useAutoSave';
+import { useDashboardControl } from './app/useDashboard';
+import { Icon } from './ui/Icon';
 
 interface Props {
   projects: ProjectMeta[];
@@ -8,6 +10,8 @@ interface Props {
   onSelect: (id: string) => void;
   onCreate: (name: string) => void;
   saveStatus: SaveStatus;
+  /** The loaded media file, e.g. "clip.mp4 · 1280×720". */
+  fileLabel?: string;
 }
 
 function formatSaveTime(at: number | null): string {
@@ -49,7 +53,8 @@ const SavePill: React.FC<{ status: SaveStatus }> = ({ status }) => {
   );
 };
 
-export const ProjectBar: React.FC<Props> = ({ projects, activeId, onSelect, onCreate, saveStatus }) => {
+export const ProjectBar: React.FC<Props> = ({ projects, activeId, onCreate, saveStatus, fileLabel }) => {
+  const dashboard = useDashboardControl();
   const [creating, setCreating] = useState(false);
   const [newName, setNewName] = useState('');
 
@@ -70,10 +75,6 @@ export const ProjectBar: React.FC<Props> = ({ projects, activeId, onSelect, onCr
       background: 'linear-gradient(180deg, #111 0%, #0c0c0c 100%)',
       flexShrink: 0,
     }}>
-      <span style={{ fontSize: 10, color: '#555', textTransform: 'uppercase', letterSpacing: 1, flexShrink: 0 }}>
-        Project
-      </span>
-
       {creating ? (
         <>
           <input
@@ -96,32 +97,31 @@ export const ProjectBar: React.FC<Props> = ({ projects, activeId, onSelect, onCr
         </>
       ) : (
         <>
-          {projects.length > 0 ? (
-            <select
-              value={activeId || ''}
-              onChange={e => {
-                const val = e.target.value;
-                if (val) onSelect(val);
-              }}
-              style={{
-                flex: 1, background: '#161616', border: '1px solid #2a2a2a',
-                borderRadius: 4, color: activeId ? '#ddd' : '#666',
-                padding: '3px 8px', fontSize: 12, fontFamily: 'inherit',
-                cursor: 'pointer', outline: 'none',
-              }}
-            >
-              {!activeId && <option value="">— select project —</option>}
-              {projects.map(p => (
-                <option key={p.id} value={p.id}>{p.name}{p.hasVideo ? '' : ' (no video)'}</option>
-              ))}
-            </select>
-          ) : (
-            <span style={{ flex: 1, fontSize: 12, color: '#555', fontStyle: 'italic' }}>No projects yet</span>
+          <button
+            onClick={() => dashboard?.open()}
+            title="All projects"
+            style={{
+              ...btn('#161616', '#2a2a2a'), display: 'inline-flex', alignItems: 'center', gap: 6, color: '#bbb',
+            }}
+          >
+            <Icon name="grid" size={13} /> Projects
+          </button>
+          <span style={{
+            flex: 1, minWidth: 0, fontSize: 12, color: active ? '#ddd' : '#555',
+            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+          }}>
+            {active?.name ?? 'No project open'}
+          </span>
+
+          {fileLabel && (
+            <span title={fileLabel} style={{ fontSize: 11, color: '#6b6b6b', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '32%', flexShrink: 1 }}>
+              {fileLabel}
+            </span>
           )}
 
           {active && (
             <span style={{ fontSize: 10, display: 'flex', gap: 4, flexShrink: 0 }}>
-              {active.hasVideo && <Badge color="#1f6feb">VIDEO</Badge>}
+              {active.hasVideo && <VideoBadge result={active.videoOptimizationResult} />}
               {active.hasTranscript && <Badge color="#22c55e">CAPS</Badge>}
             </span>
           )}
@@ -137,8 +137,20 @@ export const ProjectBar: React.FC<Props> = ({ projects, activeId, onSelect, onCr
   );
 };
 
-const Badge: React.FC<{ color: string; children: React.ReactNode }> = ({ color, children }) => (
-  <span style={{
+/** One badge for the video: plain "VIDEO", or "VIDEO · B&W 125 MB" once compressed (details on hover). */
+const VideoBadge: React.FC<{ result?: ProjectMeta['videoOptimizationResult'] }> = ({ result }) => {
+  if (!result) return <Badge color="#1f6feb">VIDEO</Badge>;
+  const saved = ((1 - result.optimizedBytes / result.originalBytes) * 100).toFixed(1);
+  const title = `Compressed: ${(result.originalBytes / 1e9).toFixed(2)} GB original → ${(result.optimizedBytes / 1e6).toFixed(1)} MB black-and-white MP4 (${saved}% smaller). CAST uses the compressed file.`;
+  return (
+    <Badge color="#58c4a2" title={title}>
+      VIDEO · B&amp;W {Math.round(result.optimizedBytes / 1e6)} MB
+    </Badge>
+  );
+};
+
+const Badge: React.FC<{ color: string; children: React.ReactNode; title?: string }> = ({ color, children, title }) => (
+  <span title={title} style={{
     background: `${color}22`, border: `1px solid ${color}66`,
     color, borderRadius: 3, padding: '1px 5px', fontSize: 9, letterSpacing: 0.5,
   }}>{children}</span>

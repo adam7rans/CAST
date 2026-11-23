@@ -11,7 +11,8 @@ export type IconName =
   | 'crop' | 'layers' | 'sliders' | 'film' | 'type' | 'music' | 'wand'
   | 'scissors' | 'download' | 'search' | 'reset' | 'grip'
   | 'zoomIn' | 'zoomOut' | 'target' | 'info' | 'folder' | 'dot'
-  | 'follow' | 'check' | 'close';
+  | 'follow' | 'check' | 'close'
+  | 'grid' | 'list' | 'trash' | 'wave';
 
 export const Icon: React.FC<{
   name: IconName;
@@ -55,6 +56,10 @@ export const Icon: React.FC<{
     follow: <g {...f}><path d="M6 4.5v11l9-5.5z" /></g>,
     check: <path d="M4 10.5l4 4 8-9" {...p} />,
     close: <path d="M5 5l10 10M15 5L5 15" {...p} />,
+    grid: <g {...p}><rect x="3.5" y="3.5" width="5.5" height="5.5" rx="1" /><rect x="11" y="3.5" width="5.5" height="5.5" rx="1" /><rect x="3.5" y="11" width="5.5" height="5.5" rx="1" /><rect x="11" y="11" width="5.5" height="5.5" rx="1" /></g>,
+    list: <g {...p}><path d="M7 5.5h9.5M7 10h9.5M7 14.5h9.5" /><path d="M3.5 5.5h.1M3.5 10h.1M3.5 14.5h.1" /></g>,
+    trash: <g {...p}><path d="M3.5 5.5h13M8 5.5V4h4v1.5M5.5 5.5l.8 10.5a1 1 0 0 0 1 .9h5.4a1 1 0 0 0 1-.9l.8-10.5M8.5 8.5v5.5M11.5 8.5v5.5" /></g>,
+    wave: <g {...p}><path d="M2.5 10h1.5M5.5 7v6M8 4.5v11M10.5 7.5v5M13 5.5v9M15.5 8v4M17.5 10h.1" /></g>,
   };
   return (
     <svg width={size} height={size} viewBox="0 0 20 20" style={{ display: 'block', flexShrink: 0, ...style }}>

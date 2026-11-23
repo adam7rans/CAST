@@ -13,13 +13,12 @@ export const formatTime = (time: number) => {
 };
 export const formatSize = (size: number) => size >= 1024 ** 3
   ? `${(size / 1024 ** 3).toFixed(1)} GB` : `${(size / 1024 ** 2).toFixed(1)} MB`;
-export function missingSteps(status: FinalizeStatus | null, hasChapters: boolean, saved: boolean, connected: boolean, unlistedReady: boolean) {
+export function missingSteps(status: FinalizeStatus | null, hasChapters: boolean, saved: boolean, connected: boolean) {
   const missing: string[] = [];
   if (!status?.coverage.complete) missing.push('Complete chunk coverage');
   if (!status?.stitched.exists || status.stitched.stale) missing.push('Stitch current chunks');
   if (!hasChapters) missing.push('Choose chapters');
   if (!saved) missing.push('Save title and description');
   if (!connected) missing.push('Connect YouTube');
-  if (!unlistedReady) missing.push('YouTube API approval for unlisted uploads');
   return missing;
 }

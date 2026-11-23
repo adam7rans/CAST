@@ -15,6 +15,22 @@ export interface Project {
   originalAudioName?: string;
   mediaType?: 'video' | 'audio';
   importedAt?: string;
+  videoOptimization?: {
+    status: 'pending' | 'completed' | 'failed' | 'ineffective';
+    sourceFile: string;
+    error?: string;
+  };
+  videoOptimizationResult?: {
+    originalBytes: number;
+    optimizedBytes: number;
+    profile: 'bw-crf28';
+  };
+  /**
+   * A dropped video still in its original location (e.g. ~/Downloads). The
+   * project plays it from there until the compressed copy replaces it, so a
+   * big file is never duplicated into the project folder.
+   */
+  linkedSource?: { path: string; size: number };
   captionFile?: string;
   transcriptFile?: string;
   musicFile?: string;

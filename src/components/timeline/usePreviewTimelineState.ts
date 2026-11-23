@@ -1,6 +1,19 @@
 import { useEffect, useRef, useState } from 'react';
 import type React from 'react';
+import { buildCutRows } from '../../lib/cutRows';
 import { MIN_VIEW_SEC, OUTRO_DUR, clamp, type DragKind, type PreviewTimelineProps } from './timelineUtils';
+
+/** Merge overlapping [start,end) intervals so stacked cuts aren't double-counted. */
+function mergeClipOverlaps(intervals: Array<{ start: number; end: number }>): Array<{ start: number; end: number }> {
+  const sorted = [...intervals].sort((a, b) => a.start - b.start);
+  const merged: Array<{ start: number; end: number }> = [];
+  for (const iv of sorted) {
+    const last = merged[merged.length - 1];
+    if (last && iv.start <= last.end) last.end = Math.max(last.end, iv.end);
+    else merged.push({ ...iv });
+  }
+  return merged;
+}
 
 function clipEnd(clip: { startSecond: number; durationSecond: number }) {
   return clip.startSecond + clip.durationSecond;
@@ -26,6 +39,7 @@ export function usePreviewTimelineState({
   skipGapsEnabled = false,
   skipGaps = [],
   skipGapsEffective = [],
+  skipGapDisabled = {},
   onAdjustSkipGap,
   onSelectGap,
 }: PreviewTimelineProps) {
@@ -76,14 +90,30 @@ export function usePreviewTimelineState({
   };
 
   const skippedSec = skipGapsEnabled
-    ? skipGapsEffective.reduce((total, gap) => {
-        const overlapStart = Math.max(selectedClip ? selectedClip.startSecond : 0, gap.startMs / 1000);
-        const overlapEnd = Math.min(selectedClip ? selectedClip.endSecond : projectDuration, gap.endMs / 1000);
-        return overlapEnd > overlapStart ? total + overlapEnd - overlapStart : total;
-      }, 0)
+    ? mergeClipOverlaps(
+      skipGapsEffective
+        .filter((gap) => !skipGapDisabled?.[gap.key])
+        .map((gap) => {
+          const clipStart = selectedClip ? selectedClip.startSecond : 0;
+          const clipEnd = selectedClip ? selectedClip.endSecond : projectDuration;
+          return {
+            start: Math.max(clipStart, gap.startMs / 1000),
+            end: Math.min(clipEnd, gap.endMs / 1000),
+          };
+        })
+        .filter((iv) => iv.end > iv.start),
+    ).reduce((total, iv) => total + (iv.end - iv.start), 0)
     : 0;
   const baseDur = selectedClip ? selectedClip.endSecond - selectedClip.startSecond : projectDuration;
   const finalDur = baseDur - skippedSec;
+
+  /** Active cuts inside the selected clip (or the whole project), for the summary line. */
+  const clipCuts = skipGapsEnabled
+    ? buildCutRows(skipGapsEffective, skipGapDisabled, {
+      start: selectedClip ? selectedClip.startSecond : 0,
+      end: selectedClip ? selectedClip.endSecond : projectDuration,
+    })
+    : [];
 
   useEffect(() => {
     if (!dragKind) return;
@@ -194,6 +224,7 @@ export function usePreviewTimelineState({
     selectedClip,
     skippedSec,
     finalDur,
+    clipCuts,
     focusClip: () => selectedClip && setViewClamped((selectedClip.startSecond + selectedClip.endSecond) / 2 - Math.min(timelineDuration, Math.max(MIN_VIEW_SEC, selectedClip.endSecond - selectedClip.startSecond) / 0.9) / 2, (selectedClip.startSecond + selectedClip.endSecond) / 2 + Math.min(timelineDuration, Math.max(MIN_VIEW_SEC, selectedClip.endSecond - selectedClip.startSecond) / 0.9) / 2),
     zoomIn,
     zoomOut,

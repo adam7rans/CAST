@@ -2,12 +2,14 @@ import { useEffect, useRef } from 'react';
 import type React from 'react';
 import { createHandleCreateProject, createHandleSelectProject } from '../../hooks/useProjectHandlers';
 import { createImportNativeMedia, createLoadFile, createLoadMusicFile, createHandleClearMusic as createClearMusic } from '../../hooks/useMediaLoader';
+import { switchToOptimizedVideo } from '../../hooks/useMediaLoader.shared';
 import { createTogglePlay, createHandleSeekPlayhead, usePlaybackKeyboard } from '../../hooks/usePlayback';
 import { createExportComposition } from '../../hooks/useExporter';
 import { useProjectRouting, useSSEStream } from '../../hooks/useProjectEffects';
 import type { ProjectHandlerSetters } from '../../hooks/useProjectHandlers.types';
 import { useTranscriptHandlers } from '../../hooks/useTranscript';
 import { outputToSourceTime } from '../../lib/timeMapping';
+import { getProject } from '../../lib/projectApi';
 
 interface Args {
   refs: any;
@@ -136,6 +138,12 @@ export function useProjectMediaControls({ refs, state, setters, toasts }: Args) 
     setProjects: setters.setProjects,
     addToast: toasts.addToast,
     updateToast: toasts.updateToast,
+    onVideoOptimized: (id) => {
+      void getProject(id).then((project) => {
+        if (refs.activeProjectIdRef.current !== id) return;
+        switchToOptimizedVideo(mediaLoaderRefs, mediaLoaderSetters, id, project.originalVideoName || project.videoFile || 'video');
+      }).catch(() => toasts.addToast('Compressed video is ready; reopen the project to load it', 'info'));
+    },
   });
 
   const fitPreviewBack = () => {

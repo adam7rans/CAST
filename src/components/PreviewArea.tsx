@@ -9,6 +9,7 @@ import { OutroOverlay } from './OutroOverlay';
 import { GradientGuideOverlay } from './GradientGuideOverlay';
 import { gradientView, guideStage, stageFromGradientView } from '../lib/pipeline/gradientStage';
 import { StatusToast, type Toast } from './StatusToast';
+import { PlayPauseFlash, useClickToPlay } from './preview/clickToPlay';
 
 interface Props {
   previewWrapRef: React.Ref<HTMLDivElement>;
@@ -43,6 +44,8 @@ interface Props {
   toasts: Toast[];
   onDismissToast: (id: number) => void;
   onDrop: React.DragEventHandler<HTMLDivElement>;
+  playing: boolean;
+  onTogglePlay: () => void;
 }
 
 export const PreviewArea: React.FC<Props> = ({
@@ -54,13 +57,16 @@ export const PreviewArea: React.FC<Props> = ({
   videoInfo, audioInfo, transcript,
   captionMode, captionStyle, captionShader,
   mediaElRef, playheadSecond, playbackStartMs,
-  activeExportParams, toasts, onDismissToast, onDrop,
+  activeExportParams, toasts, onDismissToast, onDrop, playing, onTogglePlay,
 }) => {
+  const clickToPlay = useClickToPlay(!!(videoInfo || audioInfo), playing, onTogglePlay);
   const gradGuide = guideStage(vid);
   const finalOutputFilter = activeExportParams.invertFinalOutput ? 'invert(1)' : 'none';
   return (
   <div
     ref={previewWrapRef}
+    {...clickToPlay.handlers}
+    data-preview-surface
     style={{
       position: 'relative',
       flex: 1,
@@ -75,7 +81,7 @@ export const PreviewArea: React.FC<Props> = ({
       minHeight: 0,
     }}
   >
-    <div style={{ position: 'absolute', inset: 0, filter: finalOutputFilter }}>
+    <div data-preview-surface style={{ position: 'absolute', inset: 0, filter: finalOutputFilter }}>
       <canvas
         ref={bgCanvasRef}
         style={{ ...frameStyle, display: bgLayerOn ? 'block' : 'none' }}
@@ -190,6 +196,8 @@ export const PreviewArea: React.FC<Props> = ({
         </>
       );
     })()}
+
+    <PlayPauseFlash flash={clickToPlay.flash} />
 
     {/* status toasts */}
     <StatusToast toasts={toasts} onDismiss={onDismissToast} />

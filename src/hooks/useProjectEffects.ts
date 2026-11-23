@@ -17,27 +17,46 @@ export interface SSEDeps {
   setProjects: React.Dispatch<React.SetStateAction<ProjectMeta[]>>;
   addToast: (message: string, type?: Toast['type'], sticky?: boolean) => number;
   updateToast: (id: number, message: string, type: Toast['type']) => void;
+  onVideoOptimized?: (id: string) => void;
 }
 
 /** SSE stream for transcription progress. */
 export function useSSEStream(deps: SSEDeps) {
-  const { activeProjectId, activeProjectIdRef, setProjectStatus, setTranscript, setTranscriptName, setProjects, addToast, updateToast } = deps;
+  const { activeProjectId, activeProjectIdRef, setProjectStatus, setTranscript, setTranscriptName, setProjects, addToast, updateToast, onVideoOptimized } = deps;
   useEffect(() => {
     if (!activeProjectId) return;
     let progressToastId: number | null = null;
+    let optimizationToastId: number | null = null;
     const close = openEventStream(activeProjectId, (event) => {
       const statusKind: ProjectTaskStatus['kind'] =
-        event.type === 'done' || event.type === 'caption_saved' ? 'success' :
-          event.type === 'error' ? 'error' :
+        event.type === 'done' || event.type === 'caption_saved' || event.type === 'video_optimized' ? 'success' :
+          event.type === 'error' || event.type === 'video_optimization_failed' ? 'error' :
             event.type === 'video_saved' || event.type === 'audio_extracted' ? 'success' : 'progress';
       setProjectStatus({
         kind: statusKind,
         message: event.message,
-        detail: event.type === 'polling' && event.status ? `AssemblyAI status: ${event.status}` : undefined,
+        detail: event.type === 'polling' && event.status ? event.status : undefined,
       });
 
       if (event.type === 'video_saved') {
         addToast(event.message, 'info');
+      } else if (event.type === 'video_optimizing') {
+        if (optimizationToastId) updateToast(optimizationToastId, event.message, 'progress');
+        else optimizationToastId = addToast(event.message, 'progress', true);
+      } else if (event.type === 'video_optimized') {
+        if (optimizationToastId) updateToast(optimizationToastId, event.message, 'success');
+        else addToast(event.message, 'success');
+        optimizationToastId = null;
+        onVideoOptimized?.(activeProjectId);
+        listProjects().then(setProjects);
+      } else if (event.type === 'video_optimization_skipped') {
+        if (optimizationToastId) updateToast(optimizationToastId, event.message, 'info');
+        else addToast(event.message, 'info');
+        optimizationToastId = null;
+      } else if (event.type === 'video_optimization_failed') {
+        if (optimizationToastId) updateToast(optimizationToastId, event.message, 'error');
+        else addToast(event.message, 'error');
+        optimizationToastId = null;
       } else if (event.type === 'audio_extracting') {
         progressToastId = addToast(event.message, 'progress', true);
       } else if (event.type === 'audio_extracted') {

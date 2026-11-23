@@ -155,7 +155,7 @@ export class CaptionShaderRenderer {
 
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
-    const gl = canvas.getContext('webgl2', { premultipliedAlpha: true, alpha: true });
+    const gl = canvas.getContext('webgl2', { premultipliedAlpha: true, alpha: true, preserveDrawingBuffer: true });
     if (!gl) return;
     this.gl = gl;
     this.supported = true;
