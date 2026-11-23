@@ -8,7 +8,8 @@ interface CaptionsEditorProps {
   onSearchMatchNavigate?: (startMs: number, endMs: number) => void;
 }
 
-export const CaptionsEditor: React.FC<CaptionsEditorProps> = ({ transcript, onUpdate, onSearchMatchNavigate }) => {
+/** Memoized: it holds the whole transcript as JSON, so re-rendering it on every playhead tick made playback choppy. */
+export const CaptionsEditor = React.memo(function CaptionsEditor({ transcript, onUpdate, onSearchMatchNavigate }: CaptionsEditorProps) {
   const [localJson, setLocalJson] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -249,4 +250,4 @@ export const CaptionsEditor: React.FC<CaptionsEditorProps> = ({ transcript, onUp
       )}
     </div>
   );
-};
+});

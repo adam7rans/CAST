@@ -32,11 +32,27 @@ export const CutsListPanel: React.FC<Props> = (p) => {
     return c;
   }, [rows]);
   const [filter, setFilter] = useState<SkipType | 'all'>('all');
-  const shown = filter === 'all' ? rows : rows.filter((r) => r.type === filter);
+  const shown = useMemo(() => (filter === 'all' ? rows : rows.filter((r) => r.type === filter)), [rows, filter]);
   const removed = removedSeconds(shown);
 
   const selectedRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => { selectedRef.current?.scrollIntoView({ block: 'nearest' }); }, [p.selectedKey]);
+
+  // The sidebar re-renders on every playhead tick (~60×/s while playing); keep
+  // the row list identical between ticks so hundreds of silence cuts cost nothing.
+  const actions = useRef(p);
+  actions.current = p;
+  const rowElements = useMemo(() => shown.map((row) => (
+    <CutListRow
+      key={row.key}
+      row={row}
+      selected={row.key === p.selectedKey}
+      rowRef={row.key === p.selectedKey ? selectedRef : undefined}
+      onOpen={() => { actions.current.onSeekMs(row.startSec * 1000); actions.current.onSelect(row.key); }}
+      onRemove={() => actions.current.onRemove(row.key)}
+      onToggle={() => actions.current.onToggleDisabled(row.key)}
+    />
+  )), [shown, p.selectedKey]);
 
   if (rows.length === 0) {
     return <div style={{ fontSize: 12, color: C.faint, padding: '16px 4px' }}>No cuts yet. Cuts you add on the timeline or with the Edits tools show up here.</div>;
@@ -57,17 +73,7 @@ export const CutsListPanel: React.FC<Props> = (p) => {
       </div>
 
       <div style={{ border: `1px solid ${C.line}`, borderRadius: 6, overflow: 'hidden' }}>
-        {shown.map((row) => (
-          <CutListRow
-            key={row.key}
-            row={row}
-            selected={row.key === p.selectedKey}
-            rowRef={row.key === p.selectedKey ? selectedRef : undefined}
-            onOpen={() => { p.onSeekMs(row.startSec * 1000); p.onSelect(row.key); }}
-            onRemove={() => p.onRemove(row.key)}
-            onToggle={() => p.onToggleDisabled(row.key)}
-          />
-        ))}
+        {rowElements}
       </div>
     </div>
   );

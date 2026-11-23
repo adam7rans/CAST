@@ -26,11 +26,13 @@ import {
 import { randomUUID } from 'crypto';
 import { nativeImportSpaceError, registerDiskCheckRoute, requireUploadSpace } from './mediaDiskGuards.js';
 import { projectVideoPath, registerLinkRoute } from './mediaLink.js';
+import { registerWaveformRoute } from './waveform.js';
 
 export const mediaRoutes = Router();
 
 registerDiskCheckRoute(mediaRoutes);
 registerLinkRoute(mediaRoutes);
+registerWaveformRoute(mediaRoutes);
 
 // ── video ─────────────────────────────────────────────────────────────────────
 

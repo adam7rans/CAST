@@ -83,6 +83,9 @@ export const SidebarContent: React.FC<SidebarPanelProps> = (p) => {
         onPickTranscript={p.onPickTranscript}
         onEditorUpdate={p.onEditorUpdate}
         onSearchMatchNavigate={p.onSearchMatchNavigate}
+        cutGaps={p.cutGaps}
+        cutGapDisabled={p.cutGapDisabled}
+        cutsEnabled={p.jumpCutsEnabled}
       />
     )}
 

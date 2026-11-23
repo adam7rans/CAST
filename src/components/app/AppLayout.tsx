@@ -1,4 +1,5 @@
 import type React from 'react';
+import { useEffect, useRef } from 'react';
 import { PreviewArea } from '../PreviewArea';
 import { SidebarPanel } from '../panels/SidebarPanel';
 import { PreviewTimeline } from '../timeline/PreviewTimeline';
@@ -24,6 +25,14 @@ export const AppLayout: React.FC<Props> = ({ previewAreaProps, timelineProps, si
     createProject: sidebarProps.onCreateProject,
   });
   const p = previewAreaProps;
+
+  // The editor keeps running under the dashboard, so pause whenever the
+  // dashboard is showing — opening it, or a stray space bar press while it's up.
+  const togglePlay = useRef(sidebarProps.togglePlay);
+  togglePlay.current = sidebarProps.togglePlay;
+  useEffect(() => {
+    if (dashboard.visible && sidebarProps.playing) togglePlay.current();
+  }, [dashboard.visible, sidebarProps.playing]);
   useProjectSnapshot({
     previewWrapRef: p.previewWrapRef,
     activeProjectId: sidebarProps.activeProjectId,

@@ -197,6 +197,16 @@ export function useJumpCuts(transcript: TranscriptData | null) {
     });
   }, []);
 
+  /** Skip a span of words picked in the timeline's words track; stored as a manual skip. */
+  const handleSkipWords = useCallback((startMs: number, endMs: number, label = 'skipped words') => {
+    const s = Math.max(0, Math.round(Math.min(startMs, endMs)));
+    const e = Math.round(Math.max(startMs, endMs));
+    if (e - s < 20) return;
+    const key = `editorial:${s}-${e}-${Date.now().toString(36)}`;
+    setCustomCuts(prev => [...prev, { key, startMs: s, endMs: e, label }].sort((a, b) => a.startMs - b.startMs));
+    setShowManualCuts(true);
+  }, []);
+
   const handleRemoveCustomCut = useCallback((key: string) => {
     setCustomCuts(prev => prev.filter(c => (isCustomKey(c.key) ? c.key : `custom:${c.key}`) !== key));
     setJumpCutGapDisabled(prev => {
@@ -260,6 +270,7 @@ export function useJumpCuts(transcript: TranscriptData | null) {
     handleAddMouthCuts,
     handleClearMouthCuts,
     handleStartCustomCut,
+    handleSkipWords,
     handleCancelPendingCustomCut,
     handleFinishCustomCut,
     handleRemoveCustomCut,

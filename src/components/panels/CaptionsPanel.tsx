@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useCallback, useRef, useState } from 'react';
+import { CaptionLinesView } from '../CaptionLinesView';
 import {
   DEFAULT_CAPTION_STYLE, DEFAULT_CAPTION_SHADER, DEFAULT_CAPTION_SHADER_ANIMATION,
   type CaptionStyle, type CaptionShaderParams, type CaptionShaderWaveType,
@@ -47,6 +48,10 @@ interface Props {
   onPickTranscript: React.ChangeEventHandler<HTMLInputElement>;
   onEditorUpdate: (data: TranscriptData) => void;
   onSearchMatchNavigate: (startMs: number, endMs: number) => void;
+  /** Cuts, so the Lines view can strike through skipped words. */
+  cutGaps: Array<{ startMs: number; endMs: number; key: string }>;
+  cutGapDisabled: Record<string, true>;
+  cutsEnabled: boolean;
 }
 
 export const CaptionsPanel: React.FC<Props> = ({
@@ -58,6 +63,7 @@ export const CaptionsPanel: React.FC<Props> = ({
   playheadSecond,
   onPropagateCaptions,
   onPickTranscript, onEditorUpdate, onSearchMatchNavigate,
+  cutGaps, cutGapDisabled, cutsEnabled,
 }) => {
   const liveShader = resolveCaptionShaderParams(captionShader, playheadSecond);
   return (
@@ -108,10 +114,10 @@ export const CaptionsPanel: React.FC<Props> = ({
           )}
         </Section>
         <Section title="Editor">
-          <CaptionsEditor
-            transcript={transcript}
-            onUpdate={onEditorUpdate}
-            onSearchMatchNavigate={onSearchMatchNavigate}
+          <EditorViewSwitch
+            transcript={transcript} captionStyle={captionStyle} playheadSecond={playheadSecond}
+            cutGaps={cutGaps} cutGapDisabled={cutGapDisabled} cutsEnabled={cutsEnabled}
+            onEditorUpdate={onEditorUpdate} onSearchMatchNavigate={onSearchMatchNavigate}
           />
         </Section>
       </>
@@ -219,6 +225,33 @@ export const CaptionsPanel: React.FC<Props> = ({
         </button>
       </div>
     )}
+    </>
+  );
+};
+
+/** Captions shown as lines (one per on-screen caption), or as the raw JSON for detailed edits. */
+const EditorViewSwitch: React.FC<Pick<Props, 'transcript' | 'captionStyle' | 'playheadSecond' | 'cutGaps' | 'cutGapDisabled' | 'cutsEnabled' | 'onEditorUpdate' | 'onSearchMatchNavigate'>> = (p) => {
+  const [view, setView] = useState<'lines' | 'json'>('lines');
+  // Stable callbacks so the memoized JSON editor doesn't re-render on playhead ticks.
+  const latest = useRef(p);
+  latest.current = p;
+  const onUpdate = useCallback((data: TranscriptData) => latest.current.onEditorUpdate(data), []);
+  const onNavigate = useCallback((startMs: number, endMs: number) => latest.current.onSearchMatchNavigate(startMs, endMs), []);
+  return (
+    <>
+      <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
+        <PillToggle label="Lines" on={view === 'lines'} onClick={() => setView('lines')} />
+        <PillToggle label="JSON" on={view === 'json'} onClick={() => setView('json')} />
+      </div>
+      {view === 'lines' && p.transcript ? (
+        <CaptionLinesView
+          transcript={p.transcript} captionStyle={p.captionStyle} playheadSecond={p.playheadSecond}
+          cuts={p.cutGaps} cutDisabled={p.cutGapDisabled} cutsEnabled={p.cutsEnabled}
+          onSeekMs={(ms) => p.onSearchMatchNavigate(ms, ms)}
+        />
+      ) : (
+        <CaptionsEditor transcript={p.transcript} onUpdate={onUpdate} onSearchMatchNavigate={onNavigate} />
+      )}
     </>
   );
 };

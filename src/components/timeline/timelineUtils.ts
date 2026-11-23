@@ -65,6 +65,11 @@ export interface PreviewTimelineProps {
   onRenameClip?: (id: string, name: string) => void;
   onToggleAudioTracks?: () => void;
   skipGapsEnabled?: boolean;
+  /** Words track: the transcript, the project (for its waveform), a key that changes with the media, and the skip action. */
+  transcript?: import('../../lib/transcript').TranscriptData | null;
+  projectId?: string | null;
+  mediaKey?: string;
+  onSkipWords?: (startMs: number, endMs: number, label: string) => void;
   /** Open the full cuts list (Editor › Cuts). */
   onShowAllCuts?: () => void;
   skipGaps?: Array<{ startMs: number; endMs: number; key: string; kind?: 'silence' | 'custom'; label?: string }>;

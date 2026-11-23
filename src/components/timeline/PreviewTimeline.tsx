@@ -5,6 +5,9 @@ import { MusicTrackOverlay } from './MusicTrackOverlay';
 import { CutsSummary, SkipGapOverlay } from './SkipGapOverlay';
 import { TimelineControls } from './TimelineControls';
 import { TimelineTransport } from './TimelineTransport';
+import { TimelineScrubBar } from './TimelineScrubBar';
+import { WordWaveTrack } from './WordWaveTrack';
+import { useAudioScrub } from './useAudioScrub';
 import { usePreviewTimelineState } from './usePreviewTimelineState';
 
 export type { PreviewTimelineProps };
@@ -20,14 +23,19 @@ export const PreviewTimeline: React.FC<PreviewTimelineProps> = ({
   skipGapsEnabled = false, skipGaps = [], skipGapsEffective = [],
   skipGapOverrides = {}, onAdjustSkipGap, onResetSkipGap, onResetAllSkipGaps,
   skipGapDisabled = {}, selectedGapKey = null, onSelectGap, onToggleGapDisabled, onShowAllCuts,
+  transcript, projectId, mediaKey = '', onSkipWords,
 }) => {
+  // Dragging the playhead plays the audio under it, forwards or reversed (see useAudioScrub).
+  const scrubRef = React.useRef<(time: number) => void>(() => {});
+  const scrubbingPlayheadChange = (time: number) => { onPlayheadChange(time); scrubRef.current(time); };
   const timeline = usePreviewTimelineState({
-    duration, playhead, onPlayheadChange, outroEnabled, onToggleOutro, microTimelines, timelineItemLabel, clipEditingEnabled,
+    duration, playhead, onPlayheadChange: scrubbingPlayheadChange, outroEnabled, onToggleOutro, microTimelines, timelineItemLabel, clipEditingEnabled,
     musicTimelineClips, musicClipLabels, musicDuration, musicPlayhead, selectedMusicClipId, showAudioTracks, selectedId, pendingClipStart,
     onSelectClip, onSelectMusicClip, onMusicPlayheadChange, onClipRangeChange, onMoveMusicClip, onAdjustMusicClipFade,
     onAddStart, onAddEnd, onCancelPending, onDeleteClip, onRenameClip, onToggleAudioTracks,
     skipGapsEnabled, skipGaps, skipGapsEffective, skipGapOverrides, skipGapDisabled, selectedGapKey, onSelectGap, onToggleGapDisabled, onAdjustSkipGap, onResetSkipGap, onResetAllSkipGaps,
   });
+  scrubRef.current = useAudioScrub(projectId, mediaKey, timeline.dragKind === 'play', !playing && !muted, playhead);
 
   return (
     <div style={{
@@ -73,37 +81,13 @@ export const PreviewTimeline: React.FC<PreviewTimelineProps> = ({
         </span>
       </div>
 
-      <div
-        onPointerDown={timeline.onTrackDown}
-        style={{
-          position: 'relative',
-          height: 18,
-          background: '#0f0f0f',
-          border: '1px solid #202020',
-          borderRadius: 4,
-          userSelect: 'none',
-          cursor: 'ew-resize',
-        }}
-      >
-        {timeline.playheadVisible && (
-          <div
-            onPointerDown={timeline.onPlayheadHandleDown}
-            title={`Playhead ${fmt(playhead)} — drag to scrub`}
-            style={{
-              position: 'absolute',
-              left: `calc(${timeline.visPlay}% - 8px)`,
-              top: 1,
-              width: 16,
-              height: 14,
-              borderRadius: 999,
-              background: '#ffffff',
-              boxShadow: '0 0 8px rgba(255,255,255,0.45)',
-              cursor: 'grab',
-              zIndex: 8,
-            }}
-          />
-        )}
-      </div>
+      <TimelineScrubBar
+        playhead={playhead}
+        playheadVisible={timeline.playheadVisible}
+        visPlay={timeline.visPlay}
+        onTrackDown={timeline.onTrackDown}
+        onPlayheadHandleDown={timeline.onPlayheadHandleDown}
+      />
 
       {/* range track */}
       <div
@@ -160,6 +144,16 @@ export const PreviewTimeline: React.FC<PreviewTimelineProps> = ({
           }} />
         )}
       </div>
+
+      {/* words track: top half of the waveform with each spoken word below it */}
+      {(transcript || projectId) && (
+        <WordWaveTrack
+          projectId={projectId} mediaKey={mediaKey} transcript={transcript}
+          viewStart={timeline.viewStart} viewEnd={timeline.viewEnd} playhead={playhead}
+          cuts={skipGapsEffective} cutDisabled={skipGapDisabled} cutsEnabled={skipGapsEnabled}
+          onSeek={onPlayheadChange} onSkipWords={onSkipWords}
+        />
+      )}
 
       {/* one-line cut summary; the full list lives in Editor › Cuts */}
       {skipGapsEnabled && timeline.clipCuts.length > 0 && (
