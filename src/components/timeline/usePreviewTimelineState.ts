@@ -229,6 +229,8 @@ export function usePreviewTimelineState({
     zoomIn,
     zoomOut,
     resetView: () => setView({ s: 0, e: timelineDuration }),
+    setViewClamped,
+    stopFollowing: () => setFollowPlayhead(false),
     followPlayhead,
     setFollowPlayhead,
     scrollThumbPct: (viewSpan / timelineDuration) * 100,

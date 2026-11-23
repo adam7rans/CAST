@@ -8,6 +8,7 @@ import { TimelineTransport } from './TimelineTransport';
 import { TimelineScrubBar } from './TimelineScrubBar';
 import { WordWaveTrack } from './WordWaveTrack';
 import { useAudioScrub } from './useAudioScrub';
+import { useTimelineGestures } from './useTimelineGestures';
 import { usePreviewTimelineState } from './usePreviewTimelineState';
 
 export type { PreviewTimelineProps };
@@ -36,12 +37,15 @@ export const PreviewTimeline: React.FC<PreviewTimelineProps> = ({
     skipGapsEnabled, skipGaps, skipGapsEffective, skipGapOverrides, skipGapDisabled, selectedGapKey, onSelectGap, onToggleGapDisabled, onAdjustSkipGap, onResetSkipGap, onResetAllSkipGaps,
   });
   scrubRef.current = useAudioScrub(projectId, mediaKey, timeline.dragKind === 'play', !playing && !muted, playhead);
+  // Two-finger swipe / wheel pans; pinch or Ctrl/Cmd+wheel zooms at the cursor (only over the timeline).
+  const rootRef = React.useRef<HTMLDivElement>(null);
+  useTimelineGestures(rootRef, { viewStart: timeline.viewStart, viewEnd: timeline.viewEnd, setView: timeline.setViewClamped, trackRef: timeline.trackRef, onUserMove: timeline.stopFollowing });
 
   return (
-    <div style={{
+    <div ref={rootRef} style={{
       display: 'flex', flexDirection: 'column', gap: 4,
       padding: '6px 10px 8px', background: '#0a0a0a',
-      borderTop: '1px solid #1f1f1f', flexShrink: 0,
+      borderTop: '1px solid #1f1f1f', flexShrink: 0, overscrollBehavior: 'none',
     }}>
       <TimelineTransport
         playing={playing}
