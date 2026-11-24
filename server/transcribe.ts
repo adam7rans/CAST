@@ -3,6 +3,7 @@ import * as path from 'path';
 import { extractAudio, runParakeet } from './transcribe.api.js';
 import { checkSpace } from './diskSpace.js';
 import { applyTranscriptRules } from './transcriptRules.js';
+import { alignTranscriptToAudio } from './transcriptAlign.js';
 export type { TranscribeEvent } from './transcribe.types.js';
 
 const CAPTION_FILE = 'caption.json';
@@ -25,6 +26,7 @@ async function runFromAudioFile(
   const { transcript } = await runParakeet(audioPath, (message) => {
     onEvent({ type: 'polling', status: message, message });
   });
+  await alignTranscriptToAudio(transcript, audioPath); // fit word times to the actual sound
   applyTranscriptRules(transcript); // e.g. "source" → "SOURCE" outside "open source"
   fs.writeFileSync(transcriptPath, JSON.stringify(transcript, null, 2));
   onEvent({ type: 'done', message: '✓ Captions ready!' });

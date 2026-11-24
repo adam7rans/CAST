@@ -7,6 +7,8 @@ export interface WaveformPeaks {
   rate: number;
   /** Level treated as full height: the 98th percentile, so one loud cough doesn't flatten the rest. */
   reference: number;
+  /** Background noise level (30th percentile), drawn as nothing so silence looks silent. */
+  floor: number;
 }
 
 function percentile(values: Uint8Array, p: number): number {
@@ -33,7 +35,7 @@ export function useWaveformPeaks(projectId: string | null | undefined, mediaKey:
         if (!res.ok) throw new Error(`peaks ${res.status}`);
         const rate = Number(res.headers.get('X-Peaks-Rate')) || 100;
         const peaks = new Uint8Array(await res.arrayBuffer());
-        setData({ peaks, rate, reference: percentile(peaks, 0.98) });
+        setData({ peaks, rate, reference: percentile(peaks, 0.98), floor: percentile(peaks, 0.3) });
       })
       .catch(() => { /* no waveform: the words track still works */ });
     return () => controller.abort();

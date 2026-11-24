@@ -30,7 +30,8 @@ export function drawWaveform(
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   ctx.clearRect(0, 0, cssW, cssH);
   const span = Math.max(0.001, viewEnd - viewStart);
-  const { peaks, rate, reference } = data;
+  const { peaks, rate, reference, floor } = data;
+  const range = Math.max(1, reference - floor);
   const sorted = [...cuts].sort((a, b) => a.startMs - b.startMs);
   let cutIdx = 0;
   for (let x = 0; x < cssW; x++) {
@@ -42,7 +43,8 @@ export function drawWaveform(
     let sum = 0;
     for (let i = i0; i < i1; i++) { if (peaks[i] > v) v = peaks[i]; sum += peaks[i]; }
     if (v === 0) continue;
-    const scale = (level: number) => Math.sqrt(Math.min(1, level / reference)) * (cssH - 1);
+    // Subtract the room's background noise first, so silence draws as nothing rather than a low shelf.
+    const scale = (level: number) => Math.sqrt(Math.min(1, Math.max(0, level - floor) / range)) * (cssH - 1);
     const h = scale(v);
     const avgH = scale(sum / (i1 - i0));
     const midMs = ((t0 + t1) / 2) * 1000;
