@@ -56,13 +56,13 @@ interface Props {
 
 export const CaptionsPanel: React.FC<Props> = ({
   captionsSubTab, setCaptionsSubTab,
-  transcript, transcriptName,
+  transcript,
   captionMode, setCaptionMode,
   captionStyle, setCaptionStyle,
   captionShader, setCaptionShader,
   playheadSecond,
   onPropagateCaptions,
-  onPickTranscript, onEditorUpdate, onSearchMatchNavigate,
+  onEditorUpdate, onSearchMatchNavigate,
   cutGaps, cutGapDisabled, cutsEnabled,
 }) => {
   const liveShader = resolveCaptionShaderParams(captionShader, playheadSecond);
@@ -82,37 +82,6 @@ export const CaptionsPanel: React.FC<Props> = ({
 
     {captionsSubTab === 'editor' && (
       <>
-        <Section title="Source">
-          {transcript ? (
-            <>
-              <div style={{ color: '#aaa', marginBottom: 6 }}>
-                {transcriptName}<br />
-                {transcript.utterances.length} utterance{transcript.utterances.length === 1 ? '' : 's'}
-              </div>
-              <label style={{
-                display: 'inline-block', padding: '4px 10px', background: '#222',
-                color: '#ddd', borderRadius: 3, cursor: 'pointer', fontSize: 11,
-              }}>
-                Replace caption JSON…
-                <input type="file" accept="application/json,.json" onChange={onPickTranscript} style={{ display: 'none' }} />
-              </label>
-            </>
-          ) : (
-            <>
-              <div style={{ color: '#aaa', marginBottom: 8 }}>
-                Load a caption JSON (word-level timestamps in ms — same format as
-                <code> w3rk17/src/content/talk-transcript-trimmed.json</code>).
-              </div>
-              <label style={{
-                display: 'inline-block', padding: '6px 12px', background: '#1f6feb',
-                color: '#fff', borderRadius: 3, cursor: 'pointer',
-              }}>
-                Choose caption JSON…
-                <input type="file" accept="application/json,.json" onChange={onPickTranscript} style={{ display: 'none' }} />
-              </label>
-            </>
-          )}
-        </Section>
         <Section title="Editor">
           <EditorViewSwitch
             transcript={transcript} captionStyle={captionStyle} playheadSecond={playheadSecond}
@@ -243,7 +212,11 @@ const EditorViewSwitch: React.FC<Pick<Props, 'transcript' | 'captionStyle' | 'pl
         <PillToggle label="Lines" on={view === 'lines'} onClick={() => setView('lines')} />
         <PillToggle label="JSON" on={view === 'json'} onClick={() => setView('json')} />
       </div>
-      {view === 'lines' && p.transcript ? (
+      {!p.transcript ? (
+        <div style={{ color: '#888', fontSize: 12, lineHeight: 1.6 }}>
+          No captions yet. They're created automatically when you import a video or audio file.
+        </div>
+      ) : view === 'lines' ? (
         <CaptionLinesView
           transcript={p.transcript} captionStyle={p.captionStyle} playheadSecond={p.playheadSecond}
           cuts={p.cutGaps} cutDisabled={p.cutGapDisabled} cutsEnabled={p.cutsEnabled}

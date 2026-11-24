@@ -45,7 +45,8 @@ export function usePreviewTimelineState({
 }: PreviewTimelineProps) {
   const [hoverGapKey, setHoverGapKey] = useState<string | null>(null);
   const [view, setView] = useState({ s: 0, e: Math.max(0.01, duration + (outroEnabled ? OUTRO_DUR : 0), musicDuration ?? 0) });
-  const [followPlayhead, setFollowPlayhead] = useState(false);
+  // On by default so the view keeps up with playback; panning or zooming by hand turns it off.
+  const [followPlayhead, setFollowPlayhead] = useState(true);
   const [dragKind, setDragKind] = useState<DragKind>(null);
   const totalDuration = Math.max(0.01, duration);
   const projectDuration = totalDuration + (outroEnabled ? OUTRO_DUR : 0);

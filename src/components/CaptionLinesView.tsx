@@ -63,25 +63,28 @@ export const CaptionLinesView: React.FC<Props> = (p) => {
     return () => ro.disconnect();
   }, []);
 
-  // Keep the current line in view when it changes (playback or a jump).
+  // Keep the current line in the vertical center: padding above and below lets
+  // even the first and last lines reach the middle. Moving on to the next line
+  // scrolls smoothly; a big jump (e.g. clicking far away) moves instantly.
+  const pad = Math.max(0, viewportH / 2 - ROW_H / 2);
   useEffect(() => {
     const el = listRef.current;
-    if (!el || active < 0) return;
-    const top = active * ROW_H;
-    if (top < el.scrollTop) el.scrollTop = top;
-    else if (top + ROW_H > el.scrollTop + el.clientHeight) el.scrollTop = top + ROW_H - el.clientHeight;
-  }, [active]);
+    if (!el) return;
+    const target = Math.max(0, active) * ROW_H; // row i sits at pad + i*ROW_H, so this centers it
+    const far = Math.abs(target - el.scrollTop) > ROW_H * 12;
+    el.scrollTo({ top: target, behavior: far ? 'auto' : 'smooth' });
+  }, [active, pad]);
 
   const seekRef = useRef(p.onSeekMs);
   seekRef.current = p.onSeekMs;
   const seek = useCallback((ms: number) => seekRef.current(ms), []);
-  const first = Math.max(0, Math.floor(scrollTop / ROW_H) - OVERSCAN);
-  const last = Math.min(lines.length, Math.ceil((scrollTop + viewportH) / ROW_H) + OVERSCAN);
+  const first = Math.max(0, Math.floor((scrollTop - pad) / ROW_H) - OVERSCAN);
+  const last = Math.min(lines.length, Math.ceil((scrollTop - pad + viewportH) / ROW_H) + OVERSCAN);
   // Same elements between playhead ticks unless the window, current line or cuts change.
   const rows = useMemo(() => lines.slice(first, last).map((line, k) => {
     const i = first + k;
-    return <LineRow key={`${line.start}-${i}`} line={line} top={i * ROW_H} active={i === active} cuts={activeCuts} onSeekMs={seek} />;
-  }), [lines, first, last, active, activeCuts, seek]);
+    return <LineRow key={`${line.start}-${i}`} line={line} top={pad + i * ROW_H} active={i === active} cuts={activeCuts} onSeekMs={seek} />;
+  }), [lines, first, last, active, activeCuts, seek, pad]);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
@@ -91,7 +94,7 @@ export const CaptionLinesView: React.FC<Props> = (p) => {
         onScroll={(e) => setScrollTop(e.currentTarget.scrollTop)}
         style={{ height: 'calc(100vh - 300px)', minHeight: 200, overflowY: 'auto', border: '1px solid #222', borderRadius: 6, position: 'relative' }}
       >
-        <div style={{ height: lines.length * ROW_H, position: 'relative' }}>{rows}</div>
+        <div style={{ height: lines.length * ROW_H + pad * 2, position: 'relative' }}>{rows}</div>
       </div>
     </div>
   );
