@@ -55,7 +55,7 @@ export function resolvePython(): string {
 /** Transcription child processes by the project folder they work in, so deleting a project can stop them. */
 const runningJobs = new Map<ChildProcess, string>();
 
-function trackJob(proc: ChildProcess, dir: string) {
+export function trackJob(proc: ChildProcess, dir: string) {
   runningJobs.set(proc, dir);
   proc.once('exit', () => runningJobs.delete(proc));
   proc.once('error', () => runningJobs.delete(proc));

@@ -52,7 +52,8 @@ function coverage(words: TimedWord[], voiced: Uint8Array, rate: number, shiftMs:
 
 export interface AlignResult { words: TimedWord[]; shiftMs: number; coverageBefore: number; coverageAfter: number }
 
-export function alignWordsToAudio(input: TimedWord[], peaks: Uint8Array, rate: number): AlignResult {
+/** `findShift: false` when the times are already exact (forced alignment): only fit the edges. */
+export function alignWordsToAudio(input: TimedWord[], peaks: Uint8Array, rate: number, options: { findShift?: boolean } = {}): AlignResult {
   const words = input.map((w) => ({ ...w }));
   if (words.length === 0 || peaks.length === 0) return { words, shiftMs: 0, coverageBefore: 0, coverageAfter: 0 };
   const floor = percentile(peaks, 0.3);
@@ -64,7 +65,7 @@ export function alignWordsToAudio(input: TimedWord[], peaks: Uint8Array, rate: n
   const coverageBefore = coverage(words, voiced, rate, 0);
   let shiftMs = 0;
   let best = coverageBefore;
-  for (let s = -MAX_SHIFT_MS; s <= MAX_SHIFT_MS; s += SHIFT_STEP_MS) {
+  for (let s = -MAX_SHIFT_MS; options.findShift !== false && s <= MAX_SHIFT_MS; s += SHIFT_STEP_MS) {
     const c = coverage(words, voiced, rate, s);
     if (c > best + 1e-4) { best = c; shiftMs = s; }
   }

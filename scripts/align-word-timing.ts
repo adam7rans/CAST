@@ -1,16 +1,19 @@
 /**
- * Fit word times in existing projects' captions to the actual sound (see
- * server/wordTiming.ts). New transcripts are aligned automatically.
+ * Re-time the words in existing projects' captions: forced alignment places
+ * each word where its sounds are, then a loudness pass fits the edges (see
+ * server/transcriptAlign.ts). New transcripts are aligned automatically.
+ *
+ * It always starts from Parakeet's original timings: the oldest
+ * caption.before-align-*.json backup if there is one, else caption.json.
  *
  *   npx tsx scripts/align-word-timing.ts <project-id> [...more] [--write]
  *
  * Without --write it only reports what would change. With --write it saves a
  * backup next to the captions (caption.before-align-<time>.json) first.
- * Running it twice is harmless: an aligned transcript barely moves.
  */
 import * as fs from 'fs';
 import * as path from 'path';
-import { alignTranscriptWithPeaks } from '../server/transcriptAlign.js';
+import { alignTranscript } from '../server/transcriptAlign.js';
 import { waveformPeaks } from '../server/waveformPeaks.js';
 
 const args = process.argv.slice(2);
@@ -39,11 +42,16 @@ for (const id of ids) {
   const media = mediaFile(dir);
   if (!media) { console.log(`${id}: no media file, skipped`); continue; }
   const original = fs.readFileSync(file, 'utf8');
-  const transcript = JSON.parse(original);
+  const backups = fs.readdirSync(dir).filter((f) => f.startsWith('caption.before-align-')).sort();
+  const source = backups.length ? path.join(dir, backups[0]) : file;
+  const transcript = JSON.parse(fs.readFileSync(source, 'utf8'));
+  console.log(`${id}: starting from ${path.basename(source)}`);
   const peaks = new Uint8Array(await waveformPeaks(dir, media));
-  const result = alignTranscriptWithPeaks(transcript, peaks);
+  const result = await alignTranscript(transcript, media, peaks);
   if (!result) { console.log(`${id}: no words, skipped`); continue; }
-  console.log(`${id}: shifted ${result.shiftMs} ms; sound inside words ${result.coverageBefore.toFixed(2)} → ${result.coverageAfter.toFixed(2)}`);
+  console.log(result.forced
+    ? `${id}: forced alignment placed ${result.forcedAligned} words; edges fitted`
+    : `${id}: aligner model not installed — loudness-only (shifted ${result.shiftMs} ms)`);
   if (write) {
     const stamp = new Date().toISOString().replace(/[:.]/g, '-');
     fs.writeFileSync(path.join(dir, `caption.before-align-${stamp}.json`), original);

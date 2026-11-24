@@ -26,7 +26,8 @@ async function runFromAudioFile(
   const { transcript } = await runParakeet(audioPath, (message) => {
     onEvent({ type: 'polling', status: message, message });
   });
-  await alignTranscriptToAudio(transcript, audioPath); // fit word times to the actual sound
+  onEvent({ type: 'polling', status: 'Timing each word…', message: 'Timing each word to the audio…' });
+  await alignTranscriptToAudio(transcript, audioPath); // word-exact timing (forced alignment + edge fit)
   applyTranscriptRules(transcript); // e.g. "source" → "SOURCE" outside "open source"
   fs.writeFileSync(transcriptPath, JSON.stringify(transcript, null, 2));
   onEvent({ type: 'done', message: '✓ Captions ready!' });
